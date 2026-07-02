@@ -40,7 +40,8 @@ export const STYLE_PREVIEWS: Record<string, LookPreview> = {
   commercial: {
     id: 'commercial',
     label: 'Commercial',
-    clip: undefined,
+    clip: '/clips/style-commercial.mp4', // Sebastien's real sample
+
     // Clean silver-white sheen with a single bright sweep, pristine product light.
     poster:
       'linear-gradient(118deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.9) 46%, rgba(255,255,255,0) 62%), linear-gradient(180deg, #f4f6f8 0%, #d9dde2 55%, #b3b9c1 100%)',
@@ -56,7 +57,8 @@ export const STYLE_PREVIEWS: Record<string, LookPreview> = {
   noir: {
     id: 'noir',
     label: 'Noir',
-    clip: undefined,
+    clip: '/clips/style-noir.mp4', // Sebastien's real sample
+
     // Near-black frame cut by one hard white diagonal key streak.
     poster:
       'linear-gradient(118deg, rgba(255,255,255,0) 42%, rgba(244,244,246,0.85) 49%, rgba(255,255,255,0.95) 51%, rgba(228,228,232,0.75) 53%, rgba(255,255,255,0) 60%), linear-gradient(150deg, #0b0c10 0%, #111318 45%, #030304 100%)',
