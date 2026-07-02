@@ -18,10 +18,11 @@ visitor/member pricing states go live.
 4. No tables/SQL required: entitlement lives in each user's `app_metadata.cma_plan`,
    written only by the Stripe webhook via the service-role key (users can't edit it).
 
-## 2. Academy gate
+## 2. Signups
 
-Set `NEXT_PUBLIC_ACADEMY_ALLOWED_DOMAINS` to the email domain(s) allowed in, e.g.
-`cinemasteracademy.com`. Blank = fails closed in production.
+`NEXT_PUBLIC_ACADEMY_ALLOWED_DOMAINS` is **blank on purpose = signups are open
+to everyone** (the paywall is the real gate). Only set a domain here if you ever
+want to restrict the platform to specific email domains again.
 
 ## 3. Stripe (Cinemaster Academy account)
 
@@ -45,17 +46,19 @@ Set `NEXT_PUBLIC_ACADEMY_ALLOWED_DOMAINS` to the email domain(s) allowed in, e.g
    - Copy the **Signing secret** → `STRIPE_WEBHOOK_SECRET`.
 4. Set `NEXT_PUBLIC_SITE_URL` to your deployed URL (for checkout redirects).
 
-## 4. Turn the paywall on
+## 4. Paywall
 
-Set `CMA_REQUIRE_ENTITLEMENT=true`. Now `/api/generate` returns **402** for any
-signed-in user without an active `cma_plan` — i.e. rendering requires a paid
-subscription. (Leave it `false` while you test the flow.)
+Nothing to flip: the paywall is **always on** in code (`lib/authGuard.ts` —
+every render/storage route returns **402** without an active `cma_plan`).
+The moment the webhook writes a plan, that user renders.
 
 ## 5. Deploy
 
-On Cloudflare Pages, add ALL the above as environment variables in the
-**Production** build environment (the `NEXT_PUBLIC_*` ones are inlined at build,
-so they must be present when it builds). Redeploy.
+The app runs on **Cloudflare Workers** (OpenNext, git-connected — push to main
+deploys). Public `NEXT_PUBLIC_*` values are committed in `.env.production` +
+`wrangler.jsonc` vars; the SECRETS above go in the Worker dashboard
+(Settings → Variables → encrypted) or `npx wrangler secret put NAME` — never
+in the repo. See docs/GO-LIVE.md for the full session checklist.
 
 ---
 

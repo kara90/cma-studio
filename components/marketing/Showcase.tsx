@@ -115,6 +115,16 @@ function Tile({ item, span }: { item: ShowcaseItem; span: string }) {
         </span>
       )}
 
+      {/* spec chip, top right, for concept pieces referencing an existing brand */}
+      {item.disclaimer && (
+        <span
+          title={item.disclaimer}
+          className="absolute top-3 right-3 rounded-lg border border-white/10 bg-black/45 px-2 py-1 font-mono text-[11px] tracking-[0.12em] text-[#c7c2b8] uppercase backdrop-blur-sm"
+        >
+          spec
+        </span>
+      )}
+
       {/* hover overlay: title + author */}
       <figcaption className="absolute inset-x-0 bottom-0 flex flex-col gap-0.5 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-4 pt-10 pb-3.5 opacity-0 transition duration-300 group-hover:opacity-100">
         <span className="font-[family-name:var(--font-sora)] text-[14px] font-semibold tracking-[-0.01em] text-[#f4efe6]">
@@ -122,6 +132,9 @@ function Tile({ item, span }: { item: ShowcaseItem; span: string }) {
         </span>
         {item.author && (
           <span className="font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">{item.author}</span>
+        )}
+        {item.disclaimer && (
+          <span className="mt-1 text-[11px] leading-snug text-[#8b8f99]">{item.disclaimer}</span>
         )}
       </figcaption>
     </figure>
@@ -148,6 +161,13 @@ export function Showcase() {
           ))}
         </div>
       </Reveal>
+
+      {ITEMS.some((item) => item.disclaimer) && (
+        <p className="mt-4 text-center text-[12px] leading-relaxed text-[#5b5f6a]">
+          Pieces marked &ldquo;spec&rdquo; are unsolicited creative exercises. Any brands shown are not affiliated
+          with, sponsoring or endorsing CMA Studio.
+        </p>
+      )}
     </section>
   );
 }

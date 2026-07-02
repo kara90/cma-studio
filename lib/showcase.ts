@@ -34,6 +34,12 @@ export interface ShowcaseItem {
   /** CSS background value (gradient) used as the tile poster. */
   poster: string;
   author?: string;
+  /**
+   * Legal note for spec/concept pieces that reference an existing brand.
+   * Renders a "spec" chip on the tile + this sentence in the hover caption,
+   * and switches on the section-wide non-affiliation footnote.
+   */
+  disclaimer?: string;
 }
 
 // Every tile below carries a REAL render (Sebastien's clips, compressed for
@@ -101,5 +107,15 @@ export const ITEMS: ShowcaseItem[] = [
     poster:
       'radial-gradient(80% 60% at 20% 20%, rgba(212,70,150,0.45) 0%, transparent 55%), radial-gradient(90% 70% at 85% 80%, rgba(52,180,196,0.4) 0%, transparent 60%), linear-gradient(135deg, #0a0714 0%, #14102a 100%)',
     author: 'CineMaster',
+  },
+  {
+    id: 'spec-fragrance',
+    title: 'Fragrance — spec ad',
+    kind: 'video',
+    src: '/clips/showcase-spec-fragrance.mp4',
+    poster:
+      'radial-gradient(90% 70% at 70% 20%, rgba(188,152,99,0.45) 0%, transparent 55%), linear-gradient(160deg, #04070f 0%, #0a1226 55%, #1a1408 100%)',
+    author: 'CineMaster',
+    disclaimer: 'Spec work — a creative exercise. Not affiliated with, sponsored or endorsed by the brand shown.',
   },
 ];
