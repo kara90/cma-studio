@@ -53,6 +53,7 @@ export default function PricingPage() {
             <a href="/faq" className="transition hover:text-[#e7cfa3]">FAQ</a>
             <a href="/privacy" className="transition hover:text-[#e7cfa3]">Privacy</a>
             <a href="/terms" className="transition hover:text-[#e7cfa3]">Terms</a>
+            <a href="/refunds" className="transition hover:text-[#e7cfa3]">Refunds</a>
             <a href="mailto:hello@cinemasteracademy.com?subject=CMA%20Studio%20Pro" className="transition hover:text-[#e7cfa3]">
               Any questions? Contact us
             </a>

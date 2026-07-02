@@ -68,7 +68,7 @@ const SECTIONS: LegalSection[] = [
       'Use of the Service requires a paid subscription. Subscriptions are flat software fees billed through Stripe, our payment processor, on the billing cycle you select. The subscription covers the software only. Compute is never included and is addressed in Section 6.',
       'Prices, plans and included features may change as the platform evolves. We will announce changes in advance, and they will take effect from your next billing cycle. Your continued use of the Service after a change takes effect constitutes acceptance of the change. If you do not agree with a change, you may cancel your subscription before the next cycle begins.',
       'Prices exclude taxes unless we state otherwise. You are responsible for any sales, use, VAT or similar taxes that apply to your subscription, which may be collected through Stripe.',
-      'Subscription fees are not refundable for partial billing periods, except where applicable law requires a refund. You can cancel at any time; cancellation stops future charges, and your access continues until the end of the period you have already paid for.',
+      'Refunds and cancellation are governed by our Refund & Cancellation Policy (available at /refunds), which forms part of these Terms. In short: monthly plans cancel anytime and simply stop renewing, with access through the paid month; yearly plans are non-refundable except for an extended platform outage on our side or where applicable law requires otherwise. Cancellation always stops future charges, and your access continues until the end of the period you have already paid for.',
     ],
   },
   {

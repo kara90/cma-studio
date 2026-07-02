@@ -58,6 +58,16 @@ Note: the render paywall is **always on** in code (`lib/authGuard.ts`
 verifyAccess → 402 without an active plan). There is no flag to flip — the
 moment Stripe works, the business works.
 
+4. **Customer Billing Portal** (required by the Refund & Cancellation Policy
+   and by "click-to-cancel" rules — cancelling must be as easy as subscribing):
+   Stripe dashboard → Settings → Billing → Customer portal → enable, allow
+   subscription cancellation. Then add a "Manage billing" link in the app
+   (a tiny `/api/portal` route creating a portal session — ~20 lines, do when
+   Stripe keys exist).
+5. **Yearly renewal reminders** (promised in the Refund Policy): Stripe
+   dashboard → Settings → Billing → Subscriptions → enable upcoming-renewal
+   emails for yearly subscriptions.
+
 ## 5. Edge protection
 
 - WAF: enable the Managed Ruleset + a Rate-Limiting rule on `/api/*`
@@ -93,11 +103,19 @@ Public details → set the Terms of Service URL, then add
 `app/api/checkout/route.ts`. Do NOT add the code before the dashboard URL is
 set — Stripe rejects the session otherwise.
 
+## DMCA designated agent (do BEFORE launch — not a counsel task)
+
+We host user renders in /files TODAY. Without a registered designated agent
+there is NO §512 safe harbor at all — the takedown channel in the Terms is
+voluntary and does not substitute. It is a self-serve ~$6 filing Sebastien can
+do himself: https://www.copyright.gov/dmca-directory/ → register CineMaster
+Academy + the agent email (hello@cinemasteracademy.com). Ten minutes.
+
 ## Blocked on people, not dashboards
 
-- Legal counsel: entity/LLC, DMCA agent registration (~$6, copyright.gov),
-  arbitration clause, governing law. (Clickwrap at signup is BUILT — counsel
-  just reviews the wording.)
+- Legal counsel: entity/LLC, arbitration clause, governing law (Terms §19 is
+  a placeholder). (Clickwrap at signup and the Refund & Cancellation Policy
+  are BUILT — counsel just reviews the wording.)
 - Final pricing numbers + plan retention windows (placeholders live in
   `lib/plans.ts` / `lib/retention.ts`).
 - Extra showcase media whenever ready (drop into `lib/showcase.ts` /

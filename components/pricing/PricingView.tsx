@@ -166,12 +166,17 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
         By subscribing you agree to the{' '}
         <Link href="/terms" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
           Terms of Service
-        </Link>{' '}
-        and{' '}
+        </Link>
+        ,{' '}
         <Link href="/privacy" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
           Privacy Policy
+        </Link>{' '}
+        and{' '}
+        <Link href="/refunds" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
+          Refund &amp; Cancellation Policy
         </Link>
-        .
+        . Every plan renews automatically at the end of its period, at the then-current price, until you cancel —
+        cancelling takes one click or one email. Monthly plans cancel anytime; yearly plans are non-refundable.
       </p>
     </div>
   );

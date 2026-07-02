@@ -27,6 +27,7 @@ export default function FaqPage() {
           <div className="flex items-center gap-5">
             <a href="/privacy" className="transition hover:text-[#e7cfa3]">Privacy</a>
             <a href="/terms" className="transition hover:text-[#e7cfa3]">Terms</a>
+            <a href="/refunds" className="transition hover:text-[#e7cfa3]">Refunds</a>
             <a href="mailto:hello@cinemasteracademy.com?subject=CMA%20Studio" className="transition hover:text-[#e7cfa3]">
               Contact us
             </a>

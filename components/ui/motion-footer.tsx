@@ -222,6 +222,9 @@ export function CinematicFooter() {
                 <MagneticButton as="a" href="/terms" className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
                   Terms
                 </MagneticButton>
+                <MagneticButton as="a" href="/refunds" className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
+                  Refunds
+                </MagneticButton>
               </div>
             </div>
           </div>

@@ -68,11 +68,19 @@ const GROUPS: readonly FaqGroup[] = [
         q: 'Do prices ever change?',
         a: 'Plans cover today’s toolset and may evolve as new tools join the family. Any change is announced before your next billing cycle, so you always decide with the new terms in front of you.',
       },
+      {
+        q: 'What about refunds?',
+        a: 'Monthly plans cancel anytime: you keep access to the end of the paid month and are never charged again. Yearly plans are discounted for the commitment and are non-refundable, with one exception — if the platform itself stops working for an extended period because of us, we refund the unused time. Compute is billed by fal.ai on your own key, so it is never ours to refund. The full rules live in the Refund & Cancellation Policy.',
+      },
     ],
   },
   {
     label: 'Rendering',
     items: [
+      {
+        q: 'Can I control the first and last frame of a shot?',
+        a: 'Yes. Drop a start frame into any video generator and the platform automatically switches to that model’s image-to-video mode; on models that support it (Seedance 2, Kling, Veo 3.1) you can pin an end frame too and the model builds the transition between them. Image models accept a reference image the same way.',
+      },
       {
         q: 'Can a generation be blocked or fail?',
         a: 'Yes. Every model enforces its own content rules and can decline a request, and even a clean request can occasionally miss. A blocked or imperfect generation may still consume compute on your fal account; that charge sits between you and the model provider, so it is not something we can refund.',
