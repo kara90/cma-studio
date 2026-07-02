@@ -62,6 +62,7 @@ import {
 import { DEFAULT_MODEL, findModel } from '@/lib/modelRegistry';
 import { getModelCaps, fmtRes, fmtDur, fmtAspect } from '@/lib/modelCaps';
 import { DrumSelector } from '@/components/studio/DrumSelector';
+import { DurationDial } from '@/components/studio/DurationDial';
 import { ApiKeyVault } from '@/components/studio/ApiKeyVault';
 import { ScopeViewer } from '@/components/studio/ScopeViewer';
 import { ModelBrowser } from '@/components/studio/ModelBrowser';
@@ -680,8 +681,8 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
           </p>
         </div>
       )}
-      {caps.durations.length > 0 && (
-        <ChipRow label="Length" options={caps.durations.map((v) => ({ id: v, label: fmtDur(v) }))} value={duration} onChange={setDuration} />
+      {(caps.durations.length > 0 || caps.durationRange) && (
+        <DurationDial caps={caps} value={duration} onChange={setDuration} />
       )}
       {/* sound on/off — only for models with a real generate_audio switch */}
       {caps.audioParam && (
@@ -896,7 +897,7 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
             allManual ? 'bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] text-black' : 'text-[#8b8f99] hover:text-[#e7cfa3]'
           }`}
         >
-          <SlidersHorizontal size={15} /> Manual
+          <SlidersHorizontal size={15} /> Pro
           <span className={`font-mono text-[9px] tracking-[0.14em] uppercase ${allManual ? 'opacity-70' : 'opacity-50'}`}>full control</span>
         </button>
       </div>

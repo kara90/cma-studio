@@ -205,6 +205,9 @@ export function CinematicFooter() {
                 <MagneticButton as="a" href={CONTACT} className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
                   Any questions? Contact us
                 </MagneticButton>
+                <MagneticButton as="a" href="/faq" className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
+                  FAQ
+                </MagneticButton>
                 <MagneticButton as="a" href="/privacy" className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
                   Privacy
                 </MagneticButton>

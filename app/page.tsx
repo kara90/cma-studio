@@ -14,7 +14,6 @@ import { Reveal } from '@/components/Reveal';
 import { CinematicFooter } from '@/components/ui/motion-footer';
 import { SiteHeader } from '@/components/SiteHeader';
 import { Pillars } from '@/components/marketing/Pillars';
-import { Faq } from '@/components/marketing/Faq';
 import { Showcase } from '@/components/marketing/Showcase';
 import { Particles } from '@/components/Particles';
 import { BlurText } from '@/components/BlurText';
@@ -69,8 +68,8 @@ const TOOLS = [
   {
     href: '/studio',
     icon: Clapperboard,
-    title: 'Studio',
-    body: 'A server-side DP engine that turns real camera, lens and lighting choices into the shot.',
+    title: 'Studio Pro',
+    body: 'A server-side DP engine built on 21+ years behind the camera as a working Director of Photography. Real camera, lens and lighting choices become the shot.',
     flagship: true,
   },
 ] as const;
@@ -84,6 +83,24 @@ export default function Home() {
       <main className="relative z-10">
         {/* hero */}
         <section className="relative mx-auto max-w-4xl px-6 pt-16 pb-14 text-center sm:pt-24">
+          {/* hero background film — Sebastien's render, feathered top and bottom so
+              the edges disappear into the page (standing rule: no hard video edges) */}
+          <div className="pointer-events-none absolute inset-x-0 -top-8 -bottom-8 -z-[2] overflow-hidden" aria-hidden="true">
+            <video
+              src="/clips/home-hero.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className="h-full w-full object-cover opacity-40 motion-reduce:hidden"
+              style={{
+                maskImage: 'linear-gradient(180deg, transparent 0%, #000 20%, #000 76%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(180deg, transparent 0%, #000 20%, #000 76%, transparent 100%)',
+              }}
+            />
+            <div className="absolute inset-0 bg-black/40" />
+          </div>
           {/* drifting gold particles behind the hero */}
           <Particles className="pointer-events-none absolute inset-0 -z-[1]" count={80} />
           <Reveal>
@@ -229,8 +246,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* honest answers for cold traffic */}
-        <Faq />
 
         {/* mission / beta */}
         <section className="mx-auto max-w-3xl px-6 py-20 text-center">

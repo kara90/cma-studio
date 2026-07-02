@@ -25,6 +25,12 @@ export interface ModelCaps {
    * Number(value) instead of the string so the request can't 422 on type.
    */
   durationNumeric?: boolean;
+  /**
+   * Free numeric duration window (schema min/max) for models whose param is an
+   * unrestricted number — unlocks second-by-second control on the DurationDial
+   * (the `durations` presets become tick marks). Requires durationNumeric.
+   */
+  durationRange?: { min: number; max: number };
   aspectParam: string | null;
   aspects: readonly string[];
   aspectDefault: string | null;
@@ -68,9 +74,10 @@ const CORE_ASPECTS = ['16:9', '9:16', '1:1'] as const;
 
 // Seedance 2.0 (full) accepts up to 4K per Fal's live schema; the /fast tier is
 // genuinely capped at 720p. (Verified against the OpenAPI schema 2026-07-01.)
+// duration: fal accepts EVERY second 4-15 (re-verified 2026-07-02) — full control.
 const SEEDANCE_FULL: ModelCaps = {
   resolutionParam: 'resolution', resolutions: ['480p', '720p', '1080p', '4k'], resolutionDefault: '720p',
-  durationParam: 'duration', durations: ['auto', '5', '10', '15'], durationDefault: 'auto',
+  durationParam: 'duration', durations: ['auto', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'], durationDefault: 'auto',
   aspectParam: 'aspect_ratio', aspects: CORE_ASPECTS, aspectDefault: '16:9',
   supportsSeed: true, supportsNegativePrompt: false,
   audioParam: 'generate_audio', audioDefault: true, // audio included in seedance pricing
@@ -78,7 +85,7 @@ const SEEDANCE_FULL: ModelCaps = {
 };
 const SEEDANCE_FAST: ModelCaps = {
   resolutionParam: 'resolution', resolutions: ['480p', '720p'], resolutionDefault: '720p',
-  durationParam: 'duration', durations: ['auto', '5', '10', '15'], durationDefault: 'auto',
+  durationParam: 'duration', durations: ['auto', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'], durationDefault: 'auto',
   aspectParam: 'aspect_ratio', aspects: CORE_ASPECTS, aspectDefault: '16:9',
   supportsSeed: true, supportsNegativePrompt: false,
   audioParam: 'generate_audio', audioDefault: true,
@@ -103,7 +110,8 @@ export const MODEL_CAPS: Record<string, ModelCaps> = {
   },
   'kling-3': {
     resolutionParam: null, resolutions: [], resolutionDefault: null,
-    durationParam: 'duration', durations: ['5', '10', '15'], durationDefault: '5',
+    // fal accepts every second 3-15 on the o3 tier (re-verified 2026-07-02).
+    durationParam: 'duration', durations: ['3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'], durationDefault: '5',
     aspectParam: 'aspect_ratio', aspects: CORE_ASPECTS, aspectDefault: '16:9',
     supportsSeed: false, supportsNegativePrompt: false,
     audioParam: 'generate_audio', audioDefault: false, // fal's own o3 default
@@ -165,14 +173,14 @@ export const MODEL_CAPS: Record<string, ModelCaps> = {
   'stable-audio-25': {
     // seconds_total is an INTEGER 1-190 (fal default is the 190 MAX — we never send that blind).
     resolutionParam: null, resolutions: [], resolutionDefault: null,
-    durationParam: 'seconds_total', durations: ['10', '30', '60', '120', '190'], durationDefault: '30', durationNumeric: true,
+    durationParam: 'seconds_total', durations: ['10', '30', '60', '120', '190'], durationDefault: '30', durationNumeric: true, durationRange: { min: 1, max: 190 },
     aspectParam: null, aspects: [], aspectDefault: null,
     supportsSeed: true, supportsNegativePrompt: false,
   },
   'ace-step': {
     // duration is a NUMBER 5-240 seconds, default 60.
     resolutionParam: null, resolutions: [], resolutionDefault: null,
-    durationParam: 'duration', durations: ['30', '60', '120', '240'], durationDefault: '60', durationNumeric: true,
+    durationParam: 'duration', durations: ['30', '60', '120', '240'], durationDefault: '60', durationNumeric: true, durationRange: { min: 5, max: 240 },
     aspectParam: null, aspects: [], aspectDefault: null,
     supportsSeed: true, supportsNegativePrompt: false,
   },

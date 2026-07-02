@@ -54,6 +54,7 @@ export default function PricingPage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 font-mono text-[12px] tracking-[0.04em] text-[#8b909e] sm:flex-row">
           <span>© 2026 CineMaster Academy · CMA Studio Pro</span>
           <div className="flex items-center gap-5">
+            <a href="/faq" className="transition hover:text-[#e7cfa3]">FAQ</a>
             <a href="/privacy" className="transition hover:text-[#e7cfa3]">Privacy</a>
             <a href="/terms" className="transition hover:text-[#e7cfa3]">Terms</a>
             <a href="mailto:hello@cinemasteracademy.com?subject=CMA%20Studio%20Pro" className="transition hover:text-[#e7cfa3]">

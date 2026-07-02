@@ -31,7 +31,8 @@ export const STYLE_PREVIEWS: Record<string, LookPreview> = {
   cinematic: {
     id: 'cinematic',
     label: 'Cinematic',
-    clip: undefined,
+    clip: '/clips/style-cinematic.mp4', // Sebastien's real sample, compressed for web
+
     // Deep teal shadows rolling into amber highlights, the blockbuster split tone.
     poster:
       'radial-gradient(120% 90% at 78% 28%, rgba(222,160,84,0.55) 0%, rgba(222,160,84,0) 55%), linear-gradient(108deg, #071f27 0%, #0d3844 46%, #4c3a20 76%, #b0803c 100%)',
@@ -91,7 +92,8 @@ export const LIGHTING_PREVIEWS: Record<string, LookPreview> = {
   'action-high-motion': {
     id: 'action-high-motion',
     label: 'Action',
-    clip: undefined,
+    clip: '/clips/style-action.mp4', // Sebastien's real sample, compressed for web
+
     // High-contrast orange against teal with a hot diagonal motion streak.
     poster:
       'linear-gradient(102deg, rgba(255,150,60,0) 40%, rgba(255,150,60,0.85) 50%, rgba(255,196,120,0.55) 55%, rgba(255,150,60,0) 66%), linear-gradient(102deg, #06222c 0%, #0d3d4d 45%, #7a3c12 78%, #d96f24 100%)',

@@ -26,6 +26,7 @@ import { Sparkles, AlertTriangle, Download, ArrowRight, ImagePlus, X } from 'luc
 import { downloadRender, renderFilename } from '@/lib/download';
 import { findModel } from '@/lib/modelRegistry';
 import { getModelCaps, fmtRes, fmtDur, fmtAspect } from '@/lib/modelCaps';
+import { DurationDial } from '@/components/studio/DurationDial';
 import { uploadToFal } from '@/lib/falUpload';
 import { ModelPicker } from '@/components/studio/ModelPicker';
 import { ApiKeyVault } from '@/components/studio/ApiKeyVault';
@@ -496,8 +497,8 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
                 </p>
               </div>
             )}
-            {caps.durations.length > 0 && (
-              <ChipRow label="Length" options={caps.durations.map((v) => ({ id: v, label: fmtDur(v) }))} value={duration} onChange={setDuration} />
+            {(caps.durations.length > 0 || caps.durationRange) && (
+              <DurationDial caps={caps} value={duration} onChange={setDuration} />
             )}
             {caps.audioParam && (
               <div>

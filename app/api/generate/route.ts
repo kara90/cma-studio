@@ -135,9 +135,16 @@ export async function POST(request: Request) {
       const r = body.resolution && audioCaps.resolutions.includes(body.resolution) ? body.resolution : audioCaps.resolutionDefault;
       if (r) audioBody[audioCaps.resolutionParam] = r;
     }
-    if (audioCaps.durationParam && audioCaps.durations.length) {
-      const d = body.duration && audioCaps.durations.includes(body.duration) ? body.duration : audioCaps.durationDefault;
-      if (d && d !== 'auto') audioBody[audioCaps.durationParam] = audioCaps.durationNumeric ? Number(d) : d;
+    if (audioCaps.durationParam) {
+      // free numeric window (Stable Audio 1-190s, ACE-Step 5-240s): clamp to the
+      // schema's real bounds; enum models validate against the exact stop list.
+      if (audioCaps.durationRange && body.duration && /^\d+$/.test(body.duration)) {
+        const n = Math.min(audioCaps.durationRange.max, Math.max(audioCaps.durationRange.min, Number(body.duration)));
+        audioBody[audioCaps.durationParam] = n;
+      } else if (audioCaps.durations.length) {
+        const d = body.duration && audioCaps.durations.includes(body.duration) ? body.duration : audioCaps.durationDefault;
+        if (d && d !== 'auto') audioBody[audioCaps.durationParam] = audioCaps.durationNumeric ? Number(d) : d;
+      }
     }
     if (audioCaps.supportsNegativePrompt && body.negativePrompt) audioBody.negative_prompt = body.negativePrompt;
     if (audioCaps.supportsSeed && typeof body.seed === 'number' && Number.isFinite(body.seed)) {
@@ -275,10 +282,16 @@ export async function POST(request: Request) {
     const r = body.resolution && caps.resolutions.includes(body.resolution) ? body.resolution : caps.resolutionDefault;
     if (r) falBody[caps.resolutionParam] = r;
   }
-  if (caps.durationParam && caps.durations.length) {
-    const d = body.duration && caps.durations.includes(body.duration) ? body.duration : caps.durationDefault;
-    // 'auto' → omit, let the model choose. Numeric-schema params get a real number.
-    if (d && d !== 'auto') falBody[caps.durationParam] = caps.durationNumeric ? Number(d) : d;
+  if (caps.durationParam) {
+    if (caps.durationRange && body.duration && /^\d+$/.test(body.duration)) {
+      // free numeric window — clamp to the schema's real bounds
+      const n = Math.min(caps.durationRange.max, Math.max(caps.durationRange.min, Number(body.duration)));
+      falBody[caps.durationParam] = n;
+    } else if (caps.durations.length) {
+      const d = body.duration && caps.durations.includes(body.duration) ? body.duration : caps.durationDefault;
+      // 'auto' → omit, let the model choose. Numeric-schema params get a real number.
+      if (d && d !== 'auto') falBody[caps.durationParam] = caps.durationNumeric ? Number(d) : d;
+    }
   }
   if (caps.supportsNegativePrompt && body.negativePrompt) {
     falBody.negative_prompt = body.negativePrompt;

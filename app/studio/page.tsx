@@ -78,6 +78,9 @@ export default function StudioPage() {
       </header>
 
       <main className="p-5">
+        <p className="mx-auto mb-5 max-w-2xl text-center font-mono text-[11px] leading-relaxed tracking-[0.08em] text-[#8b909e] uppercase">
+          Engineered on <span className="text-[#e7cfa3]">21+ years behind the camera</span> as a working Director of Photography
+        </p>
         <StudioConsole />
       </main>
 

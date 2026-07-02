@@ -39,11 +39,12 @@ export interface ShowcaseItem {
 export const ITEMS: ShowcaseItem[] = [
   {
     id: 'anamorphic-night-chase',
-    title: 'Anamorphic night chase',
+    title: 'Made with CMA Studio',
     kind: 'video',
+    src: '/clips/home-showcase.mp4', // Sebastien's real render, compressed for web
     poster:
       'radial-gradient(120% 90% at 80% 15%, rgba(214,120,52,0.55) 0%, transparent 55%), radial-gradient(90% 70% at 15% 85%, rgba(38,74,138,0.5) 0%, transparent 60%), linear-gradient(150deg, #060a16 0%, #0b1430 55%, #1d1206 100%)',
-    author: 'Studio sample',
+    author: 'CineMaster',
   },
   {
     id: 'golden-hour-departure',
