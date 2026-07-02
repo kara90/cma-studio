@@ -18,7 +18,11 @@ export function Particles({ className, count = 46 }: { className?: string; count
     const ctx = canvas?.getContext('2d');
     if (!canvas || !parent || !ctx) return;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Phones: fewer motes + capped DPR — a hero ornament must never warm a
+    // pocket device. Desktop keeps the full field.
+    const isSmall = window.matchMedia('(max-width: 640px)').matches;
+    const dpr = Math.min(window.devicePixelRatio || 1, isSmall ? 1.5 : 2);
+    const particleCount = isSmall ? Math.ceil(count / 2) : count;
     let w = 0;
     let h = 0;
     let raf = 0;
@@ -36,7 +40,7 @@ export function Particles({ className, count = 46 }: { className?: string; count
     resize();
     window.addEventListener('resize', resize);
 
-    const parts = Array.from({ length: count }, () => ({
+    const parts = Array.from({ length: particleCount }, () => ({
       x: Math.random() * w,
       y: Math.random() * h,
       r: Math.random() * 1.8 + 0.5,

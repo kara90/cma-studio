@@ -9,12 +9,55 @@
  * without ever saying placeholder to the end user.
  */
 
+import { useEffect, useRef } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import type { LookPreview } from '@/lib/lookPreviews';
 
 /** Neutral dark gradient shown when an option id has no preview entry. */
 const FALLBACK_POSTER =
   'linear-gradient(135deg, #14161a 0%, #1e2126 55%, #0b0c0f 100%)';
+
+/**
+ * Viewport-gated clip: loads and plays ONLY while near the screen, pauses the
+ * moment it scrolls away. Ten simultaneous decoding loops were cooking phones —
+ * this keeps the battery/thermals honest without losing the living tiles.
+ */
+function InViewClip({ src, poster }: { src: string; poster: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          const v = e.target as HTMLVideoElement;
+          if (e.isIntersecting) {
+            if (!v.src) v.src = v.dataset.src ?? '';
+            v.muted = true;
+            v.play().catch(() => {});
+          } else {
+            v.pause();
+          }
+        }
+      },
+      { rootMargin: '120px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <video
+      ref={ref}
+      data-src={src}
+      muted
+      loop
+      playsInline
+      preload="none"
+      className="h-full w-full object-cover"
+      style={{ background: poster }}
+    />
+  );
+}
 
 export function LookTileRow({
   label,
@@ -71,15 +114,7 @@ export function LookTileRow({
             >
               <div className="relative aspect-video w-full">
                 {playClip ? (
-                  <video
-                    src={clip}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                    className="h-full w-full object-cover"
-                  />
+                  <InViewClip src={clip!} poster={poster} />
                 ) : (
                   <div
                     aria-hidden="true"

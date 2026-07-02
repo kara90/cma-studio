@@ -12,6 +12,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Clapperboard, CreditCard, ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { GetAppButton } from '@/components/PwaProvider';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -209,27 +210,30 @@ export function CinematicFooter() {
                 </MagneticButton>
               </div>
 
-              <div className="flex flex-wrap justify-center gap-3 md:gap-6 w-full mt-2">
-                <MagneticButton as="a" href={CONTACT} className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
+              <div className="flex flex-wrap justify-center gap-2.5 md:gap-6 w-full mt-4 px-4">
+                <MagneticButton as="a" href={CONTACT} className="footer-glass-pill px-5 md:px-6 py-2.5 md:py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
                   Any questions? Contact us
                 </MagneticButton>
-                <MagneticButton as="a" href="/faq" className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
+                <MagneticButton as="a" href="/faq" className="footer-glass-pill px-5 md:px-6 py-2.5 md:py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
                   FAQ
                 </MagneticButton>
-                <MagneticButton as="a" href="/privacy" className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
+                <MagneticButton as="a" href="/privacy" className="footer-glass-pill px-5 md:px-6 py-2.5 md:py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
                   Privacy
                 </MagneticButton>
-                <MagneticButton as="a" href="/terms" className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
+                <MagneticButton as="a" href="/terms" className="footer-glass-pill px-5 md:px-6 py-2.5 md:py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
                   Terms
                 </MagneticButton>
-                <MagneticButton as="a" href="/refunds" className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
+                <MagneticButton as="a" href="/refunds" className="footer-glass-pill px-5 md:px-6 py-2.5 md:py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
                   Refunds
                 </MagneticButton>
+                <GetAppButton className="footer-glass-pill px-5 md:px-6 py-2.5 md:py-3 rounded-full font-medium text-xs md:text-sm text-[#e7cfa3] hover:text-[#f4efe6] cursor-pointer">
+                  Get the app
+                </GetAppButton>
               </div>
             </div>
           </div>
 
-          <div className="relative z-10 w-full px-6 pb-6 flex flex-col items-center gap-2 text-center">
+          <div className="relative z-10 w-full px-6 pb-6 pt-8 flex flex-col items-center gap-2 text-center">
             <span className="font-mono text-[10px] tracking-[0.26em] uppercase text-muted-foreground">The first of many</span>
             <p className="text-muted-foreground text-xs md:text-sm max-w-md leading-relaxed">
               CMA Studio is the first tool in a growing family we are building for serious film production.

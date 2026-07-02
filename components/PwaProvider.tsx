@@ -7,12 +7,15 @@
  *     one-tap native install from a glass banner.
  *   • iOS Safari (no install event by design): the same banner opens a short
  *     "Share → Add to Home Screen" sheet.
- *   • Already installed (standalone) or recently dismissed: renders nothing.
- * Mounted once in the root layout.
+ *   • Already installed (standalone) or recently dismissed: the AUTO banner
+ *     stays away — but the app is never unreachable: any "Get the app" button
+ *     (header menu, home section, footer) dispatches `cma:install`, which
+ *     always answers — native prompt when captured, instruction sheet
+ *     otherwise. Mounted once in the root layout.
  */
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { X, Share, PlusSquare, Download } from 'lucide-react';
+import { X, Share, PlusSquare, Download, MoreVertical, Smartphone } from 'lucide-react';
 
 const DISMISS_KEY = 'cma_pwa_dismissed_at';
 const DISMISS_DAYS = 30;
@@ -34,11 +37,26 @@ function isIos(): boolean {
   return /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
 }
 
+/**
+ * "Get the app" button for any page surface (home section, footers). Explicit
+ * intent — always works, even after the auto banner was dismissed.
+ */
+export function GetAppButton({ className, children }: { className?: string; children?: React.ReactNode }) {
+  const [installed, setInstalled] = useState(false);
+  useEffect(() => setInstalled(isStandalone()), []);
+  if (installed) return null; // already the app — nothing to sell
+  return (
+    <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('cma:install'))} className={className}>
+      {children ?? 'Get the app'}
+    </button>
+  );
+}
+
 export function PwaProvider() {
   const reduce = useReducedMotion();
   const [installEvt, setInstallEvt] = useState<InstallEvent | null>(null);
-  const [show, setShow] = useState(false);
-  const [iosSheet, setIosSheet] = useState(false);
+  const [showBanner, setShowBanner] = useState(false);
+  const [sheet, setSheet] = useState(false);
 
   // Service worker: register once, silently. Never intercepts /api/*.
   useEffect(() => {
@@ -49,19 +67,23 @@ export function PwaProvider() {
 
   useEffect(() => {
     if (isStandalone()) return; // already the app
-    const dismissed = Number(localStorage.getItem(DISMISS_KEY) ?? 0);
-    if (Date.now() - dismissed < DISMISS_DAYS * 86_400_000) return;
 
+    // ALWAYS capture the install event — dismissal only mutes the auto banner,
+    // never the explicit "Get the app" buttons.
     const onPrompt = (e: Event) => {
       e.preventDefault();
       setInstallEvt(e as InstallEvent);
-      setShow(true);
+      const dismissed = Number(localStorage.getItem(DISMISS_KEY) ?? 0);
+      if (Date.now() - dismissed >= DISMISS_DAYS * 86_400_000) setShowBanner(true);
     };
     window.addEventListener('beforeinstallprompt', onPrompt);
 
-    // iOS never fires the event — surface the banner after a beat instead.
+    // iOS never fires the event — auto-surface the banner after a beat instead.
     let t: ReturnType<typeof setTimeout> | undefined;
-    if (isIos()) t = setTimeout(() => setShow(true), 6000);
+    const dismissed = Number(localStorage.getItem(DISMISS_KEY) ?? 0);
+    if (isIos() && Date.now() - dismissed >= DISMISS_DAYS * 86_400_000) {
+      t = setTimeout(() => setShowBanner(true), 6000);
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', onPrompt);
@@ -69,27 +91,42 @@ export function PwaProvider() {
     };
   }, []);
 
+  // Explicit intent from any Get-the-app button anywhere on the site.
+  useEffect(() => {
+    const onWant = () => {
+      if (isStandalone()) return;
+      void triggerInstall(true);
+    };
+    window.addEventListener('cma:install', onWant);
+    return () => window.removeEventListener('cma:install', onWant);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [installEvt]);
+
   const dismiss = () => {
     localStorage.setItem(DISMISS_KEY, String(Date.now()));
-    setShow(false);
-    setIosSheet(false);
+    setShowBanner(false);
+    setSheet(false);
   };
 
-  const install = async () => {
+  const triggerInstall = async (explicit = false) => {
     if (installEvt) {
+      setShowBanner(false);
       await installEvt.prompt();
       const choice = await installEvt.userChoice;
-      if (choice.outcome === 'accepted') setShow(false);
-      else dismiss();
+      if (choice.outcome !== 'accepted' && !explicit) dismiss();
       setInstallEvt(null);
     } else {
-      setIosSheet(true);
+      // No captured event (iOS always; Android before eligibility): show steps.
+      setShowBanner(false);
+      setSheet(true);
     }
   };
 
+  const ios = isIos();
+
   return (
     <AnimatePresence>
-      {show && !iosSheet && (
+      {showBanner && !sheet && (
         <motion.div
           key="banner"
           initial={reduce ? false : { y: 90, opacity: 0 }}
@@ -110,7 +147,7 @@ export function PwaProvider() {
               </div>
             </div>
             <button
-              onClick={install}
+              onClick={() => triggerInstall()}
               className="inline-flex min-h-[40px] cursor-pointer items-center gap-1.5 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-4 py-2 text-[13px] font-semibold text-black transition hover:brightness-105"
             >
               <Download size={14} /> Install
@@ -126,14 +163,14 @@ export function PwaProvider() {
         </motion.div>
       )}
 
-      {iosSheet && (
+      {sheet && (
         <motion.div
-          key="ios-sheet"
+          key="install-sheet"
           initial={reduce ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[75] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center"
-          onClick={dismiss}
+          onClick={() => setSheet(false)}
         >
           <motion.div
             initial={reduce ? false : { y: 60 }}
@@ -150,21 +187,50 @@ export function PwaProvider() {
                 <div className="font-[family-name:var(--font-sora)] text-[16px] font-semibold text-[#f4efe6]">
                   Install CMA Studio
                 </div>
-                <div className="text-[12px] text-[#8b8f99]">Two taps in Safari, no app store needed.</div>
+                <div className="text-[12px] text-[#8b8f99]">
+                  {ios ? 'Two taps in Safari, no app store needed.' : 'Two taps in your browser, no app store needed.'}
+                </div>
               </div>
             </div>
             <ol className="flex flex-col gap-3">
               <li className="flex items-center gap-3 rounded-xl border border-white/8 bg-black/40 px-3.5 py-3 text-[14px] text-[#cfcabf]">
-                <Share size={18} className="shrink-0 text-[#bc9863]" />
-                Tap the <span className="font-semibold text-[#f4efe6]">Share</span> button in the toolbar
+                {ios ? (
+                  <>
+                    <Share size={18} className="shrink-0 text-[#bc9863]" />
+                    <span>
+                      Tap the <span className="font-semibold text-[#f4efe6]">Share</span> button in the toolbar
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <MoreVertical size={18} className="shrink-0 text-[#bc9863]" />
+                    <span>
+                      Open the <span className="font-semibold text-[#f4efe6]">browser menu</span> (⋮)
+                    </span>
+                  </>
+                )}
               </li>
               <li className="flex items-center gap-3 rounded-xl border border-white/8 bg-black/40 px-3.5 py-3 text-[14px] text-[#cfcabf]">
-                <PlusSquare size={18} className="shrink-0 text-[#bc9863]" />
-                Choose <span className="font-semibold text-[#f4efe6]">Add to Home Screen</span>
+                {ios ? (
+                  <>
+                    <PlusSquare size={18} className="shrink-0 text-[#bc9863]" />
+                    <span>
+                      Choose <span className="font-semibold text-[#f4efe6]">Add to Home Screen</span>
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Smartphone size={18} className="shrink-0 text-[#bc9863]" />
+                    <span>
+                      Choose <span className="font-semibold text-[#f4efe6]">Install app</span> or{' '}
+                      <span className="font-semibold text-[#f4efe6]">Add to Home screen</span>
+                    </span>
+                  </>
+                )}
               </li>
             </ol>
             <button
-              onClick={dismiss}
+              onClick={() => setSheet(false)}
               className="mt-5 inline-flex w-full cursor-pointer items-center justify-center rounded-xl border border-white/12 py-3 text-[14px] font-semibold text-[#f4efe6] transition hover:border-[#bc9863]"
             >
               Got it

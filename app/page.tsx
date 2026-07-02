@@ -8,9 +8,11 @@ import {
   Image as ImageIcon,
   KeyRound,
   ShieldCheck,
+  Smartphone,
   Video,
 } from 'lucide-react';
 import { Reveal } from '@/components/Reveal';
+import { GetAppButton } from '@/components/PwaProvider';
 import { StudioConsole } from '@/components/studio/StudioConsole';
 import { CinematicFooter } from '@/components/ui/motion-footer';
 import { SiteHeader } from '@/components/SiteHeader';
@@ -319,6 +321,32 @@ export default function Home() {
               >
                 or start with a free look around →
               </Link>
+            </div>
+          </Reveal>
+        </section>
+
+        {/* ── THE APP — permanently promoted, never lost behind a dismissed banner ── */}
+        <section id="get-the-app" className="mx-auto max-w-4xl scroll-mt-6 px-6 pb-24">
+          <Reveal>
+            <div className="glass glass-gold flex flex-col items-center gap-6 rounded-3xl p-8 text-center sm:p-12">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/icons/icon-192.png" alt="CMA Studio app icon" className="h-16 w-16 rounded-2xl border border-white/10 shadow-[0_14px_40px_rgba(0,0,0,0.6)]" />
+              <div>
+                <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">In your pocket</div>
+                <h2 className="font-[family-name:var(--font-sora)] text-[clamp(1.7rem,4vw,2.6rem)] font-bold tracking-[-0.03em]">
+                  Your DP tools. <span className="text-[#bc9863]">Everywhere.</span>
+                </h2>
+                <p className="mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-[#8b8f99]">
+                  Install CMA Studio on your phone or tablet — same account, same key, same library. Direct a shot
+                  from set, from the car, from anywhere. No app store needed.
+                </p>
+              </div>
+              <GetAppButton className="inline-flex min-h-[48px] cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-8 py-3.5 text-[15px] font-semibold text-black shadow-[0_14px_44px_rgba(188,152,99,0.36)] transition hover:-translate-y-0.5 hover:brightness-105">
+                <Smartphone size={17} /> Get the app
+              </GetAppButton>
+              <p className="font-mono text-[10px] tracking-[0.1em] text-[#8b909e] uppercase">
+                iPhone · Android · iPad · tablets
+              </p>
             </div>
           </Reveal>
         </section>

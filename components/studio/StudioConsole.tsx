@@ -967,9 +967,13 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
           </div>
         </div>
       ) : (
-        /* ── OPEN RIG — 3 columns; manual departments expanded in the left rail ── */
+        /* ── OPEN RIG — 3 columns; manual departments expanded in the left rail ──
+           Phone: shoot order — ALL the tools first, then the render, then the
+           readout right under it (Sebastien's rule: everything you set comes
+           BEFORE generate). Tablet: Director full-width on top, rails below.
+           Desktop: classic 3-column rig with a sticky readout. */
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-[340px_1fr_340px]">
-          <section className="order-2 flex flex-col gap-5 lg:order-1">
+          <section className="order-1 flex flex-col gap-5 md:order-2 lg:order-1">
             <ColumnTitle title="Director of Photography" sub="Camera · lens · exposure" />
             <ApiKeyVault onKeyChange={setApiKey} />
             {deptCamera}
@@ -977,7 +981,7 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
             {deptSensor}
           </section>
 
-          <section className="order-1 flex flex-col gap-5 md:col-span-2 lg:col-span-1 lg:order-2">
+          <section className="order-2 flex flex-col gap-5 md:order-1 md:col-span-2 lg:col-span-1 lg:order-2">
             <ColumnTitle title="Director" sub="Scene · look · render" />
             <div className="flex flex-col gap-4">
               {coreStack}
@@ -985,7 +989,9 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
             </div>
           </section>
 
-          <section className="order-3 flex flex-col gap-5 lg:order-3">
+          {/* Sticky on desktop: the readout is the DP's monitor — it follows the
+              scroll so the full package stays under your eyes while you dial. */}
+          <section className="order-3 flex flex-col gap-5 lg:sticky lg:top-16 lg:order-3 lg:max-h-[calc(100vh-5rem)] lg:self-start lg:overflow-y-auto lg:pr-1">
             <ColumnTitle title="Your Setup" sub="Live compiler · package readout" />
             {allManual ? (
               <PromptTagEngine
