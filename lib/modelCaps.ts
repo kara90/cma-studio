@@ -19,6 +19,12 @@ export interface ModelCaps {
   durationParam: string | null;
   durations: readonly string[];
   durationDefault: string | null;
+  /**
+   * true when the model's duration param is a NUMBER in its schema (e.g.
+   * stable-audio-25 `seconds_total`, ace-step `duration`) — the route sends
+   * Number(value) instead of the string so the request can't 422 on type.
+   */
+  durationNumeric?: boolean;
   aspectParam: string | null;
   aspects: readonly string[];
   aspectDefault: string | null;
@@ -111,6 +117,41 @@ export const MODEL_CAPS: Record<string, ModelCaps> = {
   'gpt-image-2': {
     // GPT Image uses image_size (square/landscape/portrait) instead of aspect_ratio.
     resolutionParam: 'image_size', resolutions: ['1024x1024', '1536x1024', '1024x1536'], resolutionDefault: '1024x1024',
+    durationParam: null, durations: [], durationDefault: null,
+    aspectParam: null, aspects: [], aspectDefault: null,
+    supportsSeed: false, supportsNegativePrompt: false,
+  },
+  // ── Audio models ── (schema-verified 2026-07-02; no resolution/aspect params)
+  lyria2: {
+    // Fixed ~30s output; supports negative_prompt + seed per its live schema.
+    resolutionParam: null, resolutions: [], resolutionDefault: null,
+    durationParam: null, durations: [], durationDefault: null,
+    aspectParam: null, aspects: [], aspectDefault: null,
+    supportsSeed: true, supportsNegativePrompt: true,
+  },
+  'stable-audio-25': {
+    // seconds_total is an INTEGER 1-190 (fal default is the 190 MAX — we never send that blind).
+    resolutionParam: null, resolutions: [], resolutionDefault: null,
+    durationParam: 'seconds_total', durations: ['10', '30', '60', '120', '190'], durationDefault: '30', durationNumeric: true,
+    aspectParam: null, aspects: [], aspectDefault: null,
+    supportsSeed: true, supportsNegativePrompt: false,
+  },
+  'ace-step': {
+    // duration is a NUMBER 5-240 seconds, default 60.
+    resolutionParam: null, resolutions: [], resolutionDefault: null,
+    durationParam: 'duration', durations: ['30', '60', '120', '240'], durationDefault: '60', durationNumeric: true,
+    aspectParam: null, aspects: [], aspectDefault: null,
+    supportsSeed: true, supportsNegativePrompt: false,
+  },
+  'elevenlabs-multilingual-v2': {
+    // TTS — length is driven by the text; no duration/seed/negative params.
+    resolutionParam: null, resolutions: [], resolutionDefault: null,
+    durationParam: null, durations: [], durationDefault: null,
+    aspectParam: null, aspects: [], aspectDefault: null,
+    supportsSeed: false, supportsNegativePrompt: false,
+  },
+  'kokoro-american-english': {
+    resolutionParam: null, resolutions: [], resolutionDefault: null,
     durationParam: null, durations: [], durationDefault: null,
     aspectParam: null, aspects: [], aspectDefault: null,
     supportsSeed: false, supportsNegativePrompt: false,

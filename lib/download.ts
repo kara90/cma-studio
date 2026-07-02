@@ -18,7 +18,7 @@ export function renderFilename(prompt: string, output: OutputKind, model?: strin
     .replace(/^-+|-+$/g, '')
     .slice(0, 48) || 'render';
   const tag = (model || 'cma').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-  const ext = output === 'image' ? 'png' : 'mp4';
+  const ext = output === 'image' ? 'png' : output === 'audio' ? 'mp3' : 'mp4';
   return `cma-${slug}-${tag}.${ext}`;
 }
 

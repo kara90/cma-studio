@@ -9,7 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Download } from 'lucide-react';
+import { Download, AudioLines } from 'lucide-react';
 import type { StatusState, OutputKind } from '@/lib/vcpTypes';
 import { BorderRotate } from '@/components/ui/animated-gradient-border';
 
@@ -90,7 +90,31 @@ export function ScopeViewer({
         )}
 
         <AnimatePresence mode="wait">
-          {status === 'COMPLETED' && mediaUrl && output === 'image' ? (
+          {status === 'COMPLETED' && mediaUrl && output === 'audio' ? (
+            /* audio deck — a centered player over a quiet sound-stage backdrop */
+            <motion.div
+              key="audio"
+              initial={reduce ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-[radial-gradient(70%_90%_at_50%_30%,rgba(188,152,99,0.12),#05060a)] px-8"
+            >
+              <span className="grid h-16 w-16 place-items-center rounded-full border border-[#bc9863]/35 bg-[#bc9863]/10 text-[#e7cfa3]">
+                <AudioLines size={28} />
+              </span>
+              <p className="max-w-md truncate font-mono text-[11px] tracking-[0.12em] text-[#e7cfa3]/85 uppercase">
+                {promptLabel ? promptLabel : 'Generated audio'}
+              </p>
+              <audio
+                src={mediaUrl}
+                controls
+                preload="metadata"
+                onError={onMediaError}
+                aria-label={promptLabel ? `Generated audio, ${promptLabel}` : 'Generated audio'}
+                className="w-full max-w-md"
+              />
+            </motion.div>
+          ) : status === 'COMPLETED' && mediaUrl && output === 'image' ? (
             // eslint-disable-next-line @next/next/no-img-element
             <motion.img
               key="image"
@@ -203,7 +227,7 @@ export function ScopeViewer({
           <div className="flex justify-between font-mono text-[9px] tracking-[0.14em] text-white/40">
             <span className="inline-flex items-center gap-1.5">
               <span className={`h-1.5 w-1.5 rounded-full ${busy ? 'animate-pulse bg-red-500' : 'bg-white/20'}`} />
-              {status === 'COMPLETED' ? (output === 'image' ? 'STILL READY' : 'CLIP READY') : status === 'IDLE' ? 'STANDBY' : status === 'ERROR' ? 'ERROR' : 'ROLLING'}
+              {status === 'COMPLETED' ? (output === 'image' ? 'STILL READY' : output === 'audio' ? 'MIX READY' : 'CLIP READY') : status === 'IDLE' ? 'STANDBY' : status === 'ERROR' ? 'ERROR' : 'ROLLING'}
             </span>
             <span className="uppercase">{engineLabel}</span>
           </div>

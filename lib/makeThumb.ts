@@ -20,6 +20,7 @@ const TIMEOUT_MS = 8000;
 
 export async function makeThumb(url: string, output: OutputKind): Promise<string | undefined> {
   if (typeof document === 'undefined') return undefined;
+  if (output === 'audio') return undefined; // no visual frame — tiles show an audio glyph
   try {
     return output === 'image' ? await imageThumb(url) : await videoThumb(url);
   } catch {

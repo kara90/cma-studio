@@ -75,6 +75,15 @@ import type { GenerateAccepted, GenerateError, StatusResult, StatusState, Output
 const MAX_POLLS = 168;
 const CARD = 'glass glass-gold rounded-2xl';
 
+/** Per-model guidance for audio prompts (each takes text differently). */
+const AUDIO_HINTS: Record<string, string> = {
+  lyria2: 'Describe the music you want. Instrumental, about 30 seconds.',
+  'stable-audio-25': 'Describe the sound effect, foley or musical stem you want.',
+  'ace-step': 'Write style tags separated by commas, like: lofi, hiphop, chill, dreamy.',
+  'elevenlabs-multilingual-v2': 'Write the exact words to be spoken. 29 languages supported.',
+  'kokoro-american-english': 'Write the exact words to be spoken, American English.',
+};
+
 /** The four cinematography departments a user can flip to Manual. */
 type DeptKey = 'camera' | 'anamorphic' | 'sensor' | 'director';
 
@@ -327,11 +336,14 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
     }
   }, [lensKey]);
 
+  // Audio models take the text directly — no camera package, no framing.
+  const isAudio = modelInfo.output === 'audio';
+
   // Anamorphic preview — only when the department is set manually; on Auto the
   // server decides the framing at render time.
   const ana = findAnamorphic(anamorphic);
-  const barPct = deptAuto.anamorphic ? 0 : letterboxPct(ana.ratio);
-  const aspectLabel = deptAuto.anamorphic || ana.id === 'none' ? '16:9 · SCOPE' : `${ana.label.split('· ')[1]} · ANAMORPHIC`;
+  const barPct = deptAuto.anamorphic || isAudio ? 0 : letterboxPct(ana.ratio);
+  const aspectLabel = isAudio ? 'AUDIO · MIX' : deptAuto.anamorphic || ana.id === 'none' ? '16:9 · SCOPE' : `${ana.label.split('· ')[1]} · ANAMORPHIC`;
 
   /* ── render job ── */
   const [status, setStatus] = useState<StatusState | 'IDLE'>('IDLE');
@@ -371,7 +383,13 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
           const res = await fetch('/api/status', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ trackingToken: token, userApiKey: apiKeyRef.current, model: modelRef.current }),
+            body: JSON.stringify({
+              trackingToken: token,
+              userApiKey: apiKeyRef.current,
+              model: modelRef.current,
+              // short scene note so the stored file is labelled in My Files
+              promptNote: genMetaRef.current.prompt.slice(0, 200),
+            }),
           });
           const data: StatusResult = await res.json();
           if (!data.ok) { setError(data.error ?? 'Render failed.'); setStatus('ERROR'); stopPolling(); return; }
@@ -485,31 +503,35 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
   // as its own Auto/Manual department.
   const promptRender = (
     <div className={`${CARD} p-4`}>
-      {/* Director's frame — style, lighting, framing, movement, grade */}
-      <div className="mb-3 rounded-xl border border-white/6 bg-black/20 p-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">
-            <Clapperboard size={13} className="text-[#bc9863]" /> Director&apos;s frame
+      {/* Director's frame — style, lighting, framing, movement, grade (visuals only) */}
+      {!isAudio && (
+        <div className="mb-3 rounded-xl border border-white/6 bg-black/20 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">
+              <Clapperboard size={13} className="text-[#bc9863]" /> Director&apos;s frame
+            </div>
+            <AutoToggle isAuto={deptAuto.director} onChange={(a) => setDeptMode('director', a)} name="Director's frame" />
           </div>
-          <AutoToggle isAuto={deptAuto.director} onChange={(a) => setDeptMode('director', a)} name="Director's frame" />
+          {deptAuto.director ? (
+            <p className="mt-2.5 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-[#8b909e]">
+              <Wand2 size={13} className="mt-0.5 shrink-0 text-[#bc9863]" />
+              Auto. Style, lighting, framing, movement and grade are chosen to fit your scene.
+            </p>
+          ) : (
+            <div className="mt-3.5 flex flex-col gap-4">
+              <LookTileRow label="Style" options={STYLE_OPTIONS} previews={STYLE_PREVIEWS} value={style} onChange={(v) => setStyle(v as VisualStyle)} />
+              <LookTileRow label="Lighting" options={GENRE_OPTIONS} previews={LIGHTING_PREVIEWS} value={genre} onChange={(v) => setGenre(v as GenreStyle)} />
+              <ChipRow label="Shot size" options={SHOT_OPTIONS} value={shotSize} onChange={setShotSize} />
+              <ChipRow label="Movement" options={MOVE_OPTIONS} value={cameraMove} onChange={setCameraMove} />
+              <ChipRow label="Colour grade" options={GRADE_OPTIONS} value={grade} onChange={setGrade} />
+            </div>
+          )}
         </div>
-        {deptAuto.director ? (
-          <p className="mt-2.5 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-[#8b909e]">
-            <Wand2 size={13} className="mt-0.5 shrink-0 text-[#bc9863]" />
-            Auto. Style, lighting, framing, movement and grade are chosen to fit your scene.
-          </p>
-        ) : (
-          <div className="mt-3.5 flex flex-col gap-4">
-            <LookTileRow label="Style" options={STYLE_OPTIONS} previews={STYLE_PREVIEWS} value={style} onChange={(v) => setStyle(v as VisualStyle)} />
-            <LookTileRow label="Lighting" options={GENRE_OPTIONS} previews={LIGHTING_PREVIEWS} value={genre} onChange={(v) => setGenre(v as GenreStyle)} />
-            <ChipRow label="Shot size" options={SHOT_OPTIONS} value={shotSize} onChange={setShotSize} />
-            <ChipRow label="Movement" options={MOVE_OPTIONS} value={cameraMove} onChange={setCameraMove} />
-            <ChipRow label="Colour grade" options={GRADE_OPTIONS} value={grade} onChange={setGrade} />
-          </div>
-        )}
-      </div>
+      )}
       <div className="mb-2 flex items-center justify-between">
-        <label className="block font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">Describe your scene</label>
+        <label className="block font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">
+          {isAudio ? 'Describe your audio' : 'Describe your scene'}
+        </label>
         <button
           onClick={() => setPromptBig((b) => !b)}
           aria-expanded={promptBig}
@@ -522,10 +544,13 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
       <textarea
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
-        placeholder="A lone diver drifts through a sunken cathedral at dawn…"
+        placeholder={isAudio ? AUDIO_HINTS[model] ?? 'Describe the audio you want…' : 'A lone diver drifts through a sunken cathedral at dawn…'}
         className="w-full resize-y overflow-y-auto rounded-xl border border-white/10 bg-black/40 p-3.5 text-[15px] leading-relaxed text-[#f4efe6] outline-none transition focus:border-[#bc9863] placeholder:text-[#8b909e]"
         style={{ minHeight: promptBig ? 280 : 112, maxHeight: 620 }}
       />
+      {isAudio && AUDIO_HINTS[model] && (
+        <p className="mt-1.5 font-mono text-[10px] leading-relaxed text-[#bc9863]/80">{AUDIO_HINTS[model]}</p>
+      )}
       {/* only shown for models that actually honour a negative prompt */}
       {caps.supportsNegativePrompt && (
         <div className="mt-2">
@@ -555,14 +580,19 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
             ? 'Rolling…'
             : !apiKey
               ? 'Connect a key to render'
-              : `Render ${isImage ? 'image' : 'scene'}`}
+              : `Render ${isImage ? 'image' : isAudio ? 'audio' : 'scene'}`}
       </button>
       {locked && (
         <p className="mt-2.5 text-center font-mono text-[11px] leading-relaxed text-[#8b8f99]">
           Explore every control — rendering unlocks with a plan.
         </p>
       )}
-      {allAuto ? (
+      {isAudio ? (
+        <p className="mt-2.5 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-[#8b8f99]">
+          <Wand2 size={13} className="mt-0.5 shrink-0 text-[#bc9863]" />
+          Audio models take your text directly. The camera package does not apply here.
+        </p>
+      ) : allAuto ? (
         <p className="mt-2.5 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-[#8b8f99]">
           <Wand2 size={13} className="mt-0.5 shrink-0 text-[#bc9863]" />
           Auto-Direct chooses the camera, glass, light and motion to fit your scene. Flip any department to Manual to take control.
@@ -817,9 +847,10 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
 
   return (
     <div>
-      {masterSwitch}
+      {/* audio models have no camera departments — the switch only shows for visuals */}
+      {!isAudio && masterSwitch}
 
-      {!dpManual ? (
+      {!dpManual || isAudio ? (
         /* ── SIMPLE layout — single column; departments collapsed to Auto ── */
         <div className="mx-auto max-w-3xl">
           <div className="mb-4 flex flex-col gap-3">
@@ -833,16 +864,18 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
           <div className="flex flex-col gap-4">
             {coreStack}
             {/* the departments, collapsed to slim Auto rows — flip any to take control */}
-            <div>
-              <div className="mb-2 px-1 font-mono text-[9px] tracking-[0.2em] text-[#8b909e] uppercase">
-                Cinematography departments · flip any to Manual
+            {!isAudio && (
+              <div>
+                <div className="mb-2 px-1 font-mono text-[9px] tracking-[0.2em] text-[#8b909e] uppercase">
+                  Cinematography departments · flip any to Manual
+                </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {deptCamera}
+                  {deptAnamorphic}
+                  {deptSensor}
+                </div>
               </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {deptCamera}
-                {deptAnamorphic}
-                {deptSensor}
-              </div>
-            </div>
+            )}
             <GenerationStrip onPick={pickGeneration} />
           </div>
         </div>

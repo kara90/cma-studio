@@ -20,6 +20,14 @@
   "ratelimits": [
     { "name": "RENDER_LIMITER", "namespace_id": "1001", "simple": { "limit": 12, "period": 60 } }
   ],
+  // R2 — CMA render storage. Finished renders are copied here at completion so
+  // users keep access for their plan's retention window (fal deletes its copies
+  // after ~7 days). ⚠ The bucket must exist before deploy: Cloudflare dashboard →
+  // R2 → Create bucket → name it exactly `cma-renders` (or `npx wrangler r2 bucket
+  // create cma-renders`). Local dev/preview simulates it automatically.
+  "r2_buckets": [
+    { "binding": "RENDERS", "bucket_name": "cma-renders" }
+  ],
   // Non-secret runtime config (safe to commit). The Supabase anon/URL are PUBLIC
   // (the anon key ships in the browser); real secrets (service_role, Stripe) are
   // NEVER here — those go in the dashboard as encrypted secrets. Build-time copies

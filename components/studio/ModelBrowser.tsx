@@ -7,8 +7,9 @@
  * height (same technique as the old ModelPicker), so it pushes content down
  * and never overlaps. Esc and click-outside close it.
  *
- * Audio is browse-only for now: the lineup renders but every row is disabled
- * until generation is wired (see the note in lib/modelRegistry.ts).
+ * Audio is LIVE: the five text-to-audio models are wired end to end. Only the
+ * two models that require a media file input (MiniMax Music, MMAudio V2) stay
+ * disabled until the upload flow lands — they self-disable via wired:false.
  */
 import { memo, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -129,7 +130,9 @@ function ModelBrowserImpl({ value, onChange }: { value: string; onChange: (id: s
   const more = pool.filter((m) => !m.top && !m.value);
   const groupCount = [best, val, more].filter((g) => g.length > 0).length;
   const gridCols = groupCount >= 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : groupCount === 2 ? 'sm:grid-cols-2' : '';
-  const locked = openEntry?.kind === 'audio';
+  // No blanket tab lock — rows self-disable via status:'preview' / wired:false.
+  const locked = false;
+  const audioNote = openEntry?.kind === 'audio';
 
   const pick = (id: string) => {
     onChange(id);
@@ -199,14 +202,12 @@ function ModelBrowserImpl({ value, onChange }: { value: string; onChange: (id: s
             className="overflow-hidden"
           >
             <div className="mt-2 max-h-[420px] overflow-y-auto rounded-xl border border-[#bc9863]/25 bg-[#0b0d12]/95 p-2.5 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.9)]">
-              {locked && (
+              {audioNote && (
                 <div className="mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-lg border border-white/8 bg-white/[0.03] px-3 py-2">
                   <AudioLines size={12} className="flex-none text-[#bc9863]" />
                   <span className="text-[11.5px] leading-snug text-[#8b8f99]">
-                    Audio joins the studio in a coming update. Browse the lineup we are lining up.
-                  </span>
-                  <span className="rounded border border-white/15 px-1.5 py-0.5 font-mono text-[8px] tracking-[0.14em] text-[#8b909e] uppercase">
-                    placeholder lineup
+                    Music, voice and sound design, rendered on your key. Models marked soon need a reference file and
+                    arrive with the upload flow.
                   </span>
                 </div>
               )}

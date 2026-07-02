@@ -89,6 +89,61 @@ export async function POST(request: Request) {
   const endpoint = getModelEndpoint(body.model);
   if (!endpoint) return bad(400, 'Unknown model.');
 
+  // ── AUDIO PATH ── music, voice and sound models take the scene text directly.
+  // The cinematography recipe (camera/lens/lighting language) is meaningless for
+  // audio, so the protected DP compiler is bypassed entirely — the submitted
+  // prompt is exactly what the user typed, nothing proprietary in either direction.
+  if (endpoint.output === 'audio') {
+    const audioCaps = getModelCaps(body.model);
+    const audioBody: Record<string, unknown> = endpoint.buildBody(body.prompt);
+    if (audioCaps.durationParam && audioCaps.durations.length) {
+      const d = body.duration && audioCaps.durations.includes(body.duration) ? body.duration : audioCaps.durationDefault;
+      if (d && d !== 'auto') audioBody[audioCaps.durationParam] = audioCaps.durationNumeric ? Number(d) : d;
+    }
+    if (audioCaps.supportsNegativePrompt && body.negativePrompt) audioBody.negative_prompt = body.negativePrompt;
+    if (audioCaps.supportsSeed && typeof body.seed === 'number' && Number.isFinite(body.seed)) {
+      audioBody.seed = Math.trunc(body.seed);
+    }
+    try {
+      const falRes = await fetch(queueSubmitUrl(endpoint.slug), {
+        method: 'POST',
+        headers: { Authorization: falAuthHeader(body.userApiKey), 'Content-Type': 'application/json' },
+        body: JSON.stringify(audioBody),
+      });
+      if (!falRes.ok) {
+        if (falRes.status === 401 || falRes.status === 403) {
+          return bad(401, 'Fal.ai rejected your API key. Check the token in your vault.');
+        }
+        if (falRes.status === 404) {
+          return bad(502, 'This model is not available on your Fal account yet (beta). Try another model.');
+        }
+        return bad(502, `Render service error (${falRes.status}). Try again.`);
+      }
+      const queued = (await falRes.json()) as { request_id?: string; status?: string };
+      if (!queued.request_id) return bad(502, 'Render service did not return a tracking token.');
+      return Response.json(
+        {
+          ok: true,
+          trackingToken: queued.request_id,
+          status: queued.status ?? 'IN_QUEUE',
+          model: body.model,
+          output: endpoint.output,
+          // audio uses no camera package — the summary reflects that honestly
+          summary: {
+            model: body.model,
+            camera: 'Not used', lens: 'Not used',
+            focalLength: 0, aperture: 0, iso: 0, grain: 0,
+            genre: 'neutral', style: 'cinematic',
+            auto: false,
+          },
+        },
+        { headers: NO_STORE },
+      );
+    } catch {
+      return bad(504, 'Could not reach the render service. Try again.');
+    }
+  }
+
   // Choose the camera package: Auto-Director, or the user's own selection.
   const auto = Boolean(body.auto);
   const hw = auto
@@ -177,7 +232,8 @@ export async function POST(request: Request) {
   }
   if (caps.durationParam && caps.durations.length) {
     const d = body.duration && caps.durations.includes(body.duration) ? body.duration : caps.durationDefault;
-    if (d && d !== 'auto') falBody[caps.durationParam] = d; // 'auto' → omit, let the model choose
+    // 'auto' → omit, let the model choose. Numeric-schema params get a real number.
+    if (d && d !== 'auto') falBody[caps.durationParam] = caps.durationNumeric ? Number(d) : d;
   }
   if (caps.supportsNegativePrompt && body.negativePrompt) {
     falBody.negative_prompt = body.negativePrompt;

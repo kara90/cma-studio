@@ -14,11 +14,11 @@ import { createServerSupabase } from './supabase/server';
 import { isSupabaseConfigured, isAcademyEmail, DEV_AUTH_BYPASS } from './access';
 
 export type AccessResult =
-  | { ok: true; userId: string; email: string | null }
+  | { ok: true; userId: string; email: string | null; tier: string | null }
   | { ok: false; status: number; error: string };
 
 export async function verifyAccess(): Promise<AccessResult> {
-  if (DEV_AUTH_BYPASS) return { ok: true, userId: 'dev-user', email: 'dev@local' };
+  if (DEV_AUTH_BYPASS) return { ok: true, userId: 'dev-user', email: 'dev@local', tier: null };
 
   if (!isSupabaseConfigured) {
     return { ok: false, status: 503, error: 'Workspace auth is not configured.' };
@@ -41,7 +41,11 @@ export async function verifyAccess(): Promise<AccessResult> {
   const plan = (user.app_metadata as Record<string, unknown> | undefined)?.cma_plan;
   if (!isPlanActive(plan)) return { ok: false, status: 402, error: 'Subscribe to unlock rendering.' };
 
-  return { ok: true, userId: user.id, email: user.email ?? null };
+  // Tier drives storage retention (lib/retention.ts) — read from the same
+  // server-controlled app_metadata, never from anything user-writable.
+  const tier = plan && typeof plan === 'object' ? ((plan as { tier?: string }).tier ?? null) : null;
+
+  return { ok: true, userId: user.id, email: user.email ?? null, tier };
 }
 
 function isPlanActive(plan: unknown): boolean {

@@ -4,7 +4,7 @@
  */
 import type { GenreStyle, VisualStyle, ShotSize, CameraMove, ColorGrade } from './vcpManifest';
 
-export type OutputKind = 'video' | 'image';
+export type OutputKind = 'video' | 'image' | 'audio';
 
 export interface GenerateRequestBody {
   prompt: string;
@@ -75,12 +75,39 @@ export type StatusState = 'IN_QUEUE' | 'IN_PROGRESS' | 'COMPLETED' | 'ERROR';
 export interface StatusResult {
   ok: boolean;
   status: StatusState;
-  /** present when COMPLETED — the finished video or image */
+  /** present when COMPLETED — the finished video, image or audio */
   mediaUrl?: string;
   output?: OutputKind;
   /** queue position when IN_QUEUE */
   queuePosition?: number;
   /** the seed the model actually used (present when COMPLETED, if the model reports it) */
   seed?: number;
+  /** true when the finished file was copied into CMA storage (plan retention) */
+  stored?: boolean;
+  error?: string;
+}
+
+/** One file in the user's CMA storage library (GET /api/files). */
+export interface StoredFile {
+  /** basename inside the user's prefix, e.g. "abc123.mp4" — the id for /api/files/[id] */
+  id: string;
+  output: OutputKind;
+  model: string;
+  /** short user-supplied scene note captured at render time */
+  note: string;
+  /** ISO timestamp of when the file entered storage */
+  createdAt: string;
+  bytes: number;
+  /** whole days of plan retention remaining before this file expires */
+  daysLeft: number;
+}
+
+export interface FilesResult {
+  ok: boolean;
+  files?: StoredFile[];
+  /** plan retention window applied, in days */
+  retentionDays?: number;
+  /** true when the storage binding is unavailable (local dev without wrangler) */
+  storageOffline?: boolean;
   error?: string;
 }
