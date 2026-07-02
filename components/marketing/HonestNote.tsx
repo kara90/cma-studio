@@ -5,8 +5,11 @@ import { Info } from 'lucide-react';
  * a pricing table, or the studio panel. compact mode drops the card chrome.
  */
 
+// Sebastien's expectation-setting rule: the error margin belongs to the AI
+// models, not the studio — say it plainly so nobody expects a perfect render
+// every single time, in Auto or Manual alike.
 const NOTE =
-  'Every AI model has limits. It can decline a generation or occasionally miss. CMA Studio is tuned to get it right in fewer tries, but no tool can promise zero failures. Some content, such as prohibited material or real public figures, is blocked by the models themselves.';
+  'Even a perfectly engineered prompt cannot fully control an AI model: every model carries its own error margin, so a render can occasionally miss, drift or be declined — in Auto or Manual alike. That is a limit of today’s AI models, not of the studio. CMA Studio is tuned to get it right in fewer tries; no tool can honestly promise a perfect output every time. Some content, such as prohibited material or real public figures, is blocked by the models themselves.';
 
 export function HonestNote({ className, compact = false }: { className?: string; compact?: boolean }) {
   if (compact) {
