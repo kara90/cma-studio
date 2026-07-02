@@ -57,7 +57,7 @@ export const STYLE_PREVIEWS: Record<string, LookPreview> = {
   noir: {
     id: 'noir',
     label: 'Noir',
-    clip: '/clips/style-noir.mp4', // Sebastien's real sample
+    clip: undefined, // awaiting Sebastien's noir sample
 
     // Near-black frame cut by one hard white diagonal key streak.
     poster:
@@ -70,7 +70,8 @@ export const LIGHTING_PREVIEWS: Record<string, LookPreview> = {
   neutral: {
     id: 'neutral',
     label: 'Neutral',
-    clip: undefined,
+    clip: '/clips/style-neutral.mp4', // Sebastien's real sample
+
     // Balanced grey ramp, no stylistic bias, an even exposure sweep.
     poster:
       'linear-gradient(90deg, #1c1e22 0%, #4a4e55 34%, #82878f 66%, #c6cad1 100%)',
@@ -86,7 +87,8 @@ export const LIGHTING_PREVIEWS: Record<string, LookPreview> = {
   horror: {
     id: 'horror',
     label: 'Horror',
-    clip: undefined,
+    clip: '/clips/style-horror.mp4', // Sebastien's real sample (the creature clip)
+
     // Cold green-cyan low key sinking into near-black.
     poster:
       'radial-gradient(90% 110% at 72% 18%, rgba(88,178,150,0.45) 0%, rgba(38,92,78,0.18) 45%, rgba(38,92,78,0) 68%), linear-gradient(160deg, #071310 0%, #0a1a16 50%, #020504 100%)',

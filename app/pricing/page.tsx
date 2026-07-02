@@ -11,13 +11,8 @@ export const metadata: Metadata = {
 export default function PricingPage() {
   return (
     <div className="relative min-h-screen">
-      <SiteHeader
-        links={[
-          { href: '/#studio', label: 'The tool' },
-          { href: '/#faq', label: 'FAQ' },
-        ]}
-        cta={{ href: '/login', label: 'Sign in' }}
-      />
+      {/* full platform nav (defaults) — buyers should never lose the menu here */}
+      <SiteHeader cta={{ href: '/login', label: 'Sign in' }} />
 
       <main className="relative z-10 mx-auto max-w-6xl px-6 pb-24 pt-10">
         <div className="mx-auto mb-14 max-w-2xl text-center">
@@ -54,6 +49,7 @@ export default function PricingPage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 font-mono text-[12px] tracking-[0.04em] text-[#8b909e] sm:flex-row">
           <span>© 2026 CineMaster Academy · CMA Studio Pro</span>
           <div className="flex items-center gap-5">
+            <a href="/studio" className="font-semibold text-[#bc9863] transition hover:text-[#e7cfa3]">Studio Pro ★</a>
             <a href="/faq" className="transition hover:text-[#e7cfa3]">FAQ</a>
             <a href="/privacy" className="transition hover:text-[#e7cfa3]">Privacy</a>
             <a href="/terms" className="transition hover:text-[#e7cfa3]">Terms</a>

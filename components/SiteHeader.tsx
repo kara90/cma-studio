@@ -9,6 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 
@@ -34,6 +35,7 @@ const DEFAULT_CTA: NavLink = { href: '/video', label: 'Start creating' };
 
 export function SiteHeader({ links = DEFAULT_LINKS, cta = DEFAULT_CTA }: SiteHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     let raf = 0;
@@ -79,15 +81,28 @@ export function SiteHeader({ links = DEFAULT_LINKS, cta = DEFAULT_CTA }: SiteHea
 
         <div className="flex items-center gap-5">
           <nav aria-label="Primary" className="hidden items-center gap-5 sm:flex">
-            {links.map((link) => (
-              <Link
-                key={`${link.href}-${link.label}`}
-                href={link.href}
-                className="cursor-pointer font-mono text-[13px] text-[#8b8f99] transition hover:text-[#e7cfa3] focus-visible:text-[#e7cfa3]"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {links.map((link) => {
+              // Gold marks WHERE YOU ARE; Studio Pro carries flagship weight always.
+              const active = pathname === link.href || (link.href !== '/' && pathname.startsWith(`${link.href}/`));
+              const flagship = link.href === '/studio';
+              return (
+                <Link
+                  key={`${link.href}-${link.label}`}
+                  href={link.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={`relative cursor-pointer font-mono text-[13px] transition focus-visible:text-[#e7cfa3] ${
+                    active
+                      ? 'font-semibold text-[#e7cfa3]'
+                      : flagship
+                        ? 'font-semibold text-[#bc9863] hover:text-[#e7cfa3]'
+                        : 'text-[#8b8f99] hover:text-[#e7cfa3]'
+                  }`}
+                >
+                  {link.label}
+                  {active && <span className="absolute inset-x-0 -bottom-1.5 h-px bg-gradient-to-r from-transparent via-[#bc9863] to-transparent" />}
+                </Link>
+              );
+            })}
           </nav>
           <Link
             href={cta.href}

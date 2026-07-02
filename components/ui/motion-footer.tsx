@@ -193,8 +193,16 @@ export function CinematicFooter() {
 
             <div ref={linksRef} className="flex flex-col items-center gap-6 w-full">
               <div className="flex flex-wrap justify-center gap-4 w-full">
-                <MagneticButton as="a" href="/studio" className="footer-glass-pill px-10 py-5 rounded-full text-foreground font-bold text-sm md:text-base flex items-center gap-3">
-                  <Clapperboard className="w-5 h-5 text-primary" /> Launch CMA Studio Pro
+                <MagneticButton
+                  as="a"
+                  href="/studio"
+                  className="px-10 py-5 rounded-full font-bold text-sm md:text-base flex items-center gap-3 text-black"
+                  style={{
+                    background: 'linear-gradient(180deg, #e7cfa3, #bc9863)',
+                    boxShadow: '0 14px 44px rgba(188,152,99,0.36)',
+                  }}
+                >
+                  <Clapperboard className="w-5 h-5" /> Launch Studio Pro · The flagship
                 </MagneticButton>
                 <MagneticButton as="a" href="/pricing" className="footer-glass-pill px-10 py-5 rounded-full text-foreground font-bold text-sm md:text-base flex items-center gap-3">
                   <CreditCard className="w-5 h-5 text-muted-foreground" /> See pricing

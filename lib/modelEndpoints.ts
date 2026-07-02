@@ -71,11 +71,22 @@ const ENDPOINTS: Record<string, ModelEndpoint> = {
     // ⚠ 2.6 renames the start image to start_image_url (2.5 and o3 use image_url)
     i2v: { slug: 'fal-ai/kling-video/v2.6/pro/image-to-video', imageParam: 'start_image_url', endImageParam: 'end_image_url', noAspect: true },
   },
-  // best-known for the Kling o-series; update when the v3 slug is final.
+  // Kling 3 Pro — the REAL v3 flagship (schema-verified 2026-07-02).
   'kling-3': {
+    slug: 'fal-ai/kling-video/v3/pro/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl,
+  },
+  // The o-series stays as its own value tier.
+  'kling-o3': {
     slug: 'fal-ai/kling-video/o3/standard/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl,
     i2v: { slug: 'fal-ai/kling-video/o3/standard/image-to-video', imageParam: 'image_url', endImageParam: 'end_image_url', noAspect: true },
   },
+  // ── New video lineup (all slugs schema-verified 2026-07-02) ──
+  'sora-2': { slug: 'fal-ai/sora-2/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
+  'sora-2-pro': { slug: 'fal-ai/sora-2/text-to-video/pro', output: 'video', buildBody: base, parseResult: videoUrl },
+  'veo-3-1-fast': { slug: 'fal-ai/veo3.1/fast', output: 'video', buildBody: base, parseResult: videoUrl },
+  'seedance-1-5-pro': { slug: 'fal-ai/bytedance/seedance/v1.5/pro/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
+  'wan-2-5': { slug: 'fal-ai/wan-25-preview/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
+  'ltx-2': { slug: 'fal-ai/ltx-2/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
   hailuo: {
     slug: 'fal-ai/minimax/hailuo-2.3/standard/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl,
     i2v: { slug: 'fal-ai/minimax/hailuo-2.3/standard/image-to-video', imageParam: 'image_url', noAspect: true },
@@ -104,6 +115,13 @@ const ENDPOINTS: Record<string, ModelEndpoint> = {
     slug: 'fal-ai/gpt-image-1/text-to-image', output: 'image', buildBody: base, parseResult: imageUrl,
     i2v: { slug: 'fal-ai/gpt-image-1/edit-image', imageParam: 'image_urls', imageIsArray: true },
   },
+  // ── New image lineup (all slugs schema-verified 2026-07-02) ──
+  'seedream-4-5': { slug: 'fal-ai/bytedance/seedream/v4.5/text-to-image', output: 'image', buildBody: base, parseResult: imageUrl },
+  'flux-2-pro': { slug: 'fal-ai/flux-2-pro', output: 'image', buildBody: base, parseResult: imageUrl },
+  'imagen-4': { slug: 'fal-ai/imagen4/preview', output: 'image', buildBody: base, parseResult: imageUrl },
+  'ideogram-v3': { slug: 'fal-ai/ideogram/v3', output: 'image', buildBody: base, parseResult: imageUrl },
+  'flux-1-1-ultra': { slug: 'fal-ai/flux-pro/v1.1-ultra', output: 'image', buildBody: base, parseResult: imageUrl },
+  'recraft-v4-1': { slug: 'fal-ai/recraft/v4.1/text-to-image', output: 'image', buildBody: base, parseResult: imageUrl },
   // ── Audio ── (params verified against the live fal OpenAPI schemas 2026-07-02;
   // duration params are merged by the route from lib/modelCaps, numerically)
   lyria2: { slug: 'fal-ai/lyria2', output: 'audio', buildBody: base, parseResult: audioUrl },
@@ -139,6 +157,8 @@ const ENDPOINTS: Record<string, ModelEndpoint> = {
 };
 
 export function getModelEndpoint(id: string): ModelEndpoint | undefined {
-  // Only resolve ids that exist in the client-facing registry.
-  return findModel(id) ? ENDPOINTS[id] : undefined;
+  // Only resolve ids that exist in the client-facing registry AND are wired —
+  // the server must refuse browse-only models even on a raw POST.
+  const m = findModel(id);
+  return m && m.wired !== false ? ENDPOINTS[id] : undefined;
 }

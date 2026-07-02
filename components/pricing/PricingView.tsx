@@ -23,11 +23,13 @@ import { TIERS, EXTENSIONS, PRICING_SCOPE_NOTE, findTier, type Cycle, type Tier 
 
 type PlanMeta = { tier?: string; status?: string; expires?: string } | undefined;
 
+// Mirrors the SERVER's isPlanActive exactly (lib/authGuard.ts) so this page
+// never shows "you're a member" to a user the API would still 402.
 function planIsActive(p: PlanMeta): boolean {
   if (!p || typeof p !== 'object') return false;
-  if (p.status && p.status !== 'active') return false;
+  if (p.status !== 'active' && p.status !== 'trialing') return false;
   if (p.expires) return Date.parse(p.expires) > Date.now();
-  return Boolean(p.status === 'active' || p.tier);
+  return true;
 }
 
 export function PricingView() {

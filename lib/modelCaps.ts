@@ -108,14 +108,64 @@ export const MODEL_CAPS: Record<string, ModelCaps> = {
     // Kling 2.6 has the audio switch (2.5 does not); audio ON doubles fal's price.
     audioParam: 'generate_audio', audioDefault: true,
   },
+  // Kling 3 Pro (v3/pro) — every second 3-15, native audio default ON, negative prompt.
   'kling-3': {
     resolutionParam: null, resolutions: [], resolutionDefault: null,
-    // fal accepts every second 3-15 on the o3 tier (re-verified 2026-07-02).
+    durationParam: 'duration', durations: ['3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'], durationDefault: '5',
+    aspectParam: 'aspect_ratio', aspects: CORE_ASPECTS, aspectDefault: '16:9',
+    supportsSeed: false, supportsNegativePrompt: true,
+    audioParam: 'generate_audio', audioDefault: true,
+  },
+  // Kling O3 Standard — the old value tier keeps frames + audio-off default.
+  'kling-o3': {
+    resolutionParam: null, resolutions: [], resolutionDefault: null,
     durationParam: 'duration', durations: ['3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'], durationDefault: '5',
     aspectParam: 'aspect_ratio', aspects: CORE_ASPECTS, aspectDefault: '16:9',
     supportsSeed: false, supportsNegativePrompt: false,
-    audioParam: 'generate_audio', audioDefault: false, // fal's own o3 default
+    audioParam: 'generate_audio', audioDefault: false,
     frames: 'start-end',
+  },
+  // Sora 2 — integer durations 4-20s, audio always native (no toggle), 720p only.
+  'sora-2': {
+    resolutionParam: null, resolutions: [], resolutionDefault: null,
+    durationParam: 'duration', durations: ['4', '8', '12', '16', '20'], durationDefault: '4', durationNumeric: true,
+    aspectParam: 'aspect_ratio', aspects: ['16:9', '9:16'], aspectDefault: '16:9',
+    supportsSeed: false, supportsNegativePrompt: false,
+  },
+  'sora-2-pro': {
+    resolutionParam: 'resolution', resolutions: ['720p', '1080p', 'true_1080p'], resolutionDefault: '1080p',
+    durationParam: 'duration', durations: ['4', '8', '12', '16', '20'], durationDefault: '4', durationNumeric: true,
+    aspectParam: 'aspect_ratio', aspects: ['16:9', '9:16'], aspectDefault: '16:9',
+    supportsSeed: false, supportsNegativePrompt: false,
+  },
+  // Veo 3.1 Fast — same controls as full Veo at the speed-tier price.
+  'veo-3-1-fast': {
+    resolutionParam: 'resolution', resolutions: ['720p', '1080p', '4k'], resolutionDefault: '720p',
+    durationParam: 'duration', durations: ['4s', '6s', '8s'], durationDefault: '8s',
+    aspectParam: 'aspect_ratio', aspects: ['16:9', '9:16'], aspectDefault: '16:9',
+    supportsSeed: true, supportsNegativePrompt: true, safetyTolerance: '6',
+    audioParam: 'generate_audio', audioDefault: true,
+  },
+  'seedance-1-5-pro': {
+    resolutionParam: 'resolution', resolutions: ['480p', '720p', '1080p'], resolutionDefault: '720p',
+    durationParam: 'duration', durations: ['4', '5', '6', '7', '8', '9', '10', '11', '12'], durationDefault: '5',
+    aspectParam: 'aspect_ratio', aspects: CORE_ASPECTS, aspectDefault: '16:9',
+    supportsSeed: true, supportsNegativePrompt: false,
+    audioParam: 'generate_audio', audioDefault: true,
+  },
+  'wan-2-5': {
+    resolutionParam: 'resolution', resolutions: ['480p', '720p', '1080p'], resolutionDefault: '1080p',
+    durationParam: 'duration', durations: ['5', '10'], durationDefault: '5',
+    aspectParam: 'aspect_ratio', aspects: CORE_ASPECTS, aspectDefault: '16:9',
+    supportsSeed: true, supportsNegativePrompt: true,
+  },
+  // LTX-2 — integer durations, native 4K tier, no aspect param.
+  'ltx-2': {
+    resolutionParam: 'resolution', resolutions: ['1080p', '1440p', '2160p'], resolutionDefault: '1080p',
+    durationParam: 'duration', durations: ['6', '8', '10'], durationDefault: '6', durationNumeric: true,
+    aspectParam: null, aspects: [], aspectDefault: null,
+    supportsSeed: false, supportsNegativePrompt: false,
+    audioParam: 'generate_audio', audioDefault: true,
   },
   hailuo: {
     resolutionParam: null, resolutions: [], resolutionDefault: null,
@@ -162,6 +212,45 @@ export const MODEL_CAPS: Record<string, ModelCaps> = {
     supportsSeed: false, supportsNegativePrompt: false,
     frames: 'start',
   },
+  // ── New image lineup (schema-verified 2026-07-02) ──
+  'seedream-4-5': {
+    // image_size enum carries the size; auto_2K/auto_4K are the clean choices.
+    resolutionParam: 'image_size', resolutions: ['auto_2K', 'auto_4K'], resolutionDefault: 'auto_2K',
+    durationParam: null, durations: [], durationDefault: null,
+    aspectParam: null, aspects: [], aspectDefault: null,
+    supportsSeed: true, supportsNegativePrompt: false,
+  },
+  'flux-2-pro': {
+    // image_size named enums carry shape; safety_tolerance is 1-5 on FLUX.2.
+    resolutionParam: 'image_size', resolutions: ['landscape_16_9', 'portrait_16_9', 'square_hd'], resolutionDefault: 'landscape_16_9',
+    durationParam: null, durations: [], durationDefault: null,
+    aspectParam: null, aspects: [], aspectDefault: null,
+    supportsSeed: true, supportsNegativePrompt: false, safetyTolerance: '5',
+  },
+  'imagen-4': {
+    resolutionParam: 'resolution', resolutions: ['1K', '2K'], resolutionDefault: '1K',
+    durationParam: null, durations: [], durationDefault: null,
+    aspectParam: 'aspect_ratio', aspects: ['16:9', '9:16', '1:1'], aspectDefault: '16:9',
+    supportsSeed: true, supportsNegativePrompt: false, safetyTolerance: '6',
+  },
+  'ideogram-v3': {
+    resolutionParam: 'image_size', resolutions: ['landscape_16_9', 'portrait_16_9', 'square_hd'], resolutionDefault: 'square_hd',
+    durationParam: null, durations: [], durationDefault: null,
+    aspectParam: null, aspects: [], aspectDefault: null,
+    supportsSeed: true, supportsNegativePrompt: true,
+  },
+  'flux-1-1-ultra': {
+    resolutionParam: null, resolutions: [], resolutionDefault: null, // fixed ~4MP
+    durationParam: null, durations: [], durationDefault: null,
+    aspectParam: 'aspect_ratio', aspects: ['16:9', '9:16', '1:1', '21:9'], aspectDefault: '16:9',
+    supportsSeed: true, supportsNegativePrompt: false, safetyTolerance: '6',
+  },
+  'recraft-v4-1': {
+    resolutionParam: 'image_size', resolutions: ['landscape_16_9', 'portrait_16_9', 'square_hd'], resolutionDefault: 'square_hd',
+    durationParam: null, durations: [], durationDefault: null,
+    aspectParam: null, aspects: [], aspectDefault: null,
+    supportsSeed: false, supportsNegativePrompt: false,
+  },
   // ── Audio models ── (schema-verified 2026-07-02; no resolution/aspect params)
   lyria2: {
     // Fixed ~30s output; supports negative_prompt + seed per its live schema.
@@ -205,7 +294,13 @@ export function getModelCaps(id: string): ModelCaps {
 
 /** Nicer display labels (the stored value is still the raw API value). */
 export function fmtRes(v: string): string {
-  const map: Record<string, string> = { '4k': '4K', '1024x1024': 'Square', '1536x1024': 'Landscape', '1024x1536': 'Portrait' };
+  const map: Record<string, string> = {
+    '4k': '4K',
+    true_1080p: '1080p+',
+    '1024x1024': 'Square', '1536x1024': 'Landscape', '1024x1536': 'Portrait',
+    auto_2K: '2K', auto_4K: '4K',
+    landscape_16_9: 'Landscape', portrait_16_9: 'Portrait', square_hd: 'Square',
+  };
   return map[v] ?? v;
 }
 export function fmtDur(v: string): string {

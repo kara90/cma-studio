@@ -5,9 +5,11 @@
  * app/privacy/page.tsx - Privacy Policy for CMA Studio.
  * Facts anchored to the codebase: BYOK (components/studio/ApiKeyVault.tsx:
  * fal key lives in the browser, sent per render, never stored server-side),
- * Supabase auth, Stripe billing, retention windows in lib/retention.ts
- * (Starter about 30 days, Filmmaker about 90 days, Pro about 1 year,
- * placeholders finalized with lib/plans.ts).
+ * uploaded frames go from the browser straight to fal storage on the user's
+ * own key (lib/falUpload.ts; data-URI fallback transits our render pipeline
+ * in the request body but is never stored), Supabase auth, Stripe billing,
+ * retention windows in lib/retention.ts (Starter about 30 days, Filmmaker
+ * about 90 days, Pro about 1 year, placeholders finalized with lib/plans.ts).
  */
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -48,6 +50,7 @@ const SECTIONS: LegalSection[] = [
       [
         'No card numbers. All payment card data is held by Stripe and never touches our servers.',
         'No stored fal.ai key. Your fal.ai API key is never stored on our servers. It stays in your browser and is transmitted only to perform the render you request. Remove it from the app or revoke it in your fal.ai dashboard at any time.',
+        'No stored uploads. Start frames, end frames and other reference images you attach to a render are uploaded from your browser directly to fal.ai storage on your own key. If that direct upload is unavailable, the image passes through our render pipeline only in transit to fal.ai. Either way, we do not store your uploads on our servers.',
         'No ad tracking. We run no advertising trackers and no cross-site tracking.',
         'No data sales. We do not sell your personal information, and we do not train AI models on your work.',
       ],
@@ -67,7 +70,7 @@ const SECTIONS: LegalSection[] = [
         'Cloudflare. Hosts the application, serves it at the edge and stores your cached renders.',
         'Supabase. Provides authentication and our database, holding your email, hashed credentials and subscription state.',
         'Stripe. Processes payments and holds all payment card data.',
-        'fal.ai. Runs the generation compute. It receives your API key and prompt at render time and processes them under its own terms and privacy policy.',
+        'fal.ai. Runs the generation compute. It receives your API key, your prompt and any frames or reference images you attach at render time, and processes them under its own terms and privacy policy.',
       ],
     ],
   },

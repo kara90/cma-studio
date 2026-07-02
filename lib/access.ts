@@ -22,9 +22,10 @@ export const DEV_AUTH_BYPASS =
   !IS_PROD && !isSupabaseConfigured && process.env.NEXT_PUBLIC_CMA_ALLOW_DEV_BYPASS === '1';
 
 /**
- * Academy gate. Domain allowlist via NEXT_PUBLIC_ACADEMY_ALLOWED_DOMAINS.
- * Blank allowlist → allowed in dev, DENIED in production (fail closed).
- * This is a coarse gate; the real per-user entitlement check is in authGuard.
+ * Optional domain allowlist via NEXT_PUBLIC_ACADEMY_ALLOWED_DOMAINS.
+ * PUBLIC PLATFORM DEFAULT: a BLANK allowlist means signups are OPEN to any
+ * email (the paywall in authGuard is the real gate). Setting domains restricts
+ * the workspace to those domains (the original academy-only mode).
  */
 export function isAcademyEmail(email: string | null | undefined): boolean {
   if (!email) return false;
@@ -32,7 +33,7 @@ export function isAcademyEmail(email: string | null | undefined): boolean {
     .split(',')
     .map((d) => d.trim().toLowerCase())
     .filter(Boolean);
-  if (allowed.length === 0) return !IS_PROD; // fail closed in prod
+  if (allowed.length === 0) return true; // open platform — anyone can register
   const domain = email.split('@')[1]?.toLowerCase() ?? '';
   return allowed.includes(domain);
 }

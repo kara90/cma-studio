@@ -29,8 +29,9 @@ export type Cycle = 'yearly' | 'monthly';
  * will not change. Keep the "with notice before your next billing cycle"
  * clause whenever this wording is revised.
  */
+// (Amounts remain internal placeholders, but customers never see that word.)
 export const PRICING_SCOPE_NOTE =
-  'Placeholder pricing. Covers the current toolset. Plans may evolve as new tools join, with notice before your next billing cycle.';
+  'Plans cover the current toolset and may evolve as new tools join, always announced before your next billing cycle.';
 
 export interface Tier {
   /**

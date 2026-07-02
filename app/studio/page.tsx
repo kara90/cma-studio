@@ -18,19 +18,41 @@ export default function StudioPage() {
   const supabase = useMemo(() => getBrowserSupabase(), []);
 
   const [authReady, setAuthReady] = useState(false);
+  const [activating, setActivating] = useState(false);
   useEffect(() => {
     if (DEV_AUTH_BYPASS) {
       setAuthReady(true);
       return;
     }
     let active = true;
-    supabase.auth.getUser().then(({ data }) => {
+    // Post-payment grace: Stripe redirects here BEFORE the webhook has written
+    // the entitlement. On ?checkout=success we poll for the plan for ~30s
+    // instead of bouncing a paying customer back to /pricing.
+    const justPaid = new URLSearchParams(window.location.search).get('checkout') === 'success';
+    let attempts = 0;
+    const check = async () => {
+      // refreshSession pulls fresh app_metadata once the webhook lands
+      if (attempts > 0) await supabase.auth.refreshSession();
+      const { data } = await supabase.auth.getUser();
       if (!active) return;
       const email = data.user?.email ?? null;
-      if (!data.user || !isAcademyEmail(email)) router.replace('/login');
-      else if (!hasActivePlan(data.user.app_metadata)) router.replace('/pricing'); // hard paywall
-      else setAuthReady(true);
-    });
+      if (!data.user || !isAcademyEmail(email)) {
+        router.replace('/login');
+        return;
+      }
+      if (hasActivePlan(data.user.app_metadata)) {
+        setAuthReady(true);
+        return;
+      }
+      if (justPaid && attempts < 10) {
+        attempts += 1;
+        setActivating(true);
+        setTimeout(check, 3000);
+        return;
+      }
+      router.replace('/pricing'); // hard paywall
+    };
+    check();
     return () => {
       active = false;
     };
@@ -44,7 +66,9 @@ export default function StudioPage() {
   if (!authReady) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
-        <p className="font-mono text-xs tracking-[0.2em] text-[#8b8f99] uppercase">Verifying academy access…</p>
+        <p className="font-mono text-xs tracking-[0.2em] text-[#8b8f99] uppercase">
+          {activating ? 'Payment received. Activating your plan…' : 'Verifying access…'}
+        </p>
       </div>
     );
   }
@@ -78,9 +102,20 @@ export default function StudioPage() {
       </header>
 
       <main className="p-5">
-        <p className="mx-auto mb-5 max-w-2xl text-center font-mono text-[11px] leading-relaxed tracking-[0.08em] text-[#8b909e] uppercase">
-          Engineered on <span className="text-[#e7cfa3]">21+ years behind the camera</span> as a working Director of Photography
-        </p>
+        {/* flagship statement — this page IS the differentiator */}
+        <div className="mx-auto mb-8 max-w-3xl pt-4 text-center">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#bc9863] bg-[#bc9863]/12 px-4 py-1.5 font-mono text-[11px] tracking-[0.24em] text-[#e7cfa3] uppercase">
+            The flagship
+          </div>
+          <h1 className="font-[family-name:var(--font-sora)] text-[clamp(1.9rem,4.2vw,3rem)] font-bold tracking-[-0.03em]">
+            Direct like you&apos;ve been <span className="bg-gradient-to-r from-[#e7cfa3] to-[#bc9863] bg-clip-text text-transparent">on set for 21 years.</span>
+          </h1>
+          <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-[#8b8f99]">
+            Because this engine has. Every camera body, lens and lighting recipe in Studio Pro is compiled server side
+            from <span className="text-[#f4efe6]">21+ years of working Director of Photography experience</span>. Not
+            style words. Real cinematography.
+          </p>
+        </div>
         <StudioConsole />
       </main>
 

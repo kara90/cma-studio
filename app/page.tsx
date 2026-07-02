@@ -11,6 +11,7 @@ import {
   Video,
 } from 'lucide-react';
 import { Reveal } from '@/components/Reveal';
+import { StudioConsole } from '@/components/studio/StudioConsole';
 import { CinematicFooter } from '@/components/ui/motion-footer';
 import { SiteHeader } from '@/components/SiteHeader';
 import { Pillars } from '@/components/marketing/Pillars';
@@ -81,11 +82,11 @@ export default function Home() {
       <SiteHeader />
 
       <main className="relative z-10">
-        {/* hero */}
-        <section className="relative mx-auto max-w-4xl px-6 pt-16 pb-14 text-center sm:pt-24">
-          {/* hero background film — Sebastien's render, feathered top and bottom so
-              the edges disappear into the page (standing rule: no hard video edges) */}
-          <div className="pointer-events-none absolute inset-x-0 -top-8 -bottom-8 -z-[2] overflow-hidden" aria-hidden="true">
+        {/* hero — FULL-BLEED cinematic film behind the copy, edge to edge */}
+        <section className="relative flex min-h-[88vh] w-full items-center justify-center overflow-hidden">
+          {/* Sebastien's render as the full-page background, feathered top and
+              bottom so the edges disappear into the page (no hard video edges) */}
+          <div className="pointer-events-none absolute inset-0 -z-[2]" aria-hidden="true">
             <video
               src="/clips/home-hero.mp4"
               autoPlay
@@ -93,16 +94,17 @@ export default function Home() {
               loop
               playsInline
               preload="metadata"
-              className="h-full w-full object-cover opacity-40 motion-reduce:hidden"
+              className="h-full w-full object-cover opacity-50 motion-reduce:hidden"
               style={{
-                maskImage: 'linear-gradient(180deg, transparent 0%, #000 20%, #000 76%, transparent 100%)',
-                WebkitMaskImage: 'linear-gradient(180deg, transparent 0%, #000 20%, #000 76%, transparent 100%)',
+                maskImage: 'linear-gradient(180deg, transparent 0%, #000 14%, #000 82%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(180deg, transparent 0%, #000 14%, #000 82%, transparent 100%)',
               }}
             />
-            <div className="absolute inset-0 bg-black/40" />
+            <div className="absolute inset-0 bg-[radial-gradient(80%_70%_at_50%_45%,rgba(0,0,0,0.25),rgba(0,0,0,0.62))]" />
           </div>
-          {/* drifting gold particles behind the hero */}
+          {/* drifting gold particles behind the hero copy */}
           <Particles className="pointer-events-none absolute inset-0 -z-[1]" count={80} />
+          <div className="relative mx-auto max-w-4xl px-6 py-20 text-center">
           <Reveal>
             <div className="mb-5 inline-flex items-center gap-2.5 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">
               <span className="h-px w-6 bg-gradient-to-r from-transparent to-[#bc9863]" />
@@ -138,8 +140,8 @@ export default function Home() {
           </h1>
           <Reveal delay={0.16}>
             <p className="mx-auto mt-6 max-w-xl text-[clamp(1rem,1.7vw,1.2rem)] leading-relaxed text-[#8b8f99]">
-              Renders run on <span className="text-[#f4efe6]">your own fal.ai key</span> at fal&apos;s own rate,
-              with <span className="text-[#f4efe6]">no markup</span> from us and no credit packs that expire.
+              Renders run on <span className="text-[#f4efe6]">your own fal.ai key</span>{' '}at fal&apos;s own rate,
+              with <span className="text-[#f4efe6]">no markup</span>{' '}from us and no credit packs that expire.
             </p>
           </Reveal>
           <Reveal delay={0.24}>
@@ -158,6 +160,7 @@ export default function Home() {
               </Link>
             </div>
           </Reveal>
+          </div>
         </section>
 
         {/* showcase: real renders from the platform */}
@@ -202,6 +205,28 @@ export default function Home() {
               </Reveal>
             ))}
           </div>
+        </section>
+
+        {/* ── STUDIO PRO — the flagship, right on the homepage ── */}
+        <section id="studio-pro" className="scroll-mt-6 px-4 py-20 sm:px-6">
+          <Reveal className="mx-auto mb-8 max-w-3xl text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#bc9863] bg-[#bc9863]/12 px-4 py-1.5 font-mono text-[11px] tracking-[0.24em] text-[#e7cfa3] uppercase">
+              <Clapperboard size={13} /> Studio Pro · The flagship
+            </div>
+            <h2 className="font-[family-name:var(--font-sora)] text-[clamp(2rem,4.6vw,3.2rem)] font-bold tracking-[-0.03em]">
+              This is what <span className="bg-gradient-to-r from-[#e7cfa3] to-[#bc9863] bg-clip-text text-transparent">nobody else has.</span>
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-[15.5px] leading-relaxed text-[#8b8f99]">
+              A server-side Director of Photography engine built on{' '}
+              <span className="text-[#f4efe6]">21+ years behind the camera</span>. Real bodies, real glass, real light,
+              compiled into every frame. Try every control right here.
+            </p>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <div className="glass glass-gold rounded-3xl p-3 sm:p-5">
+              <StudioConsole locked />
+            </div>
+          </Reveal>
         </section>
 
         {/* cinematic showreel: see the platform in motion */}

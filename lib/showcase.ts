@@ -76,12 +76,30 @@ export const ITEMS: ShowcaseItem[] = [
     author: 'CineMaster',
   },
   {
-    id: 'noir-sample',
-    title: 'Noir',
+    id: 'horror-sample',
+    title: 'Horror',
     kind: 'video',
-    src: '/clips/style-noir.mp4',
+    src: '/clips/style-horror.mp4',
     poster:
       'radial-gradient(70% 90% at 70% 30%, rgba(188,152,99,0.4) 0%, transparent 50%), linear-gradient(120deg, #050507 0%, #101014 60%, #1c150a 100%)',
+    author: 'CineMaster',
+  },
+  {
+    id: 'wide-reel',
+    title: 'Made with CMA Studio',
+    kind: 'video',
+    src: '/clips/home-3.mp4',
+    poster:
+      'radial-gradient(110% 80% at 50% 100%, rgba(231,207,163,0.5) 0%, transparent 60%), linear-gradient(170deg, #2a1636 0%, #6b3420 55%, #d99a4e 100%)',
+    author: 'CineMaster',
+  },
+  {
+    id: 'neutral-sample',
+    title: 'Neutral light',
+    kind: 'video',
+    src: '/clips/style-neutral.mp4',
+    poster:
+      'radial-gradient(80% 60% at 20% 20%, rgba(212,70,150,0.45) 0%, transparent 55%), radial-gradient(90% 70% at 85% 80%, rgba(52,180,196,0.4) 0%, transparent 60%), linear-gradient(135deg, #0a0714 0%, #14102a 100%)',
     author: 'CineMaster',
   },
 ];

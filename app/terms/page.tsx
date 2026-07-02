@@ -5,8 +5,10 @@
  * app/terms/page.tsx - Terms of Service for CMA Studio.
  * Facts anchored to the codebase: BYOK (components/studio/ApiKeyVault.tsx:
  * key lives in the browser, sent per render, never stored server-side),
- * retention by tier (lib/retention.ts / lib/plans.ts), flat Stripe
- * subscription, compute billed by fal.ai directly to the user.
+ * uploaded frames go from the browser straight to fal storage on the user's
+ * own key (lib/falUpload.ts; data-URI fallback transits our pipeline but is
+ * never stored), retention by tier (lib/retention.ts / lib/plans.ts), flat
+ * Stripe subscription, compute billed by fal.ai directly to the user.
  */
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -16,7 +18,7 @@ import { Logo } from '@/components/Logo';
 export const metadata: Metadata = {
   title: 'Terms of Service | CMA Studio',
   description:
-    'The terms that govern CMA Studio: a flat software subscription, compute billed by fal.ai directly to you on your own key, model provider content rules, and render retention by plan tier.',
+    'The terms that govern CMA Studio: a flat software subscription, compute billed by fal.ai directly to you on your own key, your sole responsibility for prompts, uploads and outputs, model provider content rules, and render retention by plan tier.',
 };
 
 /** A section body is a sequence of paragraphs (string) and bullet lists (string[]). */
@@ -82,10 +84,10 @@ const SECTIONS: LegalSection[] = [
     ],
   },
   {
-    title: 'Content and Conduct',
+    title: 'Acceptable Use and Your Responsibility',
     blocks: [
-      'You retain ownership of the prompts, scene notes and other material you submit to the Service. To the extent permitted by the applicable Model Providers’ terms and by law, you also own the outputs you generate. Rights in AI-generated output can be limited by the Model Providers’ terms and by the law of your jurisdiction, and it is your responsibility to confirm your rights before relying on an output commercially.',
-      'You grant us a limited, non-exclusive license to host, cache, process and display your prompts, settings and renders solely to operate the Service for you, including storing renders in your library as described in Section 8.',
+      'You, and not CineMaster Academy, are solely responsible for the prompts you write, the frames and reference media you upload, the settings you choose and the outputs you generate through the Service. Every generation runs on your own fal.ai account, under your own agreement with fal.ai, at your instruction. As between you and us, you are the author and controller of everything created through the Service on your key, and all legal responsibility for it rests with you.',
+      'You represent and warrant that you own, or have obtained every right, license, consent, release and permission needed for, everything you upload or submit to the Service, including images or likenesses of real people, brands, logos, artwork, footage and any other third-party material, and that your prompts, your uploads and your use of the resulting outputs comply with applicable law, these Terms and the Model Providers’ terms.',
       'You agree not to use the Service to create, request or distribute:',
       [
         'Content that is illegal where you live or where the content is directed.',
@@ -95,7 +97,52 @@ const SECTIONS: LegalSection[] = [
         'Content that infringes the copyright, trademark, privacy or publicity rights of others.',
         'Malware, fraud, spam, harassment, threats or content intended to abuse, deceive or endanger any person.',
       ],
-      'Model Providers enforce their own content rules and may decline, block or filter a generation. We cannot override those rules, we will not help you circumvent them, and attempting to circumvent them is a breach of these Terms. We may remove content and suspend or terminate accounts that violate this section.',
+      'Model Providers enforce their own content rules and may decline, block or filter a generation. We cannot override those rules, we will not help you circumvent them, and attempting to circumvent them is a breach of these Terms.',
+      'Spec and brand work. If you create or share work that references real brands, products, trademarks or public figures, for example spec commercials or concept films, you do so entirely on your own responsibility. Such work does not imply, and you must not suggest, any affiliation with, sponsorship by or endorsement from the referenced brand or from CineMaster Academy. Obtaining any permission that work requires is solely your obligation.',
+    ],
+  },
+  {
+    title: 'Your Content and Outputs',
+    blocks: [
+      'You retain ownership of the prompts, scene notes, uploaded frames and other material you submit to the Service. To the extent permitted by the applicable Model Providers’ terms and by law, you also own the outputs you generate. Rights in AI-generated output can be limited by the Model Providers’ terms and by the law of your jurisdiction, and it is your responsibility to confirm your rights before relying on an output commercially.',
+      'You grant us a limited, non-exclusive license to host, cache, process and display your prompts, settings, uploads and renders solely to operate the Service for you, including storing renders in your library as described in Section 12.',
+    ],
+  },
+  {
+    title: 'No Responsibility for User Content or Outputs',
+    blocks: [
+      'The Service transmits, processes and displays content that users create on their own keys. We do not pre-screen, review, endorse or verify user content or outputs, and we have no obligation to monitor them. To the maximum extent permitted by law, we accept no responsibility or liability for any user content or any output, including yours, or for any loss or damage arising from its creation, publication, distribution or use.',
+      'We may, at our sole discretion and without liability to you, refuse or remove any content, decline to run any render, and suspend or terminate any account that we believe violates these Terms, the law or the rights of others, or that creates risk for the platform, its users, its providers or any third party. We may act with or without prior notice, and we are not required to explain individual moderation decisions. We may preserve content and disclose it where the law requires.',
+    ],
+  },
+  {
+    title: 'AI-Specific Disclaimers',
+    blocks: [
+      'Generative AI is probabilistic. Outputs may be inaccurate, incomplete, unexpected, distorted or offensive, may not match your prompt and may differ between runs of the same prompt. Do not rely on any output as fact, and review every output before you use it.',
+      'Outputs may resemble existing works. Because the underlying models are trained on large datasets, an output can unintentionally resemble copyrighted works, trademarks, distinctive styles, real people, places, products or voices. We make no representation or warranty that any output is original, non-infringing or available for your intended use.',
+      'Clear rights before commercial use. Before you publish, broadcast, sell or otherwise commercially exploit an output, you are solely responsible for obtaining every clearance, license, release and legal review that the use requires, including any disclosure obligations that apply to synthetic media in your jurisdiction.',
+      'No legal advice. Nothing in the Service, its documentation, its prompt systems or these Terms is legal advice, and none of it substitutes for advice from a qualified attorney about your specific situation.',
+    ],
+  },
+  {
+    // ========================================================================
+    // PLACEHOLDER PROCESS: this is a voluntary takedown channel, not a claim
+    // of DMCA safe harbor. Formal DMCA designated-agent registration with the
+    // US Copyright Office (and safe-harbor wording) must be handled by a
+    // licensed attorney before launch.
+    // ========================================================================
+    title: 'Copyright and IP Complaints',
+    blocks: [
+      'We respect intellectual property rights and expect the same from users. If you believe content stored or made available through the Service infringes your copyright or other intellectual property rights, send a notice to hello@cinemasteracademy.com with the subject line "IP Complaint" that includes:',
+      [
+        'Identification of the work you claim is infringed.',
+        'Identification of the material you claim is infringing and where it appears in the Service.',
+        'Your name, postal address, email address and telephone number.',
+        'A statement that you have a good faith belief the use is not authorized by the rights owner, its agent or the law.',
+        'A statement, under penalty of perjury, that the notice is accurate and that you are the rights owner or authorized to act for the rights owner.',
+        'Your physical or electronic signature.',
+      ],
+      'On receipt of a valid notice we may remove or disable access to the identified material and notify the user who stored it, and where appropriate we will consider a counter-notice from that user. We terminate the accounts of repeat infringers.',
     ],
   },
   {
@@ -135,14 +182,24 @@ const SECTIONS: LegalSection[] = [
   {
     title: 'Indemnification',
     blocks: [
-      'You agree to defend, indemnify and hold harmless CineMaster Academy and its owners, officers, employees and agents from and against any claims, damages, liabilities, costs and expenses, including reasonable legal fees, arising out of or related to your content, your use of the Service, your violation of these Terms, your violation of any law or third-party right, or your fal.ai account.',
+      'You agree to defend, indemnify and hold harmless CineMaster Academy, its owner, and their respective affiliates, officers, employees, contractors and agents (together, the "Indemnified Parties") from and against any and all claims, demands, actions, investigations, damages, liabilities, losses, judgments, settlements, costs and expenses, including reasonable legal fees, arising out of or related to:',
+      [
+        'Your content, including your prompts, uploaded frames and reference media.',
+        'The outputs you generate and any use, publication, distribution or commercialization of them.',
+        'Your use or misuse of the Service.',
+        'Your violation of these Terms.',
+        'Your violation of any law or regulation.',
+        'Your infringement or violation of any third-party right, including intellectual property, publicity and privacy rights.',
+        'Your fal.ai account and your agreement with fal.ai.',
+      ],
+      'We may assume the exclusive defense and control of any matter subject to indemnification by you, at your expense, in which case you agree to cooperate with our defense and not to settle any such matter without our prior written consent. This obligation survives the end of your subscription and of these Terms.',
     ],
   },
   {
     title: 'Termination',
     blocks: [
       'You may cancel your subscription and stop using the Service at any time. We may suspend or terminate your access if you materially breach these Terms, use the Service unlawfully or create risk for the platform or other users, with notice where practicable.',
-      'When your access ends, your license to use the Service ends and stored renders become subject to deletion under Section 8. Download anything you want to keep before your access ends. Sections that by their nature should survive termination, including Sections 5 through 12 and Section 15, survive.',
+      'When your access ends, your license to use the Service ends and stored renders become subject to deletion under Section 12. Download anything you want to keep before your access ends. Sections that by their nature should survive termination, including Sections 6 through 16, Section 19 and Section 20, survive.',
     ],
   },
   {
@@ -161,6 +218,14 @@ const SECTIONS: LegalSection[] = [
     blocks: [
       'These Terms are governed by the laws of the State of California, USA, without regard to its conflict of law rules. You and CineMaster Academy agree to the exclusive jurisdiction of the state and federal courts located in Los Angeles County, California, for any dispute that is not resolved informally.',
       'Before filing a claim, you agree to first contact us at hello@cinemasteracademy.com and give us 30 days to work toward an informal resolution.',
+    ],
+  },
+  {
+    title: 'General',
+    blocks: [
+      'If any provision of these Terms is found invalid or unenforceable, that provision will be enforced to the maximum extent permitted and the remaining provisions will stay in full force. Our failure to enforce a provision is not a waiver of our right to enforce it later.',
+      'These Terms, together with the Privacy Policy and the plan details shown at purchase, are the entire agreement between you and us regarding the Service. You may not assign or transfer these Terms without our prior written consent; we may assign them in connection with a merger, acquisition, reorganization or sale of assets.',
+      'We are not liable for any delay or failure caused by events beyond our reasonable control, including outages or decisions of Model Providers, hosting or network providers, acts of government, natural disasters, internet disturbances or labor disputes.',
     ],
   },
   {
@@ -205,7 +270,8 @@ export default function TermsPage() {
         <p className="mt-6 text-[0.95rem] leading-[1.75] text-[#8b8f99]">
           The short version: CMA Studio is software. You pay us a flat subscription for the interface and the prompt
           engineering. Compute runs on your own fal.ai key and fal bills you directly. Your renders stay in your
-          library for a limited window set by your plan. The full terms below are what actually governs.
+          library for a limited window set by your plan. What you create on your key is yours to answer for: prompts,
+          uploads and outputs are your responsibility. The full terms below are what actually governs.
         </p>
 
         <div className="glass glass-gold mt-10 rounded-2xl p-6 sm:p-8">

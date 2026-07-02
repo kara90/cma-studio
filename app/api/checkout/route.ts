@@ -5,7 +5,7 @@
  * amount. The Supabase user id is bound to the session + subscription metadata
  * so the webhook can grant the right entitlement.
  */
-import { verifyAccess } from '@/lib/authGuard';
+import { verifySession } from '@/lib/authGuard';
 import { getStripe, isStripeConfigured } from '@/lib/stripe';
 import { priceForTier, priceForExtension, isCheckoutTier } from '@/lib/billing';
 import type { Cycle } from '@/lib/plans';
@@ -21,7 +21,8 @@ function bad(status: number, error: string) {
 export async function POST(request: Request) {
   if (!isStripeConfigured) return bad(503, 'Billing is not configured yet.');
 
-  const access = await verifyAccess();
+  // Session only — buying a plan must never require already having one.
+  const access = await verifySession();
   if (!access.ok) return bad(access.status, access.error);
   if (!access.email) return bad(400, 'Your account has no email on file.');
 

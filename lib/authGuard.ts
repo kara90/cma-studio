@@ -1,14 +1,12 @@
 /**
  * lib/authGuard.ts — AUTHORITATIVE server-side access check (server-only).
- * Every protected API route calls verifyAccess() before doing any work. This
- * is the real gate; proxy.ts only does an optimistic /studio redirect for UX.
+ * Every protected API route calls one of these before doing any work. This is
+ * the real gate; the /studio page only does an optimistic client-side redirect.
  *
- * Layers, in order:
- *   1. Dev bypass — only when NODE_ENV!=='production' AND Supabase unconfigured.
- *   2. Config present — else 503 (fail closed in prod).
- *   3. Valid Supabase session (getUser validates the JWT against Supabase).
- *   4. Academy gate (isAcademyEmail).
- *   5. Optional per-user entitlement (CMA_REQUIRE_ENTITLEMENT=true).
+ *   verifySession() — signed-in (+ optional domain allowlist). Used by
+ *     /api/checkout: buying a plan must NOT require already having one.
+ *   verifyAccess()  — verifySession PLUS the hard paywall (active plan in
+ *     server-controlled app_metadata). Used by every render/storage route.
  */
 import { createServerSupabase } from './supabase/server';
 import { isSupabaseConfigured, isAcademyEmail, DEV_AUTH_BYPASS } from './access';
@@ -17,7 +15,9 @@ export type AccessResult =
   | { ok: true; userId: string; email: string | null; tier: string | null }
   | { ok: false; status: number; error: string };
 
-export async function verifyAccess(): Promise<AccessResult> {
+/** Signed-in check WITHOUT the paywall — checkout's gate (fixes the catch-22
+ * where buying a subscription required already having one). */
+export async function verifySession(): Promise<AccessResult> {
   if (DEV_AUTH_BYPASS) return { ok: true, userId: 'dev-user', email: 'dev@local', tier: null };
 
   if (!isSupabaseConfigured) {
@@ -29,23 +29,33 @@ export async function verifyAccess(): Promise<AccessResult> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return { ok: false, status: 401, error: 'Sign in to render.' };
+  if (!user) return { ok: false, status: 401, error: 'Sign in first.' };
   if (!isAcademyEmail(user.email)) {
-    return { ok: false, status: 403, error: 'Academy access required.' };
+    return { ok: false, status: 403, error: 'This email domain is not allowed on this workspace.' };
   }
+
+  const plan = (user.app_metadata as Record<string, unknown> | undefined)?.cma_plan;
+  const tier = plan && typeof plan === 'object' ? ((plan as { tier?: string }).tier ?? null) : null;
+  return { ok: true, userId: user.id, email: user.email ?? null, tier };
+}
+
+export async function verifyAccess(): Promise<AccessResult> {
+  const session = await verifySession();
+  if (!session.ok) return session;
+  if (session.userId === 'dev-user') return session; // dev bypass
 
   // HARD PAYWALL: an active subscription is REQUIRED to render — no free access.
   // app_metadata ONLY. user_metadata is user-writable (supabase.auth.updateUser),
   // so trusting it would let anyone self-grant a plan. The Stripe webhook writes
   // the entitlement into app_metadata via the service-role key, which users cannot edit.
-  const plan = (user.app_metadata as Record<string, unknown> | undefined)?.cma_plan;
+  const supabase = await createServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const plan = (user?.app_metadata as Record<string, unknown> | undefined)?.cma_plan;
   if (!isPlanActive(plan)) return { ok: false, status: 402, error: 'Subscribe to unlock rendering.' };
 
-  // Tier drives storage retention (lib/retention.ts) — read from the same
-  // server-controlled app_metadata, never from anything user-writable.
-  const tier = plan && typeof plan === 'object' ? ((plan as { tier?: string }).tier ?? null) : null;
-
-  return { ok: true, userId: user.id, email: user.email ?? null, tier };
+  return session;
 }
 
 function isPlanActive(plan: unknown): boolean {

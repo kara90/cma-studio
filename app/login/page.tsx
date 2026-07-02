@@ -45,7 +45,7 @@ export default function LoginPage() {
       return;
     }
     if (!isAcademyEmail(email)) {
-      setError('That email is not on the CineMaster Academy roster. Use your academy address.');
+      setError('That email domain is not allowed on this workspace.');
       return;
     }
 
@@ -99,25 +99,25 @@ export default function LoginPage() {
         <div className="glass glass-gold rounded-2xl p-7">
           <div className="mb-6 text-center">
             <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-[#bc9863]/25 px-3 py-1 font-mono text-[10px] tracking-[0.2em] text-[#bc9863] uppercase">
-              <ShieldCheck size={12} /> Academy access
+              <ShieldCheck size={12} /> Your account
             </div>
             <h1 className="font-[family-name:var(--font-sora)] text-2xl font-semibold">
-              {mode === 'signin' ? 'Enter the studio' : 'Register your seat'}
+              {mode === 'signin' ? 'Enter the studio' : 'Create your account'}
             </h1>
             <p className="mt-2 text-sm text-[#8b8f99]">
-              Restricted to CineMaster Academy students.
+              One account. Every model, your key, your library.
             </p>
           </div>
 
           <form onSubmit={submit} className="flex flex-col gap-3">
             <label className="flex flex-col gap-1.5">
-              <span className="font-mono text-[10px] tracking-[0.18em] text-[#8b8f99] uppercase">Academy email</span>
+              <span className="font-mono text-[10px] tracking-[0.18em] text-[#8b8f99] uppercase">Email</span>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@cinemasteracademy.com"
+                placeholder="you@example.com"
                 autoComplete="email"
                 className="rounded-lg border border-white/10 bg-black/50 px-3.5 py-3 text-sm text-[#f4efe6] outline-none transition focus:border-[#bc9863] placeholder:text-[#8b909e]"
               />
@@ -169,7 +169,7 @@ export default function LoginPage() {
           <div className="mt-5 text-center text-xs text-[#8b8f99]">
             {mode === 'signin' ? (
               <>
-                Have an academy seat but no login?{' '}
+                New here?{' '}
                 <button onClick={() => setMode('signup')} className="cursor-pointer text-[#e7cfa3] hover:underline">
                   Register
                 </button>

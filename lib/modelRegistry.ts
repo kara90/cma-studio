@@ -40,18 +40,33 @@ export const MODEL_OPTIONS: ModelOption[] = [
   // ── Video ──
   // costHint values verified against fal's live model pages 2026-07-02 —
   // transparency estimates only; fal bills the user directly at fal's rate.
+  // Ranked: flagships (top) first, strong-value tiers after.
   { id: 'seedance-2', label: 'Seedance 2', provider: 'ByteDance', type: 'video', output: 'video', status: 'live', blurb: 'Cinematic motion, native audio', top: true, costHint: 'about $1.50 for 5s at 720p, about $3.40 at 1080p' },
-  { id: 'kling-3', label: 'Kling 3', provider: 'Kuaishou', type: 'video', output: 'video', status: 'beta', blurb: 'Next-gen Kling · second-best flagship', top: true, costHint: 'about $0.42 for 5s, or $0.56 with audio on' },
+  { id: 'kling-3', label: 'Kling 3 Pro', provider: 'Kuaishou', type: 'video', output: 'video', status: 'live', blurb: 'The real Kling 3 flagship, native audio', top: true, costHint: 'about $0.84 for 5s with audio, $0.56 audio off' },
+  { id: 'sora-2-pro', label: 'Sora 2 Pro', provider: 'OpenAI', type: 'video', output: 'video', status: 'live', blurb: 'OpenAI flagship, up to 20s with native audio', top: true, costHint: 'about $2.00 for 4s at 1080p' },
   { id: 'veo-3-1', label: 'Veo 3.1', provider: 'Google', type: 'video', output: 'video', status: 'beta', blurb: 'Google Veo 3.1 · latest', top: true, costHint: 'about $2.00 for 5s at 1080p with audio, about $1.00 audio off' },
   { id: 'hailuo', label: 'Hailuo 2.3', provider: 'MiniMax', type: 'video', output: 'video', status: 'beta', blurb: 'Expressive, character-driven', top: true, costHint: 'about $0.28 for 6s, $0.56 for 10s' },
-  { id: 'grok-imagine', label: 'Grok Imagine', provider: 'xAI', type: 'video', output: 'video', status: 'preview', blurb: 'Coming soon to the studio', top: true },
+  { id: 'sora-2', label: 'Sora 2', provider: 'OpenAI', type: 'video', output: 'video', status: 'live', blurb: 'Sora quality at a value rate, up to 20s', value: true, costHint: 'about $0.40 for 4s, $0.10 per second' },
+  { id: 'veo-3-1-fast', label: 'Veo 3.1 Fast', provider: 'Google', type: 'video', output: 'video', status: 'live', blurb: 'Veo speed tier, same controls', value: true, costHint: 'about $1.20 for 8s with audio, $0.80 audio off' },
+  { id: 'seedance-1-5-pro', label: 'Seedance 1.5 Pro', provider: 'ByteDance', type: 'video', output: 'video', status: 'live', blurb: 'Proven Seedance workhorse', value: true, costHint: 'about $0.26 for 5s at 720p with audio' },
+  { id: 'wan-2-5', label: 'Wan 2.5', provider: 'Alibaba', type: 'video', output: 'video', status: 'live', blurb: 'Strong 1080p motion, native audio', value: true, costHint: 'about $0.75 for 5s at 1080p, $0.50 at 720p' },
+  { id: 'ltx-2', label: 'LTX-2', provider: 'Lightricks', type: 'video', output: 'video', status: 'live', blurb: 'Cheap native 4K, up to 10s', value: true, costHint: 'about $0.36 for 6s at 1080p, 4K available' },
+  { id: 'kling-o3', label: 'Kling O3', provider: 'Kuaishou', type: 'video', output: 'video', status: 'live', blurb: 'Second-by-second control, 3 to 15s', value: true, costHint: 'about $0.42 for 5s, $0.56 with audio on' },
   { id: 'seedance-2-mini', label: 'Seedance 2 Mini', provider: 'ByteDance', type: 'video', output: 'video', status: 'live', blurb: 'Faster, lower-cost tier', value: true, costHint: 'about $1.20 for 5s at 720p' },
   { id: 'kling-2-5', label: 'Kling 2.5', provider: 'Kuaishou', type: 'video', output: 'video', status: 'live', blurb: 'Great motion for the price', value: true, costHint: 'about $0.35 for 5s, then $0.07 per extra second' },
   { id: 'kling-2-6', label: 'Kling 2.6', provider: 'Kuaishou', type: 'video', output: 'video', status: 'live', blurb: 'Newer Kling · strong value', value: true, costHint: 'about $0.35 for 5s, or $0.70 with audio on' },
+  // wired:false — the fal slug is unconfirmed; the server must refuse it too.
+  { id: 'grok-imagine', label: 'Grok Imagine', provider: 'xAI', type: 'video', output: 'video', status: 'preview', wired: false, blurb: 'Coming soon to the studio' },
   // ── Image / Photo ──
   { id: 'nano-banana-pro', label: 'Nano Banana Pro', provider: 'Google', type: 'image', output: 'image', status: 'live', blurb: 'Gemini 3 Pro Image · up to 4K', top: true, costHint: 'about $0.15 per image, $0.30 for 4K' },
+  { id: 'seedream-4-5', label: 'Seedream 4.5', provider: 'ByteDance', type: 'image', output: 'image', status: 'live', blurb: 'Next-gen 4K stills, razor detail', top: true, costHint: 'about $0.04 per image' },
+  { id: 'flux-2-pro', label: 'FLUX.2 Pro', provider: 'Black Forest Labs', type: 'image', output: 'image', status: 'live', blurb: 'The new FLUX flagship', top: true, costHint: 'about $0.03 per image' },
+  { id: 'imagen-4', label: 'Imagen 4', provider: 'Google', type: 'image', output: 'image', status: 'live', blurb: 'Google photorealism, up to 2K', top: true, costHint: 'about $0.05 per image' },
+  { id: 'ideogram-v3', label: 'Ideogram V3', provider: 'Ideogram', type: 'image', output: 'image', status: 'live', blurb: 'Best-in-class text and typography', top: true, costHint: 'about $0.06 per image' },
+  { id: 'flux-1-1-ultra', label: 'FLUX 1.1 Ultra', provider: 'Black Forest Labs', type: 'image', output: 'image', status: 'live', blurb: '4MP photoreal, raw mode', value: true, costHint: 'about $0.06 per image' },
+  { id: 'recraft-v4-1', label: 'Recraft V4.1', provider: 'Recraft', type: 'image', output: 'image', status: 'live', blurb: 'Design and brand-color control', value: true, costHint: 'about $0.035 per image' },
   { id: 'nano-banana-2', label: 'Nano Banana 2', provider: 'Google', type: 'image', output: 'image', status: 'beta', blurb: 'Reasoning-guided synthesis', value: true, costHint: 'about $0.08 per image, $0.16 at 4K' },
-  { id: 'gpt-image-2', label: 'GPT Image 2', provider: 'OpenAI', type: 'image', output: 'image', status: 'beta', blurb: 'High-fidelity text-to-image', costHint: 'about $0.04 per image at medium quality, $0.17 at high' },
+  { id: 'gpt-image-2', label: 'GPT Image', provider: 'OpenAI', type: 'image', output: 'image', status: 'beta', blurb: 'High-fidelity text-to-image', costHint: 'about $0.04 per image at medium quality, $0.17 at high' },
   // ── Audio ──
   // The five text-to-audio models below are WIRED (server recipes in
   // lib/modelEndpoints.ts, params verified against the live fal OpenAPI schemas
