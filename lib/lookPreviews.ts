@@ -57,7 +57,7 @@ export const STYLE_PREVIEWS: Record<string, LookPreview> = {
   noir: {
     id: 'noir',
     label: 'Noir',
-    clip: undefined, // awaiting Sebastien's noir sample
+    clip: '/clips/style-noir.mp4', // Sebastien's real sample, compressed for web
 
     // Near-black frame cut by one hard white diagonal key streak.
     poster:
@@ -79,7 +79,7 @@ export const LIGHTING_PREVIEWS: Record<string, LookPreview> = {
   drama: {
     id: 'drama',
     label: 'Drama',
-    clip: undefined,
+    clip: '/clips/style-drama.mp4', // Sebastien's real sample, compressed for web
     // Warm soft window key wrapping out of deep shadow, gentle falloff.
     poster:
       'radial-gradient(95% 120% at 28% 32%, rgba(233,178,106,0.75) 0%, rgba(148,94,44,0.28) 42%, rgba(148,94,44,0) 66%), linear-gradient(135deg, #201409 0%, #120b05 55%, #050302 100%)',
