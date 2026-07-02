@@ -25,7 +25,7 @@ import Link from 'next/link';
 import { Sparkles, AlertTriangle, Download, ArrowRight, ImagePlus, X } from 'lucide-react';
 import { downloadRender, renderFilename } from '@/lib/download';
 import { findModel } from '@/lib/modelRegistry';
-import { getModelCaps, fmtRes, fmtDur, fmtAspect } from '@/lib/modelCaps';
+import { getModelCaps, fmtRes, fmtDur, fmtAspect, resolutionLadder } from '@/lib/modelCaps';
 import { DurationDial } from '@/components/studio/DurationDial';
 import { uploadToFal } from '@/lib/falUpload';
 import { ModelPicker } from '@/components/studio/ModelPicker';
@@ -66,7 +66,7 @@ const AUDIO_HINTS: Record<string, string> = {
 /** A labelled row of pill options — same pattern as the studio's chips. */
 function ChipRow<T extends string>({ label, options, value, onChange }: {
   label: string;
-  options: readonly { id: T; label: string }[];
+  options: readonly { id: T; label: string; disabled?: boolean }[];
   value: T;
   onChange: (v: T) => void;
 }) {
@@ -78,10 +78,15 @@ function ChipRow<T extends string>({ label, options, value, onChange }: {
           <button
             key={o.id}
             type="button"
-            onClick={() => onChange(o.id)}
+            onClick={o.disabled ? undefined : () => onChange(o.id)}
+            disabled={o.disabled}
+            aria-disabled={o.disabled}
             aria-pressed={value === o.id}
-            className={`inline-flex min-h-[40px] cursor-pointer items-center justify-center rounded-lg border px-3 py-1.5 font-mono text-[11px] transition sm:min-h-0 ${
-              value === o.id ? 'border-[#bc9863] bg-[#bc9863]/12 text-[#e7cfa3]' : 'border-white/8 text-[#8b8f99] hover:border-[#bc9863]/40'
+            title={o.disabled ? 'Not supported by this model' : undefined}
+            className={`inline-flex min-h-[40px] items-center justify-center rounded-lg border px-3 py-1.5 font-mono text-[11px] transition sm:min-h-0 ${
+              o.disabled
+                ? 'cursor-not-allowed border-white/5 text-[#575b64] line-through opacity-60'
+                : value === o.id ? 'cursor-pointer border-[#bc9863] bg-[#bc9863]/12 text-[#e7cfa3]' : 'cursor-pointer border-white/8 text-[#8b8f99] hover:border-[#bc9863]/40'
             }`}
           >
             {o.label}
@@ -491,9 +496,9 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
             )}
             {caps.resolutions.length > 0 && (
               <div>
-                <ChipRow label="Resolution" options={caps.resolutions.map((v) => ({ id: v, label: fmtRes(v) }))} value={resolution} onChange={setResolution} />
+                <ChipRow label="Resolution" options={resolutionLadder(caps)} value={resolution} onChange={setResolution} />
                 <p className="mt-1.5 font-mono text-[9px] leading-relaxed tracking-[0.04em] text-[#8b909e]">
-                  Higher resolution uses more compute on your Fal key.
+                  Higher resolution uses more compute on your Fal key. Greyed tiers are not offered by this model.
                 </p>
               </div>
             )}

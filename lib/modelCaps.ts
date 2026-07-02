@@ -75,9 +75,11 @@ const CORE_ASPECTS = ['16:9', '9:16', '1:1'] as const;
 // Seedance 2.0 (full) accepts up to 4K per Fal's live schema; the /fast tier is
 // genuinely capped at 720p. (Verified against the OpenAPI schema 2026-07-01.)
 // duration: fal accepts EVERY second 4-15 (re-verified 2026-07-02) — full control.
+// fal also accepts 'auto' duration, but length drives the compute price, so the
+// user ALWAYS picks a concrete length (Sebastien's rule: never auto on price).
 const SEEDANCE_FULL: ModelCaps = {
   resolutionParam: 'resolution', resolutions: ['480p', '720p', '1080p', '4k'], resolutionDefault: '720p',
-  durationParam: 'duration', durations: ['auto', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'], durationDefault: 'auto',
+  durationParam: 'duration', durations: ['4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'], durationDefault: '5',
   aspectParam: 'aspect_ratio', aspects: CORE_ASPECTS, aspectDefault: '16:9',
   supportsSeed: true, supportsNegativePrompt: false,
   audioParam: 'generate_audio', audioDefault: true, // audio included in seedance pricing
@@ -85,7 +87,7 @@ const SEEDANCE_FULL: ModelCaps = {
 };
 const SEEDANCE_FAST: ModelCaps = {
   resolutionParam: 'resolution', resolutions: ['480p', '720p'], resolutionDefault: '720p',
-  durationParam: 'duration', durations: ['auto', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'], durationDefault: 'auto',
+  durationParam: 'duration', durations: ['4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'], durationDefault: '5',
   aspectParam: 'aspect_ratio', aspects: CORE_ASPECTS, aspectDefault: '16:9',
   supportsSeed: true, supportsNegativePrompt: false,
   audioParam: 'generate_audio', audioDefault: true,
@@ -306,6 +308,30 @@ export function fmtRes(v: string): string {
 export function fmtDur(v: string): string {
   if (v === 'auto') return 'Auto';
   return /s$/.test(v) ? v : `${v}s`;
+}
+
+/**
+ * Resolution options for the UI, Sebastien's rule: the ladder shows the
+ * canonical tiers even when this model does not reach them, GREYED OUT, so a
+ * user always sees "this model has no 4K" instead of wondering where 4K went.
+ * Only applies to pixel-ladder models (480p/720p/1080p...); image-size enums
+ * (Square/Landscape/2K/4K auto sizes) are left exactly as the model defines.
+ */
+const RES_TIERS = ['480p', '720p', '1080p', '4K'] as const;
+export function resolutionLadder(caps: ModelCaps): { id: string; label: string; disabled?: boolean }[] {
+  const real = caps.resolutions.map((v) => ({ id: v, label: fmtRes(v) }));
+  const isPixelLadder = caps.resolutions.some((v) => /^(480p|720p|1080p)$/i.test(v));
+  if (!isPixelLadder) return real;
+  const have = new Set(real.map((o) => o.label.replace('+', '')));
+  const padded = [
+    ...real,
+    ...RES_TIERS.filter((t) => !have.has(t)).map((t) => ({ id: `unsupported-${t}`, label: t, disabled: true })),
+  ];
+  const rank = (l: string) => {
+    const i = RES_TIERS.indexOf(l.replace('+', '') as (typeof RES_TIERS)[number]);
+    return i === -1 ? 90 + padded.findIndex((o) => o.label === l) : i * 2 + (l.endsWith('+') ? 1 : 0);
+  };
+  return padded.sort((a, b) => rank(a.label) - rank(b.label));
 }
 export function fmtAspect(v: string): string {
   const map: Record<string, string> = { '16:9': 'Landscape', '9:16': 'Vertical', '1:1': 'Square' };

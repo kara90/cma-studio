@@ -29,6 +29,12 @@ export function DurationDial({ caps, value, onChange }: {
   const stops = caps.durations;
   const range = caps.durationRange;
 
+  // Canonical lengths BEYOND this model's ceiling, shown greyed so the user
+  // sees "this model stops at Xs" instead of wondering where 15s went. The
+  // slider itself never reaches them — unsupported seconds cannot be sent.
+  const maxSeconds = stops.length ? Math.max(...stops.map((s) => parseInt(s, 10) || 0)) : 0;
+  const lockedStops = range ? [] : ['5', '10', '15', '20'].filter((s) => Number(s) > maxSeconds);
+
   const stopIndex = useMemo(() => {
     const i = stops.indexOf(value);
     return i >= 0 ? i : Math.max(0, stops.indexOf(caps.durationDefault ?? stops[0]));
@@ -120,6 +126,16 @@ export function DurationDial({ caps, value, onChange }: {
                       >
                         {fmtDur(s)}
                       </button>
+                    ))}
+                    {lockedStops.map((s) => (
+                      <span
+                        key={s}
+                        title="Not supported by this model"
+                        aria-disabled="true"
+                        className="cursor-not-allowed font-mono text-[9px] tracking-[0.04em] text-[#575b64] line-through opacity-60"
+                      >
+                        {fmtDur(s)}
+                      </span>
                     ))}
                   </div>
                 </>
