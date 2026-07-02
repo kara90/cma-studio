@@ -450,11 +450,21 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
           </section>
         )}
 
-        {/* 4 · prompt */}
+        {/* 4 · prompt — RAW by contract: what you type is the exact string the
+            model receives on your fal account. The CMA DP engine only ever
+            runs in Studio Pro. */}
         <section className="border-t border-white/8 pt-5">
-          <label htmlFor={promptId} className="mb-2 block font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">
-            Your prompt
-          </label>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <label htmlFor={promptId} className="block font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">
+              Your prompt
+            </label>
+            <span
+              title="Your words go to the model exactly as typed — nothing added, nothing rewritten."
+              className="rounded-md border border-white/10 bg-black/40 px-2 py-0.5 font-mono text-[9px] tracking-[0.16em] text-[#8b909e] uppercase"
+            >
+              Raw · sent as written
+            </span>
+          </div>
           <textarea
             id={promptId}
             value={prompt}
@@ -464,7 +474,12 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
             style={{ maxHeight: 620 }}
           />
           <p className="mt-1.5 text-[11.5px] leading-relaxed text-[#8b909e]">
-            Sent to the model exactly as written. No studio recipe is added on this page.
+            This page sends your prompt to the model <span className="text-[#cfcabf]">exactly as written</span> — no
+            structure, no optimization, no studio recipe. Want a shot engineered like a DP would?{' '}
+            <Link href="/studio" className="font-semibold text-[#bc9863] underline-offset-2 transition hover:text-[#e7cfa3] hover:underline">
+              That&apos;s Studio Pro
+            </Link>
+            .
           </p>
           {kind === 'audio' && AUDIO_HINTS[model] && (
             <p className="mt-1.5 font-mono text-[10px] leading-relaxed text-[#bc9863]/80">{AUDIO_HINTS[model]}</p>
