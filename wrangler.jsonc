@@ -20,5 +20,19 @@
   "ratelimits": [
     { "name": "RENDER_LIMITER", "namespace_id": "1001", "simple": { "limit": 12, "period": 60 } }
   ],
+  // Non-secret runtime config (safe to commit). The Supabase anon/URL are PUBLIC
+  // (the anon key ships in the browser); real secrets (service_role, Stripe) are
+  // NEVER here — those go in the dashboard as encrypted secrets. Build-time copies
+  // of the NEXT_PUBLIC_* values also live in .env.production so Next can inline them.
+  // CMA_REQUIRE_ENTITLEMENT is "false" for the soft launch (login + render, no
+  // paywall yet); flip to "true" once Stripe is wired to arm the hard paywall.
+  "vars": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://abucnrmydwbogmcrrnwm.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFidWNucm15ZHdib2dtY3JybndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NTcyNjgsImV4cCI6MjA5ODUzMzI2OH0.mukNh0t2FsWJGGqU-AMU8sgZ7w-eVn0JcGH6gt7P-Y0",
+    "NEXT_PUBLIC_SITE_URL": "https://cma-studio.sebastienriccidirector.workers.dev",
+    "NEXT_PUBLIC_ACADEMY_ALLOWED_DOMAINS": "cinemasteracademy.com",
+    "FAL_RENDER_TIER": "standard",
+    "CMA_REQUIRE_ENTITLEMENT": "false"
+  },
   "observability": { "enabled": true }
 }

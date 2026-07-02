@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (secrets) — never commit real values; templates ARE committed
 .env*
 !.env.example
+# .env.production holds ONLY public NEXT_PUBLIC_* build values (safe) — committed
+# so Cloudflare's git build can inline them. No secrets ever go in it.
+!.env.production
 
 # Cloudflare / OpenNext build artifacts + local secrets
 .open-next/
