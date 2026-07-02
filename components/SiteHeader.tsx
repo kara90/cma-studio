@@ -217,15 +217,13 @@ export function SiteHeader({ links = DEFAULT_LINKS, cta = DEFAULT_CTA }: SiteHea
               >
                 {cta.label} <ArrowRight size={16} />
               </Link>
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  window.dispatchEvent(new CustomEvent('cma:install'));
-                }}
+              <Link
+                href="/app"
+                onClick={() => setMenuOpen(false)}
                 className="inline-flex min-h-[48px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#bc9863]/40 py-3.5 text-[15px] font-semibold text-[#e7cfa3] transition hover:bg-[#bc9863]/10"
               >
                 <Smartphone size={16} /> Get the app
-              </button>
+              </Link>
             </motion.div>
           </motion.div>
         )}

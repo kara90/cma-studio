@@ -1,21 +1,21 @@
 'use client';
 
 /**
- * PwaProvider — registers the service worker and owns the premium install
- * experience:
- *   • Android / desktop Chrome: captures `beforeinstallprompt` and offers a
- *     one-tap native install from a glass banner.
- *   • iOS Safari (no install event by design): the same banner opens a short
- *     "Share → Add to Home Screen" sheet.
- *   • Already installed (standalone) or recently dismissed: the AUTO banner
- *     stays away — but the app is never unreachable: any "Get the app" button
- *     (header menu, home section, footer) dispatches `cma:install`, which
- *     always answers — native prompt when captured, instruction sheet
- *     otherwise. Mounted once in the root layout.
+ * PwaProvider — registers the service worker and owns the auto install banner:
+ *   • Android / desktop Chrome: captures `beforeinstallprompt`; the banner's
+ *     Install button fires the native one-tap prompt.
+ *   • iOS (no install event by design): the banner leads to /app, the
+ *     canonical visual walkthrough.
+ *   • Already installed (standalone) or recently dismissed: the banner stays
+ *     away. The app is never unreachable though — every "Get the app" button
+ *     (GetAppButton below) links to /app permanently.
+ * Mounted once in the root layout.
  */
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { X, Share, PlusSquare, Download, MoreVertical, Smartphone } from 'lucide-react';
+import { X, Download } from 'lucide-react';
 
 const DISMISS_KEY = 'cma_pwa_dismissed_at';
 const DISMISS_DAYS = 30;
@@ -38,50 +38,56 @@ function isIos(): boolean {
 }
 
 /**
- * "Get the app" button for any page surface (home section, footers). Explicit
- * intent — always works, even after the auto banner was dismissed.
+ * "Get the app" for any page surface — a plain link to /app, the canonical
+ * install page (platform detection + one-tap Android install live there).
+ * Hides itself inside the installed app.
  */
 export function GetAppButton({ className, children }: { className?: string; children?: React.ReactNode }) {
   const [installed, setInstalled] = useState(false);
   useEffect(() => setInstalled(isStandalone()), []);
   if (installed) return null; // already the app — nothing to sell
   return (
-    <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('cma:install'))} className={className}>
+    <Link href="/app" className={className}>
       {children ?? 'Get the app'}
-    </button>
+    </Link>
   );
 }
 
 export function PwaProvider() {
   const reduce = useReducedMotion();
+  const router = useRouter();
   const [installEvt, setInstallEvt] = useState<InstallEvent | null>(null);
   const [showBanner, setShowBanner] = useState(false);
-  const [sheet, setSheet] = useState(false);
 
-  // Service worker: register once, silently. Never intercepts /api/*.
+  // Service worker: PRODUCTION ONLY. Dev chunks are not immutable-hashed, so a
+  // cache-first worker serves stale module graphs and breaks hot dev (learned
+  // the hard way). In dev we actively unregister any leftover worker.
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    if (!('serviceWorker' in navigator)) return;
+    if (process.env.NODE_ENV !== 'production') {
+      navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister())).catch(() => {});
+      return;
     }
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
   }, []);
 
   useEffect(() => {
     if (isStandalone()) return; // already the app
+    if (window.location.pathname === '/app') return; // the guide page sells itself
 
-    // ALWAYS capture the install event — dismissal only mutes the auto banner,
-    // never the explicit "Get the app" buttons.
+    const dismissedRecently = () =>
+      Date.now() - Number(localStorage.getItem(DISMISS_KEY) ?? 0) < DISMISS_DAYS * 86_400_000;
+
     const onPrompt = (e: Event) => {
       e.preventDefault();
       setInstallEvt(e as InstallEvent);
-      const dismissed = Number(localStorage.getItem(DISMISS_KEY) ?? 0);
-      if (Date.now() - dismissed >= DISMISS_DAYS * 86_400_000) setShowBanner(true);
+      if (!dismissedRecently()) setShowBanner(true);
     };
     window.addEventListener('beforeinstallprompt', onPrompt);
 
     // iOS never fires the event — auto-surface the banner after a beat instead.
     let t: ReturnType<typeof setTimeout> | undefined;
-    const dismissed = Number(localStorage.getItem(DISMISS_KEY) ?? 0);
-    if (isIos() && Date.now() - dismissed >= DISMISS_DAYS * 86_400_000) {
+    if (isIos() && !dismissedRecently()) {
       t = setTimeout(() => setShowBanner(true), 6000);
     }
 
@@ -91,42 +97,28 @@ export function PwaProvider() {
     };
   }, []);
 
-  // Explicit intent from any Get-the-app button anywhere on the site.
-  useEffect(() => {
-    const onWant = () => {
-      if (isStandalone()) return;
-      void triggerInstall(true);
-    };
-    window.addEventListener('cma:install', onWant);
-    return () => window.removeEventListener('cma:install', onWant);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [installEvt]);
-
   const dismiss = () => {
     localStorage.setItem(DISMISS_KEY, String(Date.now()));
     setShowBanner(false);
-    setSheet(false);
   };
 
-  const triggerInstall = async (explicit = false) => {
+  const install = async () => {
     if (installEvt) {
       setShowBanner(false);
       await installEvt.prompt();
       const choice = await installEvt.userChoice;
-      if (choice.outcome !== 'accepted' && !explicit) dismiss();
+      if (choice.outcome !== 'accepted') dismiss();
       setInstallEvt(null);
     } else {
-      // No captured event (iOS always; Android before eligibility): show steps.
+      // No native prompt on this platform — the /app page walks them through.
       setShowBanner(false);
-      setSheet(true);
+      router.push('/app');
     }
   };
 
-  const ios = isIos();
-
   return (
     <AnimatePresence>
-      {showBanner && !sheet && (
+      {showBanner && (
         <motion.div
           key="banner"
           initial={reduce ? false : { y: 90, opacity: 0 }}
@@ -147,7 +139,7 @@ export function PwaProvider() {
               </div>
             </div>
             <button
-              onClick={() => triggerInstall()}
+              onClick={install}
               className="inline-flex min-h-[40px] cursor-pointer items-center gap-1.5 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-4 py-2 text-[13px] font-semibold text-black transition hover:brightness-105"
             >
               <Download size={14} /> Install
@@ -160,82 +152,6 @@ export function PwaProvider() {
               <X size={16} />
             </button>
           </div>
-        </motion.div>
-      )}
-
-      {sheet && (
-        <motion.div
-          key="install-sheet"
-          initial={reduce ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[75] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center"
-          onClick={() => setSheet(false)}
-        >
-          <motion.div
-            initial={reduce ? false : { y: 60 }}
-            animate={{ y: 0 }}
-            exit={{ y: 60 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-            onClick={(e) => e.stopPropagation()}
-            className="glass glass-gold w-full max-w-md rounded-t-3xl border border-[#bc9863]/35 p-6 sm:rounded-3xl"
-          >
-            <div className="mb-4 flex items-center gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/icons/icon-192.png" alt="" className="h-12 w-12 rounded-xl border border-white/10" />
-              <div>
-                <div className="font-[family-name:var(--font-sora)] text-[16px] font-semibold text-[#f4efe6]">
-                  Install CMA Studio
-                </div>
-                <div className="text-[12px] text-[#8b8f99]">
-                  {ios ? 'Two taps in Safari, no app store needed.' : 'Two taps in your browser, no app store needed.'}
-                </div>
-              </div>
-            </div>
-            <ol className="flex flex-col gap-3">
-              <li className="flex items-center gap-3 rounded-xl border border-white/8 bg-black/40 px-3.5 py-3 text-[14px] text-[#cfcabf]">
-                {ios ? (
-                  <>
-                    <Share size={18} className="shrink-0 text-[#bc9863]" />
-                    <span>
-                      Tap the <span className="font-semibold text-[#f4efe6]">Share</span> button in the toolbar
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <MoreVertical size={18} className="shrink-0 text-[#bc9863]" />
-                    <span>
-                      Open the <span className="font-semibold text-[#f4efe6]">browser menu</span> (⋮)
-                    </span>
-                  </>
-                )}
-              </li>
-              <li className="flex items-center gap-3 rounded-xl border border-white/8 bg-black/40 px-3.5 py-3 text-[14px] text-[#cfcabf]">
-                {ios ? (
-                  <>
-                    <PlusSquare size={18} className="shrink-0 text-[#bc9863]" />
-                    <span>
-                      Choose <span className="font-semibold text-[#f4efe6]">Add to Home Screen</span>
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Smartphone size={18} className="shrink-0 text-[#bc9863]" />
-                    <span>
-                      Choose <span className="font-semibold text-[#f4efe6]">Install app</span> or{' '}
-                      <span className="font-semibold text-[#f4efe6]">Add to Home screen</span>
-                    </span>
-                  </>
-                )}
-              </li>
-            </ol>
-            <button
-              onClick={() => setSheet(false)}
-              className="mt-5 inline-flex w-full cursor-pointer items-center justify-center rounded-xl border border-white/12 py-3 text-[14px] font-semibold text-[#f4efe6] transition hover:border-[#bc9863]"
-            >
-              Got it
-            </button>
-          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
