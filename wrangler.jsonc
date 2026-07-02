@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cma-studio",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-01",
+  // nodejs_compat: run the Next.js server in the Node-compatible Workers runtime.
+  // global_fetch_strictly_public: required by OpenNext so internal fetches resolve.
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // OpenNext needs a self-reference service binding for its request pipeline.
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "cma-studio" }],
+  // Native Workers rate limiting — coordinates the 12-renders/min budget across
+  // isolates within a Cloudflare location (the in-memory Map in lib/rateLimit.ts
+  // could not, since each isolate had its own memory). Keyed per user id in
+  // /api/generate. period must be 10 or 60. A global per-IP WAF Rate-Limiting rule
+  // (dashboard) sits in front of this as the edge layer.
+  "ratelimits": [
+    { "name": "RENDER_LIMITER", "namespace_id": "1001", "simple": { "limit": 12, "period": 60 } }
+  ],
+  "observability": { "enabled": true }
+}

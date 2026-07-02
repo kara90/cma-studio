@@ -1,0 +1,19 @@
+# .dev.vars — local secrets for the Cloudflare Workers preview (`npm run preview`).
+# Copy to `.dev.vars` (gitignored) and fill in. In PRODUCTION these are set as
+# Cloudflare Worker secrets (`wrangler secret put NAME`) or in the dashboard —
+# NEVER committed. NEXT_PUBLIC_* vars are build-time and live in .env.local, not here.
+
+NEXTJS_ENV=development
+
+# Server secrets (same values as .env.local; needed when previewing in workerd)
+SUPABASE_SERVICE_ROLE_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_PRICE_STUDENT_YEARLY=
+STRIPE_PRICE_STUDENT_MONTHLY=
+STRIPE_PRICE_PRO_YEARLY=
+STRIPE_PRICE_PRO_MONTHLY=
+STRIPE_PRICE_EXT=
+STRIPE_PRICE_EXT_PLUS=
+CMA_REQUIRE_ENTITLEMENT=true
+FAL_RENDER_TIER=standard

@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CineMaster Studio — Direct it before you shoot it</title>
+<meta name="description" content="The AI film studio from CineMaster Academy. Turn a single line into a full shot package — lookbook, shot list, lenses, lighting and a director's note. Cinematic quality, without the Hollywood budget." />
+<meta property="og:title" content="CineMaster Studio" />
+<meta property="og:description" content="Direct it before you shoot it. Type an idea, get a full shot package in seconds." />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --black:#000000;
+    --void:#05060a;
+    --panel:#080a10;
+    --navy:#0e182c;
+    --line:rgba(188,152,99,.16);
+    --line-soft:rgba(255,255,255,.07);
+    --gold:#bc9863;
+    --gold-lite:#e7cfa3;
+    --gold-deep:#8a6c40;
+    --blue:#188bf6;
+    --ivory:#f4efe6;
+    --white:#ffffff;
+    --muted:#8b8f99;
+    --muted-2:#5b5f6a;
+    --maxw:1240px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --ease-out:cubic-bezier(.16,1,.3,1);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{
+    background:var(--black);
+    color:var(--ivory);
+    font-family:'Inter',system-ui,sans-serif;
+    line-height:1.6;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  ::selection{background:var(--gold);color:#000}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  h1,h2,h3,h4{font-family:'Sora',sans-serif;font-weight:600;line-height:1.02;letter-spacing:-.02em}
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  /* ---------- ambient atmosphere ---------- */
+  .atmos{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .leak{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;mix-blend-mode:screen}
+  .leak.a{width:60vw;height:60vw;top:-24vw;left:-10vw;background:radial-gradient(circle,rgba(188,152,99,.42),transparent 62%);animation:drift1 24s var(--ease) infinite alternate}
+  .leak.b{width:52vw;height:52vw;bottom:-22vw;right:-14vw;background:radial-gradient(circle,rgba(24,139,246,.24),transparent 60%);animation:drift2 30s var(--ease) infinite alternate}
+  .leak.c{width:38vw;height:38vw;top:38%;left:52%;background:radial-gradient(circle,rgba(188,152,99,.16),transparent 60%);animation:drift1 20s var(--ease) infinite alternate-reverse}
+  @keyframes drift1{to{transform:translate3d(8vw,6vh,0) scale(1.15)}}
+  @keyframes drift2{to{transform:translate3d(-7vw,-5vh,0) scale(1.1)}}
+  .grain{position:fixed;inset:-50%;z-index:1;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain 1.2s steps(4) infinite}
+  @keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-4%,3%)}50%{transform:translate(3%,-4%)}75%{transform:translate(-3%,-2%)}100%{transform:translate(2%,4%)}}
+  .vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(120% 100% at 50% 0%,transparent 55%,rgba(0,0,0,.7) 100%)}
+
+  /* ---------- timecode HUD ---------- */
+  .hud{position:fixed;z-index:40;bottom:18px;right:18px;display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--muted);background:rgba(5,6,10,.55);border:1px solid var(--line-soft);backdrop-filter:blur(8px);padding:7px 12px;border-radius:999px}
+  .rec{width:8px;height:8px;border-radius:50%;background:#e93d3d;box-shadow:0 0 10px #e93d3d;animation:blink 1.6s steps(1) infinite}
+  @keyframes blink{50%{opacity:.15}}
+
+  /* ---------- nav ---------- */
+  header{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:center;padding:16px}
+  .nav{width:100%;max-width:var(--maxw);display:flex;align-items:center;justify-content:space-between;
+    padding:11px 14px 11px 20px;border:1px solid var(--line-soft);border-radius:16px;
+    background:rgba(6,7,11,.5);backdrop-filter:blur(16px) saturate(1.2);transition:background .4s,border-color .4s}
+  .nav.scrolled{background:rgba(6,7,11,.82);border-color:var(--line)}
+  .brand{display:flex;align-items:center;gap:11px;font-family:'Sora';font-weight:600;letter-spacing:-.01em;font-size:16px}
+  .mark{width:26px;height:26px;flex:none;position:relative}
+  .mark svg{width:100%;height:100%}
+  .brand small{display:block;font-family:'JetBrains Mono';font-weight:500;font-size:9px;letter-spacing:.28em;color:var(--gold);margin-top:1px}
+  .navlinks{display:flex;gap:30px;font-size:14px;color:var(--muted)}
+  .navlinks a{transition:color .2s;position:relative}
+  .navlinks a:hover{color:var(--ivory)}
+  .nav-cta{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:#000;
+    background:linear-gradient(180deg,var(--gold-lite),var(--gold));padding:10px 18px;border-radius:11px;
+    transition:transform .25s var(--ease),box-shadow .25s;box-shadow:0 6px 22px rgba(188,152,99,.28);cursor:pointer;border:none;font-family:'Inter'}
+  .nav-cta:hover{transform:translateY(-1px);box-shadow:0 10px 30px rgba(188,152,99,.42)}
+  .burger{display:none;background:none;border:none;color:var(--ivory);cursor:pointer;padding:6px}
+
+  main{position:relative;z-index:2}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  /* ---------- letterbox eyebrow ---------- */
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono';font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);margin-bottom:24px}
+  .eyebrow::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+  .eyebrow.center::after{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--gold),transparent)}
+
+  /* ---------- HERO ---------- */
+  .hero{position:relative;padding:150px 0 90px;text-align:center}
+  .lbar{position:absolute;left:0;right:0;height:44px;background:linear-gradient(var(--black),transparent);z-index:3}
+  .hero h1{font-size:clamp(2.6rem,7.4vw,6.1rem);font-weight:700;letter-spacing:-.035em;line-height:.96}
+  .hero h1 .g{background:linear-gradient(120deg,var(--gold-lite),var(--gold) 55%,var(--gold-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .sub{max-width:620px;margin:26px auto 0;font-size:clamp(1.02rem,1.7vw,1.22rem);color:var(--muted);line-height:1.6}
+  .hero .sub b{color:var(--ivory);font-weight:500}
+
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .9s var(--ease-out),transform .9s var(--ease-out)}
+  .reveal.in{opacity:1;transform:none}
+  .d1{transition-delay:.06s}.d2{transition-delay:.14s}.d3{transition-delay:.22s}.d4{transition-delay:.3s}.d5{transition-delay:.38s}
+
+  /* word rise on load */
+  .rise span{display:inline-block;transform:translateY(115%);opacity:0;animation:rise 1s var(--ease-out) forwards}
+  .rise .ln{display:block;overflow:hidden;padding-bottom:.06em}
+  @keyframes rise{to{transform:none;opacity:1}}
+
+  /* ---------- STUDIO CONSOLE (signature) ---------- */
+  .console{max-width:940px;margin:52px auto 0;text-align:left;position:relative}
+  .console-frame{position:relative;border:1px solid var(--line);border-radius:20px;overflow:hidden;
+    background:linear-gradient(180deg,rgba(14,24,44,.55),rgba(5,6,10,.9));
+    box-shadow:0 40px 120px -30px rgba(0,0,0,.9),0 0 0 1px rgba(188,152,99,.05),inset 0 1px 0 rgba(255,255,255,.05)}
+  .console-frame::before{content:"";position:absolute;inset:0;border-radius:20px;padding:1px;
+    background:linear-gradient(140deg,rgba(188,152,99,.5),transparent 30%,transparent 70%,rgba(24,139,246,.3));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.7}
+  .cbar{display:flex;align-items:center;gap:14px;padding:13px 18px;border-bottom:1px solid var(--line-soft);background:rgba(0,0,0,.3)}
+  .dots{display:flex;gap:7px}
+  .dots i{width:11px;height:11px;border-radius:50%;background:#20242e}
+  .dots i:first-child{background:#3a2f22}
+  .cbar .title{font-family:'JetBrains Mono';font-size:11.5px;letter-spacing:.18em;color:var(--muted)}
+  .cbar .title b{color:var(--gold);font-weight:500}
+  .cbar .tc{margin-left:auto;font-family:'JetBrains Mono';font-size:11.5px;color:var(--muted-2);letter-spacing:.1em}
+
+  .cbody{padding:24px}
+  .promptrow{display:flex;gap:12px;align-items:stretch}
+  .promptfield{flex:1;display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.45);border:1px solid var(--line-soft);border-radius:14px;padding:4px 6px 4px 16px;transition:border-color .25s,box-shadow .25s}
+  .promptfield:focus-within{border-color:var(--gold);box-shadow:0 0 0 3px rgba(188,152,99,.14)}
+  .promptfield svg{flex:none;color:var(--gold)}
+  .promptfield input{flex:1;background:none;border:none;outline:none;color:var(--ivory);font-family:'Inter';font-size:15.5px;padding:14px 0}
+  .promptfield input::placeholder{color:var(--muted-2)}
+  .go{flex:none;display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;color:#000;
+    background:linear-gradient(180deg,var(--gold-lite),var(--gold));border:none;border-radius:11px;padding:0 20px;margin:0;cursor:pointer;
+    font-family:'Inter';transition:transform .2s,box-shadow .2s,filter .2s;box-shadow:0 6px 20px rgba(188,152,99,.3)}
+  .go:hover{transform:translateY(-1px);filter:brightness(1.05)}
+  .go:disabled{cursor:wait;filter:saturate(.5) brightness(.9)}
+
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .chip{font-family:'JetBrains Mono';font-size:11.5px;letter-spacing:.04em;color:var(--muted);background:rgba(255,255,255,.03);border:1px solid var(--line-soft);border-radius:999px;padding:7px 13px;cursor:pointer;transition:all .2s}
+  .chip:hover{color:var(--gold-lite);border-color:var(--line);background:rgba(188,152,99,.06)}
+  .chip span{color:var(--gold);margin-right:6px}
+
+  /* generating state */
+  .stage{margin-top:22px;min-height:0;overflow:hidden;transition:min-height .4s}
+  .gen{display:none;padding:8px 2px}
+  .gen.show{display:block}
+  .genbar{height:3px;border-radius:2px;background:rgba(255,255,255,.06);overflow:hidden;position:relative}
+  .genbar i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,var(--gold-deep),var(--gold-lite));box-shadow:0 0 14px var(--gold);transition:width .2s linear}
+  .genstat{display:flex;align-items:center;gap:10px;margin-top:14px;font-family:'JetBrains Mono';font-size:12.5px;color:var(--muted);letter-spacing:.06em}
+  .genstat .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold);animation:pulse 1s infinite}
+  @keyframes pulse{50%{opacity:.25}}
+  .filmstrip{display:flex;gap:6px;margin-top:16px}
+  .filmstrip i{flex:1;height:46px;border-radius:6px;background:linear-gradient(180deg,rgba(188,152,99,.05),rgba(24,139,246,.04));border:1px solid var(--line-soft);position:relative;overflow:hidden}
+  .filmstrip i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(188,152,99,.35),transparent);transform:translateX(-100%);animation:shimmer 1.4s var(--ease) infinite}
+  .filmstrip i:nth-child(2)::after{animation-delay:.15s}
+  .filmstrip i:nth-child(3)::after{animation-delay:.3s}
+  .filmstrip i:nth-child(4)::after{animation-delay:.45s}
+  .filmstrip i:nth-child(5)::after{animation-delay:.6s}
+  .filmstrip i:nth-child(6)::after{animation-delay:.75s}
+  @keyframes shimmer{100%{transform:translateX(100%)}}
+
+  /* result */
+  .result{display:none}
+  .result.show{display:block;animation:fadeUp .7s var(--ease-out)}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .res-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+  .res-head .logline{font-family:'Sora';font-size:1.28rem;font-weight:600;letter-spacing:-.02em;max-width:560px;line-height:1.15}
+  .res-head .tag{font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.2em;color:var(--gold);border:1px solid var(--line);border-radius:999px;padding:6px 12px;white-space:nowrap;text-transform:uppercase}
+  .look{display:flex;gap:0;height:56px;border-radius:12px;overflow:hidden;border:1px solid var(--line-soft);margin-bottom:20px}
+  .look i{flex:1;position:relative;transition:flex .35s var(--ease)}
+  .look i:hover{flex:1.6}
+  .look i span{position:absolute;bottom:6px;left:8px;font-family:'JetBrains Mono';font-size:9px;letter-spacing:.06em;color:rgba(0,0,0,.55);font-weight:600;opacity:0;transition:opacity .25s}
+  .look i:hover span{opacity:1}
+  .res-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+  .shots{border:1px solid var(--line-soft);border-radius:14px;overflow:hidden}
+  .shots .sh{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:13px 15px;border-bottom:1px solid var(--line-soft);transition:background .2s}
+  .shots .sh:last-child{border-bottom:none}
+  .shots .sh:hover{background:rgba(188,152,99,.04)}
+  .shots .n{font-family:'JetBrains Mono';font-size:11px;color:var(--gold);width:26px}
+  .shots .sz{font-family:'Sora';font-size:13.5px;font-weight:500}
+  .shots .sz em{display:block;font-style:normal;font-family:'JetBrains Mono';font-size:10.5px;color:var(--muted);letter-spacing:.04em;margin-top:3px}
+  .shots .lens{font-family:'JetBrains Mono';font-size:11px;color:var(--muted);text-align:right;white-space:nowrap}
+  .note{border:1px solid var(--line-soft);border-radius:14px;padding:16px;background:rgba(188,152,99,.03)}
+  .note h4{font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.2em;color:var(--gold);text-transform:uppercase;margin-bottom:10px}
+  .note p{font-size:13.5px;color:#c7c2b8;line-height:1.62}
+  .res-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+  .res-actions button{font-family:'Inter';font-size:13px;font-weight:500;color:var(--ivory);background:rgba(255,255,255,.04);border:1px solid var(--line-soft);border-radius:10px;padding:10px 16px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px}
+  .res-actions button:hover{border-color:var(--gold);color:var(--gold-lite)}
+  .res-actions .primary{color:#000;background:linear-gradient(180deg,var(--gold-lite),var(--gold));border-color:transparent;font-weight:600}
+  .res-actions .primary:hover{color:#000;filter:brightness(1.05)}
+
+  /* ---------- marquee ---------- */
+  .marquee{margin-top:64px;padding:22px 0;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);overflow:hidden;mask:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+  .mtrack{display:flex;gap:56px;width:max-content;animation:scroll 32s linear infinite;align-items:center}
+  .mtrack span{font-family:'JetBrains Mono';font-size:13px;letter-spacing:.18em;color:var(--muted-2);text-transform:uppercase;display:inline-flex;align-items:center;gap:56px;white-space:nowrap}
+  .mtrack span::after{content:"◈";color:var(--gold);opacity:.5}
+  @keyframes scroll{to{transform:translateX(-50%)}}
+
+  /* ---------- section ---------- */
+  section{position:relative;padding:110px 0}
+  .shead{max-width:680px;margin-bottom:52px}
+  .shead.center{margin-left:auto;margin-right:auto;text-align:center}
+  .shead h2{font-size:clamp(2rem,4.3vw,3.3rem);font-weight:700;letter-spacing:-.03em}
+  .shead p{margin-top:18px;color:var(--muted);font-size:1.08rem;line-height:1.65}
+  .shead h2 .g{color:var(--gold)}
+
+  /* bento */
+  .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+  .card{border:1px solid var(--line-soft);border-radius:18px;padding:26px;background:linear-gradient(180deg,rgba(255,255,255,.018),rgba(255,255,255,0));position:relative;overflow:hidden;transition:border-color .35s,transform .35s}
+  .card::after{content:"";position:absolute;width:220px;height:220px;background:radial-gradient(circle,rgba(188,152,99,.14),transparent 65%);top:var(--my,50%);left:var(--mx,50%);transform:translate(-50%,-50%);opacity:0;transition:opacity .4s;pointer-events:none}
+  .card:hover{border-color:var(--line);transform:translateY(-3px)}
+  .card:hover::after{opacity:1}
+  .card .ico{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:rgba(188,152,99,.08);border:1px solid var(--line);color:var(--gold);margin-bottom:20px}
+  .card h3{font-size:1.22rem;font-weight:600;margin-bottom:9px;letter-spacing:-.01em}
+  .card p{color:var(--muted);font-size:.96rem;line-height:1.6}
+  .card .kmono{font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.16em;color:var(--gold-deep);text-transform:uppercase;position:absolute;top:22px;right:24px}
+  .c-wide{grid-column:span 3}.c-third{grid-column:span 2}.c-half{grid-column:span 3}
+  .card.feature{grid-column:span 4;grid-row:span 2;display:flex;flex-direction:column;justify-content:space-between;min-height:280px}
+  .card.tall{grid-column:span 2;grid-row:span 2}
+  .bigstat{font-family:'Sora';font-size:clamp(2.4rem,4.5vw,3.6rem);font-weight:700;letter-spacing:-.03em;background:linear-gradient(120deg,var(--gold-lite),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+
+  /* how it works */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:s}
+  .step{position:relative;padding-top:34px}
+  .step .num{font-family:'JetBrains Mono';font-size:12px;letter-spacing:.2em;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:12px}
+  .step .num::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+  .step h3{font-size:1.35rem;font-weight:600;margin-bottom:10px}
+  .step p{color:var(--muted);font-size:.98rem;line-height:1.62}
+
+  /* pricing */
+  .prices{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:stretch}
+  .price{border:1px solid var(--line-soft);border-radius:20px;padding:32px;background:linear-gradient(180deg,rgba(255,255,255,.015),transparent);display:flex;flex-direction:column;transition:border-color .3s,transform .3s}
+  .price:hover{transform:translateY(-4px);border-color:var(--line)}
+  .price.feat{border-color:var(--gold);background:linear-gradient(180deg,rgba(188,152,99,.08),rgba(5,6,10,.4));box-shadow:0 30px 80px -30px rgba(188,152,99,.4)}
+  .price .plan{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+  .price .amt{font-family:'Sora';font-size:3rem;font-weight:700;letter-spacing:-.03em;line-height:1}
+  .price .amt small{font-size:1rem;color:var(--muted);font-weight:400;font-family:'Inter'}
+  .price .desc{color:var(--muted);font-size:.92rem;margin:12px 0 22px;line-height:1.55}
+  .price ul{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:26px;flex:1}
+  .price li{display:flex;gap:11px;font-size:.94rem;color:#cfcabf;align-items:flex-start}
+  .price li svg{flex:none;color:var(--gold);margin-top:2px}
+  .price .btn{text-align:center;padding:14px;border-radius:12px;font-weight:600;font-size:14.5px;transition:all .25s;cursor:pointer;border:1px solid var(--line);color:var(--ivory);background:rgba(255,255,255,.02);font-family:'Inter'}
+  .price .btn:hover{border-color:var(--gold);color:var(--gold-lite)}
+  .price.feat .btn{color:#000;background:linear-gradient(180deg,var(--gold-lite),var(--gold));border-color:transparent}
+  .price.feat .btn:hover{filter:brightness(1.06);color:#000}
+  .badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono';font-size:10px;letter-spacing:.18em;text-transform:uppercase;background:linear-gradient(180deg,var(--gold-lite),var(--gold));color:#000;padding:5px 14px;border-radius:999px;font-weight:600;white-space:nowrap}
+
+  /* CTA band */
+  .cta-band{text-align:center;padding:120px 24px;position:relative;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);overflow:hidden}
+  .cta-band::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 100% at 50% 100%,rgba(188,152,99,.16),transparent 70%);pointer-events:none}
+  .cta-band h2{font-size:clamp(2.2rem,5.5vw,4.2rem);font-weight:700;letter-spacing:-.035em;max-width:820px;margin:0 auto;position:relative}
+  .cta-band h2 .g{background:linear-gradient(120deg,var(--gold-lite),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .cta-band p{color:var(--muted);margin:20px auto 34px;max-width:520px;font-size:1.1rem;position:relative}
+  .bigcta{position:relative;display:inline-flex;align-items:center;gap:10px;font-weight:600;font-size:16px;color:#000;background:linear-gradient(180deg,var(--gold-lite),var(--gold));padding:17px 34px;border-radius:14px;box-shadow:0 14px 44px rgba(188,152,99,.36);transition:transform .25s,box-shadow .25s;cursor:pointer;border:none;font-family:'Inter'}
+  .bigcta:hover{transform:translateY(-2px);box-shadow:0 20px 60px rgba(188,152,99,.5)}
+
+  /* footer */
+  footer{padding:70px 0 40px;position:relative;z-index:2}
+  .fgrid{display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap;padding-bottom:40px;border-bottom:1px solid var(--line-soft)}
+  .fcol h5{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-2);margin-bottom:16px}
+  .fcol a{display:block;color:var(--muted);font-size:14px;margin-bottom:11px;transition:color .2s}
+  .fcol a:hover{color:var(--gold-lite)}
+  .fbrand{max-width:300px}
+  .fbrand p{color:var(--muted);font-size:14px;margin-top:16px;line-height:1.6}
+  .fbot{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;margin-top:28px;font-size:13px;color:var(--muted-2);font-family:'JetBrains Mono';letter-spacing:.04em}
+  .fbot a{color:var(--muted)}
+  .bte{color:var(--gold)!important;transition:opacity .2s}
+  .bte:hover{opacity:.75}
+
+  /* reveal children stagger */
+  .stagger>*{opacity:0;transform:translateY(24px);transition:opacity .8s var(--ease-out),transform .8s var(--ease-out)}
+  .stagger.in>*{opacity:1;transform:none}
+  .stagger.in>*:nth-child(2){transition-delay:.08s}
+  .stagger.in>*:nth-child(3){transition-delay:.16s}
+  .stagger.in>*:nth-child(4){transition-delay:.24s}
+  .stagger.in>*:nth-child(5){transition-delay:.32s}
+  .stagger.in>*:nth-child(6){transition-delay:.4s}
+
+  /* ---------- responsive ---------- */
+  @media(max-width:900px){
+    .navlinks,.nav-cta{display:none}
+    .burger{display:block}
+    .bento{grid-template-columns:repeat(2,1fr)}
+    .card.feature,.card.tall,.c-wide,.c-third,.c-half{grid-column:span 2;grid-row:auto;min-height:auto}
+    .steps,.prices{grid-template-columns:1fr}
+    .res-grid{grid-template-columns:1fr}
+    .price.feat{order:-1}
+  }
+  @media(max-width:600px){
+    .hero{padding:120px 0 60px}
+    .bento{grid-template-columns:1fr}
+    .card.feature,.card.tall,.c-wide,.c-third,.c-half{grid-column:span 1}
+    .cbody{padding:16px}
+    .promptrow{flex-direction:column}
+    .go{padding:14px}
+    .wrap{padding:0 18px}
+    .hud{display:none}
+    .res-head .logline{font-size:1.1rem}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto}
+    .reveal,.stagger>*,.rise span{opacity:1!important;transform:none!important}
+  }
+</style>
+</head>
+<body>
+
+<div class="atmos">
+  <div class="leak a"></div>
+  <div class="leak b"></div>
+  <div class="leak c"></div>
+</div>
+<div class="grain"></div>
+<div class="vignette"></div>
+
+<div class="hud"><span class="rec"></span><span id="tc">00:00:00:00</span><span style="color:var(--muted-2)">·</span><span>ƒ1.4</span><span style="color:var(--muted-2)">·</span><span>24FPS</span></div>
+
+<!-- NAV -->
+<header>
+  <nav class="nav" id="nav">
+    <a class="brand" href="#top">
+      <span class="mark">
+        <svg viewBox="0 0 40 40" fill="none">
+          <rect x="1.2" y="1.2" width="37.6" height="37.6" rx="9" stroke="#bc9863" stroke-width="1.4"/>
+          <circle cx="20" cy="20" r="9.5" stroke="#bc9863" stroke-width="1.4"/>
+          <circle cx="20" cy="20" r="3" fill="#bc9863"/>
+          <path d="M20 4v6M20 30v6M4 20h6M30 20h6" stroke="#bc9863" stroke-width="1.4"/>
+        </svg>
+      </span>
+      <span>CineMaster Studio<small>AI FILM ENGINE</small></span>
+    </a>
+    <div class="navlinks">
+      <a href="#studio">The Studio</a>
+      <a href="#makes">What it makes</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+    </div>
+    <button class="nav-cta" onclick="document.getElementById('prompt').focus()">Launch Studio
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="burger" aria-label="Menu" onclick="document.getElementById('prompt').scrollIntoView({behavior:'smooth'})">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero" id="studio">
+    <div class="lbar" style="top:88px"></div>
+    <div class="wrap">
+      <div class="eyebrow center reveal">CineMaster Academy · AI Studio</div>
+      <h1 class="rise" aria-label="Direct it before you shoot it.">
+        <span class="ln"><span style="animation-delay:.05s">Direct&nbsp;it&nbsp;before</span></span>
+        <span class="ln"><span class="g" style="animation-delay:.18s">you&nbsp;shoot&nbsp;it.</span></span>
+      </h1>
+      <p class="sub reveal d2">Type one line. CineMaster Studio returns a full shot package —
+        <b>lookbook, shot list, lenses, lighting and a director's note</b> — in seconds.
+        Cinematic quality, without the Hollywood budget.</p>
+
+      <!-- SIGNATURE CONSOLE -->
+      <div class="console reveal d3">
+        <div class="console-frame">
+          <div class="cbar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="title">studio<b>/session_01</b> — untitled scene</div>
+            <div class="tc" id="ctc">REEL A · TAKE 1</div>
+          </div>
+          <div class="cbody">
+            <div class="promptrow">
+              <label class="promptfield" for="prompt">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1m0-12.8l-2.1 2.1M7.7 16.3l-2.1 2.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <input id="prompt" type="text" autocomplete="off" placeholder="A lone diver drifts through a sunken cathedral at dawn…" />
+              </label>
+              <button class="go" id="go" onclick="generate()">
+                <span id="golabel">Direct it</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+            <div class="chips" id="chips">
+              <button class="chip" data-p="A lone diver drifts through a sunken cathedral at dawn"><span>▲</span>Underwater cathedral</button>
+              <button class="chip" data-p="Two rivals face off across a neon-soaked Tokyo rooftop in the rain"><span>▲</span>Neon rooftop duel</button>
+              <button class="chip" data-p="A grandmother teaches her granddaughter to make bread in a sunlit kitchen"><span>▲</span>Sunlit kitchen</button>
+              <button class="chip" data-p="A vintage car races a storm across empty salt flats at golden hour"><span>▲</span>Salt-flat chase</button>
+            </div>
+
+            <div class="stage">
+              <!-- generating -->
+              <div class="gen" id="gen">
+                <div class="genbar"><i id="genfill"></i></div>
+                <div class="genstat"><span class="dot"></span><span id="genmsg">Blocking the scene…</span></div>
+                <div class="filmstrip"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              </div>
+              <!-- result -->
+              <div class="result" id="result">
+                <div class="res-head">
+                  <div class="logline" id="logline"></div>
+                  <div class="tag" id="tag">2.39 : 1 · ANAMORPHIC</div>
+                </div>
+                <div class="look" id="look"></div>
+                <div class="res-grid">
+                  <div class="shots" id="shots"></div>
+                  <div class="note">
+                    <h4>Director's note</h4>
+                    <p id="note"></p>
+                  </div>
+                </div>
+                <div class="res-actions">
+                  <button class="primary" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    Build the full production
+                  </button>
+                  <button onclick="regenerate()">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 0 1 14-5.3L20 8M20 12a8 8 0 0 1-14 5.3L4 16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 4v4h-4M4 20v-4h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    New take
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee reveal">
+    <div class="mtrack">
+      <span>Shot lists</span><span>Lookbooks</span><span>Lens & lighting</span><span>Storyboards</span><span>Color scripts</span><span>Sound design briefs</span><span>Call sheets</span><span>Budget estimates</span>
+      <span>Shot lists</span><span>Lookbooks</span><span>Lens & lighting</span><span>Storyboards</span><span>Color scripts</span><span>Sound design briefs</span><span>Call sheets</span><span>Budget estimates</span>
+    </div>
+  </div>
+
+  <!-- WHAT IT MAKES -->
+  <section id="makes">
+    <div class="wrap">
+      <div class="shead reveal">
+        <div class="eyebrow">Pre-production, solved</div>
+        <h2>One line in.<br>A <span class="g">whole production</span> out.</h2>
+        <p>Every deliverable a director hands their crew — generated, consistent, and ready to shoot. Edit any piece and the studio keeps the rest in sync.</p>
+      </div>
+      <div class="bento stagger">
+        <div class="card feature">
+          <div>
+            <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18M7 5v4M17 5v4M7 19v-4M17 19v-4" stroke="currentColor" stroke-width="1.6"/></svg></div>
+            <h3>Shot-by-shot direction</h3>
+            <p>A numbered shot list with sizes, lenses, camera movement and blocking — the language your DP already speaks.</p>
+          </div>
+          <div class="bigstat">120+ <span style="font-size:1rem;color:var(--muted);font-weight:400;-webkit-text-fill-color:var(--muted)">shots per session</span></div>
+        </div>
+        <div class="card tall">
+          <span class="kmono">Look</span>
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 3a9 9 0 0 0 0 18c1.7 0 2-1.3 1-2.3-.8-.8-.3-2 1-2h1.5A4.5 4.5 0 0 0 21 12 9 9 0 0 0 12 3Z" stroke="currentColor" stroke-width="1.6"/></svg></div>
+          <h3>Lookbook & color script</h3>
+          <p>A signature palette and grade for the whole piece, with reference frames scene by scene.</p>
+        </div>
+        <div class="card c-third">
+          <span class="kmono">Optics</span>
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.6"/><path d="M12 4v3M12 17v3M4 12h3M17 12h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+          <h3>Lens & lighting plan</h3>
+          <p>Focal lengths, apertures and a lighting diagram matched to the mood of each beat.</p>
+        </div>
+        <div class="card c-third">
+          <span class="kmono">Sound</span>
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 9v6M8 6v12M12 3v18M16 7v10M20 10v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+          <h3>Sound & score brief</h3>
+          <p>Tone, tempo and a spotting list so the mix supports the cut instead of fighting it.</p>
+        </div>
+        <div class="card c-third">
+          <span class="kmono">Logistics</span>
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M4 9h16M9 4v16" stroke="currentColor" stroke-width="1.6"/></svg></div>
+          <h3>Call sheet & budget</h3>
+          <p>A shootable schedule and a realistic budget band — so the pitch survives contact with production.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <div class="wrap">
+      <div class="shead center reveal">
+        <div class="eyebrow center">The workflow</div>
+        <h2>Idea to <span class="g">shootable package</span> in three moves.</h2>
+      </div>
+      <div class="steps stagger">
+        <div class="step">
+          <div class="num">STEP 01</div>
+          <h3>Describe the scene</h3>
+          <p>One sentence is enough. A mood, a moment, a genre — the studio reads intent, not keywords, and asks nothing you don't want to answer.</p>
+        </div>
+        <div class="step">
+          <div class="num">STEP 02</div>
+          <h3>Watch it get directed</h3>
+          <p>The engine blocks the scene, chooses glass, designs the light and grades the look — building every department's brief in one continuous pass.</p>
+        </div>
+        <div class="step">
+          <div class="num">STEP 03</div>
+          <h3>Export and shoot</h3>
+          <p>Send it to your crew as a PDF, a call sheet, or a Premiere-ready outline. Change one shot and the whole package re-syncs around it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="wrap">
+      <div class="shead center reveal">
+        <div class="eyebrow center">Access</div>
+        <h2>Priced like a plugin.<br>Works like a <span class="g">production office.</span></h2>
+        <p>Every plan includes the full engine. Choose by how much you shoot.</p>
+      </div>
+      <div class="prices stagger">
+        <div class="price">
+          <div class="plan">Indie</div>
+          <div class="amt">$49<small>/mo</small></div>
+          <div class="desc">For the solo director and the one-camera shoot.</div>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>25 scene packages / month</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Shot list, lookbook & lenses</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>PDF & call-sheet export</li>
+          </ul>
+          <div class="btn">Start directing</div>
+        </div>
+        <div class="price feat">
+          <div class="badge">Most chosen</div>
+          <div class="plan">Studio</div>
+          <div class="amt">$149<small>/mo</small></div>
+          <div class="desc">For working filmmakers and small production houses.</div>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Unlimited scene packages</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Sound, score & budget briefs</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Premiere & Final Cut outlines</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>CineMaster Academy masterclasses</li>
+          </ul>
+          <div class="btn">Open the studio</div>
+        </div>
+        <div class="price">
+          <div class="plan">Production</div>
+          <div class="amt">Custom</div>
+          <div class="desc">For agencies, networks and full crews.</div>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Team seats & shared reels</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Custom look & house style training</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Dedicated producer & API access</li>
+          </ul>
+          <div class="btn">Talk to us</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-band">
+    <h2 class="reveal">The next great film starts as <span class="g">one honest sentence.</span></h2>
+    <p class="reveal d1">Write yours. The studio will direct the rest.</p>
+    <button class="bigcta reveal d2" onclick="document.getElementById('prompt').scrollIntoView({behavior:'smooth'});setTimeout(()=>document.getElementById('prompt').focus(),600)">
+      Direct your first scene
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap">
+      <div class="fgrid">
+        <div class="fcol fbrand">
+          <a class="brand" href="#top" style="font-size:17px">
+            <span class="mark"><svg viewBox="0 0 40 40" fill="none"><rect x="1.2" y="1.2" width="37.6" height="37.6" rx="9" stroke="#bc9863" stroke-width="1.4"/><circle cx="20" cy="20" r="9.5" stroke="#bc9863" stroke-width="1.4"/><circle cx="20" cy="20" r="3" fill="#bc9863"/><path d="M20 4v6M20 30v6M4 20h6M30 20h6" stroke="#bc9863" stroke-width="1.4"/></svg></span>
+            <span>CineMaster Studio</span>
+          </a>
+          <p>The AI film engine from CineMaster Academy. We don't follow trends — we set them. Cinematic quality, without the Hollywood budget.</p>
+        </div>
+        <div class="fcol">
+          <h5>Studio</h5>
+          <a href="#studio">The console</a>
+          <a href="#makes">What it makes</a>
+          <a href="#how">How it works</a>
+          <a href="#pricing">Pricing</a>
+        </div>
+        <div class="fcol">
+          <h5>Academy</h5>
+          <a href="https://cinemasteracademy.com" target="_blank" rel="noopener">Masterclasses</a>
+          <a href="https://cinemasteracademy.com" target="_blank" rel="noopener">The method</a>
+          <a href="https://cinemasteracademy.com" target="_blank" rel="noopener">Student films</a>
+        </div>
+        <div class="fcol">
+          <h5>Company</h5>
+          <a href="#">Contact</a>
+          <a href="#">Careers</a>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+        </div>
+      </div>
+      <div class="fbot">
+        <span>© 2026 CineMaster Academy · All rights reserved</span>
+        <span>Built &amp; managed by <a class="bte" href="https://beyondtheedgestudio.com" target="_blank" rel="noopener">Beyond the Edge Studio</a></span>
+      </div>
+    </div>
+  </footer>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- scroll reveals ---- */
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:.14, rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('.reveal,.stagger').forEach(function(el){ io.observe(el); });
+
+  /* ---- nav scroll state ---- */
+  var nav = document.getElementById('nav');
+  window.addEventListener('scroll', function(){ nav.classList.toggle('scrolled', window.scrollY > 30); }, {passive:true});
+
+  /* ---- card spotlight ---- */
+  document.querySelectorAll('.card').forEach(function(c){
+    c.addEventListener('pointermove', function(e){
+      var r = c.getBoundingClientRect();
+      c.style.setProperty('--mx', (e.clientX-r.left)+'px');
+      c.style.setProperty('--my', (e.clientY-r.top)+'px');
+    });
+  });
+
+  /* ---- running timecode HUD ---- */
+  var tcEl = document.getElementById('tc'), f=0;
+  function pad(n){return (n<10?'0':'')+n;}
+  if(!reduce){
+    setInterval(function(){
+      f++; var ff=f%24, s=Math.floor(f/24)%60, m=Math.floor(f/1440)%60, h=Math.floor(f/86400)%24;
+      tcEl.textContent = pad(h)+':'+pad(m)+':'+pad(s)+':'+pad(ff);
+    }, 42);
+  }
+
+  /* ================= THE STUDIO ENGINE ================= */
+  var LOOKS = {
+    aqua:   ['#0a1a24','#123243','#1f5f6e','#4aa6a0','#bfe3d6'],
+    neon:   ['#0a0512','#2a0f3a','#6c1b6e','#e0417a','#18b6f6'],
+    warm:   ['#1a0f08','#3a2412','#8a5a2b','#d69a54','#f4e3c2'],
+    storm:  ['#0b1015','#1c2733','#3d5468','#c9a86a','#e9dcc4'],
+    noir:   ['#050505','#171717','#3a3a3a','#8a8a8a','#e6e6e6'],
+    ember:  ['#140806','#3a120c','#7a2418','#d1552b','#f0b24a']
+  };
+  var MOODS = [
+    {k:'aqua',  fmt:'2.39 : 1 · ANAMORPHIC', words:['water','ocean','sea','dive','under','rain','cathedral','drift','pool','lake']},
+    {k:'neon',  fmt:'2.00 : 1 · SPHERICAL',  words:['neon','tokyo','city','rooftop','night','cyber','rival','duel','club','street']},
+    {k:'warm',  fmt:'1.85 : 1 · VISTAVISION', words:['kitchen','bread','grandmother','sunlit','home','family','warm','morning','tea','memory']},
+    {k:'storm', fmt:'2.39 : 1 · ANAMORPHIC', words:['salt','flat','storm','race','car','desert','wind','chase','road','horizon']},
+    {k:'ember', fmt:'2.39 : 1 · ANAMORPHIC', words:['fire','ember','war','battle','forge','ash','burn','dusk','volcano','lantern']},
+    {k:'noir',  fmt:'1.66 : 1 · MONOCHROME',  words:['noir','detective','shadow','smoke','alley','crime','mystery','black','white','rain']}
+  ];
+  var SIZES = ['Extreme wide','Wide establishing','Full shot','Medium wide','Medium','Medium close-up','Close-up','Extreme close-up','Insert','Over-the-shoulder','Two-shot','Tracking wide'];
+  var LENSES = ['18mm ƒ2.8','25mm ƒ2','32mm ƒ1.4','40mm ƒ1.4','50mm ƒ1.2','65mm ƒ2','85mm ƒ1.4','100mm macro','135mm ƒ2'];
+  var MOVES = ['static tripod','slow push-in','handheld drift','crane down','dolly left','Steadicam follow','whip pan','tilt up','rack focus','circular track'];
+  var NOTES = [
+    'Let the silence breathe before the first cut — hold the establishing frame a beat longer than feels comfortable. The audience should arrive in the world before they meet the character.',
+    'Motivate every light from something in frame. When the source is honest, the mood takes care of itself and the grade barely has to work.',
+    'Block for the lens, not the actor. Choose the focal length first, then stage the movement so the geometry does the emotional work.',
+    'Cut on motion, not on dialogue. The energy of the scene lives in the gesture between the lines — protect it in coverage.',
+    'Keep the palette disciplined. Two colors carry the story; a third is a guest. Anything more and the frame starts to argue with itself.'
+  ];
+
+  function hash(s){ var h=0; for(var i=0;i<s.length;i++){ h=(h*31 + s.charCodeAt(i))>>>0; } return h; }
+  function pick(arr,seed){ var i=((Math.floor(seed) % arr.length) + arr.length) % arr.length; return arr[i]; }
+
+  function detectMood(txt){
+    var t = txt.toLowerCase(), best=null, score=0;
+    MOODS.forEach(function(m){
+      var s=0; m.words.forEach(function(w){ if(t.indexOf(w)>-1) s++; });
+      if(s>score){ score=s; best=m; }
+    });
+    return best || pick(MOODS, hash(txt));
+  }
+
+  function titleCase(s){ return s.replace(/\b\w/g, function(c){return c.toUpperCase();}); }
+
+  function buildPackage(txt){
+    var seed = hash(txt);
+    var mood = detectMood(txt);
+    var palette = LOOKS[mood.k];
+    var clean = txt.replace(/[.…]+$/,'').trim();
+    var logline = titleCase(clean.length>78 ? clean.slice(0,78)+'…' : clean) + '.';
+    var nShots = 4 + (seed % 2); // 4 or 5
+    var shots = [];
+    for(var i=0;i<nShots;i++){
+      var s = (seed >>> (i*3));
+      shots.push({
+        n: 'A'+(i+1),
+        size: pick(SIZES, s + i*5),
+        move: pick(MOVES, (s>>>2) + i*3),
+        lens: pick(LENSES, (s>>>4) + i*7)
+      });
+    }
+    return { logline:logline, tag:mood.fmt, palette:palette, shots:shots, note: pick(NOTES, seed) };
+  }
+
+  function render(pkg){
+    document.getElementById('logline').textContent = pkg.logline;
+    document.getElementById('tag').textContent = pkg.tag;
+    document.getElementById('note').textContent = pkg.note;
+    var look = document.getElementById('look');
+    look.innerHTML = pkg.palette.map(function(c){
+      return '<i style="background:'+c+'"><span>'+c.toUpperCase()+'</span></i>';
+    }).join('');
+    var shots = document.getElementById('shots');
+    shots.innerHTML = pkg.shots.map(function(s){
+      return '<div class="sh"><div class="n">'+s.n+'</div>'+
+             '<div class="sz">'+s.size+'<em>'+s.move+'</em></div>'+
+             '<div class="lens">'+s.lens+'</div></div>';
+    }).join('');
+  }
+
+  var STEPS = ['Reading intent…','Blocking the scene…','Choosing the glass…','Designing the light…','Grading the look…','Scoring the beat…','Locking the package…'];
+  var running = false;
+
+  window.generate = function(){
+    var input = document.getElementById('prompt');
+    var txt = (input.value || input.placeholder).trim();
+    if(!txt || running) return;
+    running = true;
+    var go = document.getElementById('go');
+    go.disabled = true; document.getElementById('golabel').textContent='Directing';
+    var gen = document.getElementById('gen'), res = document.getElementById('result');
+    res.classList.remove('show'); gen.classList.add('show');
+    document.getElementById('ctc').textContent = 'REEL A · ROLLING';
+
+    var pkg = buildPackage(txt);
+    var fill = document.getElementById('genfill'), msg = document.getElementById('genmsg');
+    var dur = reduce ? 150 : 1900, t0 = null, stepI = 0;
+
+    function frame(ts){
+      if(t0===null) t0=ts;
+      var p = Math.min((ts-t0)/dur, 1);
+      fill.style.width = (p*100).toFixed(1)+'%';
+      var si = Math.min(Math.floor(p*STEPS.length), STEPS.length-1);
+      if(si!==stepI){ stepI=si; msg.textContent = STEPS[si]; }
+      if(p<1){ requestAnimationFrame(frame); }
+      else { finish(pkg); }
+    }
+    if(reduce){ finish(pkg); } else { requestAnimationFrame(frame); }
+  };
+
+  function finish(pkg){
+    render(pkg);
+    var gen = document.getElementById('gen'), res = document.getElementById('result');
+    gen.classList.remove('show'); res.classList.add('show');
+    document.getElementById('ctc').textContent = 'REEL A · PACKAGE LOCKED';
+    document.getElementById('go').disabled=false;
+    document.getElementById('golabel').textContent='Direct it';
+    running=false;
+  }
+
+  window.regenerate = function(){
+    var input = document.getElementById('prompt');
+    // nudge the seed so a "new take" differs
+    input.value = (input.value || input.placeholder).trim() + ' ·';
+    generate();
+    setTimeout(function(){ input.value = input.value.replace(/ ·$/,''); }, 50);
+  };
+
+  /* preset chips */
+  document.getElementById('chips').addEventListener('click', function(e){
+    var b = e.target.closest('.chip'); if(!b) return;
+    document.getElementById('prompt').value = b.getAttribute('data-p');
+    generate();
+  });
+
+  /* enter to submit */
+  document.getElementById('prompt').addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ e.preventDefault(); generate(); }
+  });
+})();
+</script>
+</body>
+</html>
