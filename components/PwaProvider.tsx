@@ -74,6 +74,7 @@ export function PwaProvider() {
   useEffect(() => {
     if (isStandalone()) return; // already the app
     if (window.location.pathname === '/app') return; // the guide page sells itself
+    if (new URLSearchParams(window.location.search).has('nobanner')) return; // clean screenshot captures
 
     const dismissedRecently = () =>
       Date.now() - Number(localStorage.getItem(DISMISS_KEY) ?? 0) < DISMISS_DAYS * 86_400_000;

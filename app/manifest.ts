@@ -26,6 +26,12 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: '/icons/maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
       { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
+    // Real app screens — Android's install sheet shows these like a store listing.
+    screenshots: [
+      { src: '/screens/app-home.png', sizes: '390x844', type: 'image/png', form_factor: 'narrow', label: 'Home — every frontier model' },
+      { src: '/screens/app-video.png', sizes: '390x844', type: 'image/png', form_factor: 'narrow', label: 'Video generator' },
+      { src: '/screens/app-pricing.png', sizes: '390x844', type: 'image/png', form_factor: 'narrow', label: 'Plans' },
+    ],
     shortcuts: [
       { name: 'Generate video', url: '/video', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
       { name: 'Studio Pro', url: '/studio', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
