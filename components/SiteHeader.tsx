@@ -19,13 +19,17 @@ export interface SiteHeaderProps {
   cta?: NavLink;
 }
 
+// Platform nav — the generators are first-class tools, the Studio is the
+// advanced flagship, pricing lives on its own page.
 const DEFAULT_LINKS: NavLink[] = [
-  { href: '/#studio', label: 'Studio' },
-  { href: '/#pricing', label: 'Pricing' },
-  { href: '/#faq', label: 'FAQ' },
+  { href: '/video', label: 'Video' },
+  { href: '/image', label: 'Image' },
+  { href: '/audio', label: 'Audio' },
+  { href: '/studio', label: 'Studio' },
+  { href: '/pricing', label: 'Pricing' },
 ];
 
-const DEFAULT_CTA: NavLink = { href: '/#studio', label: 'Try the Studio' };
+const DEFAULT_CTA: NavLink = { href: '/video', label: 'Start creating' };
 
 export function SiteHeader({ links = DEFAULT_LINKS, cta = DEFAULT_CTA }: SiteHeaderProps) {
   const [scrolled, setScrolled] = useState(false);

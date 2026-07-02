@@ -4,7 +4,7 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { HonestNote } from '@/components/marketing/HonestNote';
 
 export const metadata: Metadata = {
-  title: 'Pricing — CMA Studio Pro | CineMaster Academy',
+  title: 'Pricing | CMA Studio Pro | CineMaster Academy',
   description: 'A low flat fee for the software. Renders run on your own Fal.ai key at fal\'s own rate, with no markup and no expiring credits.',
 };
 
@@ -26,8 +26,10 @@ export default function PricingPage() {
             No credits. <span className="bg-gradient-to-r from-[#e7cfa3] to-[#bc9863] bg-clip-text text-transparent">No expiring budget.</span>
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-[1.05rem] leading-relaxed text-[#8b8f99]">
-            A low flat fee for the software. Compute runs on your own Fal.ai key at fal&apos;s own rate, with no markup
-            from us. Your unused budget never evaporates at the end of the month.
+            A low flat fee for the software. Your unused budget never evaporates at the end of the month.
+          </p>
+          <p className="mx-auto mt-3 max-w-lg font-mono text-[12px] tracking-[0.04em] text-[#8b909e]">
+            Compute always runs on your own fal.ai key at fal&apos;s rate. We never mark it up.
           </p>
         </div>
 
@@ -43,7 +45,7 @@ export default function PricingPage() {
           <div className="mb-2 font-mono text-[10px] tracking-[0.24em] text-[#bc9863] uppercase">More tools are coming</div>
           <p className="text-[15px] leading-relaxed text-[#c7c2b8]">
             CMA Studio Pro is the first of a growing family of tools we are building for serious film production.{' '}
-            <span className="text-[#f4efe6]">Your plan grows with the family.</span>
+            <span className="text-[#f4efe6]">Plans cover today&apos;s toolset and may evolve as new tools join, always announced before your next billing cycle.</span>
           </p>
         </div>
       </main>

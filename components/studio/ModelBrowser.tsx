@@ -153,23 +153,27 @@ function ModelBrowserImpl({ value, onChange }: { value: string; onChange: (id: s
                 type="button"
                 onClick={() => setOpenKind(isOpen ? null : kind)}
                 aria-expanded={isOpen}
+                // GOLD = the kind whose model is SELECTED (only ever one).
+                // An OPEN panel gets a neutral ring, never gold — so browsing a
+                // second category can never look like two active selections.
                 className={`min-h-[44px] cursor-pointer rounded-xl border px-2 py-2 text-left transition sm:px-3 sm:py-2.5 ${
-                  isOpen
+                  selectedHere
                     ? 'border-[#bc9863] bg-[#bc9863]/12'
-                    : selectedHere
-                      ? 'border-[#bc9863]/50 bg-[#bc9863]/8 hover:border-[#bc9863]'
+                    : isOpen
+                      ? 'border-white/30 bg-white/[0.05]'
                       : 'border-white/8 hover:border-[#bc9863]/40'
                 }`}
               >
                 <span className="flex items-center gap-1.5">
-                  <Icon size={12} className={`flex-none ${selectedHere || isOpen ? 'text-[#bc9863]' : 'text-[#8b8f99]'}`} />
+                  <Icon size={12} className={`flex-none ${selectedHere ? 'text-[#bc9863]' : 'text-[#8b8f99]'}`} />
                   <span
                     className={`truncate font-mono text-[10px] tracking-[0.2em] uppercase ${
-                      selectedHere || isOpen ? 'text-[#e7cfa3]' : 'text-[#8b909e]'
+                      selectedHere ? 'text-[#e7cfa3]' : isOpen ? 'text-[#c7c2b8]' : 'text-[#8b909e]'
                     }`}
                   >
                     {label}
                   </span>
+                  {selectedHere && <Check size={12} className="flex-none text-[#bc9863]" />}
                   <ChevronDown size={13} className={`ml-auto hidden flex-none text-[#8b8f99] transition sm:block ${isOpen ? 'rotate-180' : ''}`} />
                 </span>
                 {/* Mobile compresses to labels only; details show from sm up */}

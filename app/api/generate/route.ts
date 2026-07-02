@@ -31,6 +31,12 @@ const BodySchema = z.object({
   prompt: z.string().trim().min(1, 'A scene prompt is required.').max(2000),
   model: z.string().min(1, 'Pick a model.'),
   auto: z.boolean().optional(),
+  /**
+   * DIRECT mode — the plain generator pages (/video /image /audio): the user's
+   * own prompt goes to the model as written, no studio recipe, exactly like
+   * prompting fal directly but with our validated per-model format params.
+   */
+  direct: z.boolean().optional(),
   variant: z.coerce.number().int().min(0).max(999).optional(),
   cameraKey: z.string().optional(),
   lensKey: z.string().optional(),
@@ -89,13 +95,21 @@ export async function POST(request: Request) {
   const endpoint = getModelEndpoint(body.model);
   if (!endpoint) return bad(400, 'Unknown model.');
 
-  // ── AUDIO PATH ── music, voice and sound models take the scene text directly.
-  // The cinematography recipe (camera/lens/lighting language) is meaningless for
-  // audio, so the protected DP compiler is bypassed entirely — the submitted
-  // prompt is exactly what the user typed, nothing proprietary in either direction.
-  if (endpoint.output === 'audio') {
+  // ── RAW PATH ── audio models always, and DIRECT mode for any model (the
+  // plain /video /image /audio generator pages). The user's own prompt goes to
+  // the model exactly as written: the protected DP compiler is bypassed in both
+  // directions — nothing proprietary added, nothing of the user's intent bent.
+  if (endpoint.output === 'audio' || body.direct === true) {
     const audioCaps = getModelCaps(body.model);
     const audioBody: Record<string, unknown> = endpoint.buildBody(body.prompt);
+    if (audioCaps.aspectParam && audioCaps.aspects.length) {
+      const a = body.aspect && audioCaps.aspects.includes(body.aspect) ? body.aspect : audioCaps.aspectDefault;
+      if (a) audioBody[audioCaps.aspectParam] = a;
+    }
+    if (audioCaps.resolutionParam && audioCaps.resolutions.length) {
+      const r = body.resolution && audioCaps.resolutions.includes(body.resolution) ? body.resolution : audioCaps.resolutionDefault;
+      if (r) audioBody[audioCaps.resolutionParam] = r;
+    }
     if (audioCaps.durationParam && audioCaps.durations.length) {
       const d = body.duration && audioCaps.durations.includes(body.duration) ? body.duration : audioCaps.durationDefault;
       if (d && d !== 'auto') audioBody[audioCaps.durationParam] = audioCaps.durationNumeric ? Number(d) : d;
@@ -104,6 +118,7 @@ export async function POST(request: Request) {
     if (audioCaps.supportsSeed && typeof body.seed === 'number' && Number.isFinite(body.seed)) {
       audioBody.seed = Math.trunc(body.seed);
     }
+    if (audioCaps.safetyTolerance) audioBody.safety_tolerance = audioCaps.safetyTolerance;
     try {
       const falRes = await fetch(queueSubmitUrl(endpoint.slug), {
         method: 'POST',

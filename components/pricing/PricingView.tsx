@@ -2,15 +2,16 @@
 
 /**
  * PricingView - the /pricing experience.
- *   - VISITOR (not paid): base plans + extensions shown as a "later" suggestion.
+ *   - VISITOR (not paid): base plans + storage top-ups shown as a "later" suggestion.
  *   - MEMBER (already paid): base plans hidden, current plan summary + buyable
- *     extension blocks shown instead.
+ *     top-up blocks shown instead.
  * Buying starts a real Stripe Checkout via /api/checkout (price resolved
  * server-side). Membership is read from the authenticated user's entitlement
  * (app_metadata.cma_plan). A dev-only preview switch lets you see both states.
  *
  * NOTE: all prices/retention windows come from lib/plans.ts and are
- * PLACEHOLDERS until Sebastien finalizes them (hence the chip in the UI).
+ * PLACEHOLDERS until Sebastien finalizes them (hence PRICING_SCOPE_NOTE,
+ * the microcopy line under the billing toggle).
  */
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -18,7 +19,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Check, ShieldCheck, ArrowRight, Plus, Archive, Hourglass, Loader2, AlertTriangle } from 'lucide-react';
 import { getBrowserSupabase } from '@/lib/supabase/client';
 import { isSupabaseConfigured, IS_PROD } from '@/lib/access';
-import { TIERS, EXTENSIONS, findTier, type Cycle, type Tier } from '@/lib/plans';
+import { TIERS, EXTENSIONS, PRICING_SCOPE_NOTE, findTier, type Cycle, type Tier } from '@/lib/plans';
 
 type PlanMeta = { tier?: string; status?: string; expires?: string } | undefined;
 
@@ -123,12 +124,9 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
         <p className="text-[15px] leading-relaxed text-[#8b8f99]">
           A low flat fee for the software. Compute runs on your own fal.ai key at fal&apos;s own rate, with no markup from us. No expiring credits, no wasted budget.
         </p>
-        <span className="mt-4 inline-block rounded border border-white/10 px-2 py-0.5 font-mono text-[9px] tracking-[0.16em] text-[#8b909e] uppercase">
-          Placeholder pricing
-        </span>
       </div>
 
-      <div className="glass mx-auto mb-12 flex w-fit items-center gap-1 rounded-full p-1">
+      <div className="glass mx-auto mb-4 flex w-fit items-center gap-1 rounded-full p-1">
         {(['yearly', 'monthly'] as Cycle[]).map((c) => (
           <button
             key={c}
@@ -148,6 +146,11 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
           </button>
         ))}
       </div>
+
+      {/* legal-safety scope line: prices cover today's toolset, never a forever promise */}
+      <p className="mx-auto mb-12 max-w-md text-center font-mono text-[10px] leading-relaxed tracking-[0.08em] text-[#8b909e]">
+        {PRICING_SCOPE_NOTE}
+      </p>
 
       <div className="mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-3">
         {TIERS.map((t) => (
@@ -228,7 +231,7 @@ function MemberView({ tier }: { tier: Tier }) {
         <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[#bc9863]/20 bg-[#bc9863]/6 px-3 py-2 font-mono text-[12px] text-[#e7cfa3]">
           <Archive size={14} className="shrink-0 text-[#bc9863]" /> {tier.retention}
         </div>
-        <p className="mt-4 text-sm text-[#8b8f99]">Want your renders kept longer? Add an extension below, no plan change, cancel anytime.</p>
+        <p className="mt-4 text-sm text-[#8b8f99]">Want your renders kept longer? Add a top-up below, no plan change, cancel anytime.</p>
         <Link href="/studio" className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-6 py-3 text-sm font-semibold text-black transition hover:brightness-105">
           Open CMA Studio <ArrowRight size={15} />
         </Link>
@@ -237,14 +240,14 @@ function MemberView({ tier }: { tier: Tier }) {
   );
 }
 
-/* ── extensions - suggestion for visitors, buyable for members ── */
+/* ── storage top-ups - suggestion for visitors, buyable for members ── */
 function Extensions({ member, busyId, onCheckout }: { member: boolean; busyId: string | null; onCheckout: CheckoutFn }) {
   return (
     <div className="mt-16">
       <div className="mb-8 text-center">
-        <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">{member ? 'Extend your plan' : 'Add-ons for later'}</div>
-        <h3 className="font-[family-name:var(--font-sora)] text-[clamp(1.5rem,3vw,2rem)] font-bold tracking-[-0.02em]">{member ? 'Keep your renders longer' : 'Need more? Extend anytime.'}</h3>
-        {!member && <p className="mx-auto mt-3 max-w-md text-sm text-[#8b8f99]">Once you&apos;re on a plan, you can stack a monthly extension for extra headroom, no upgrade required.</p>}
+        <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">{member ? 'Top up your plan' : 'Top-ups for later'}</div>
+        <h3 className="font-[family-name:var(--font-sora)] text-[clamp(1.5rem,3vw,2rem)] font-bold tracking-[-0.02em]">{member ? 'Extend your storage window' : 'Need more room? Top up anytime.'}</h3>
+        {!member && <p className="mx-auto mt-3 max-w-md text-sm text-[#8b8f99]">Once you&apos;re on a plan, you can stack a monthly storage top-up for extra headroom, no upgrade required.</p>}
       </div>
       <div className="mx-auto grid max-w-3xl grid-cols-1 gap-5 sm:grid-cols-2">
         {EXTENSIONS.map((e) => {
@@ -270,7 +273,7 @@ function Extensions({ member, busyId, onCheckout }: { member: boolean; busyId: s
                 }`}
               >
                 {busy && <Loader2 size={15} className="animate-spin" />}
-                {member ? 'Add extension' : 'Available on a plan'}
+                {member ? 'Add top-up' : 'Available on a plan'}
               </button>
             </div>
           );

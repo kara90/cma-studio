@@ -51,6 +51,19 @@ export interface LensRecord {
 
 /* ───────────────────────────── CAMERA_DATABASE ───────────────────────────── */
 
+/*
+ * ⚠ CONFIDENTIAL MAPPING (Sebastien, 2026-07-02): the UI labels stay GENERIC;
+ * the injections below name the REAL reference hardware so the model gets true
+ * cinematography signal. This file is server-only — the real names never reach
+ * the browser bundle or any API response (summaries echo the generic label).
+ *   Cinefilm 70mm        → IMAX MKIV & MSM 65mm
+ *   Digital Film S35     → ARRI Alexa 35
+ *   Cinema 8K Digital    → RED V-Raptor XL 8K
+ *   Mirrorless (FF)      → Canon EOS R5 Mark II
+ *   Vintage Cinema Film  → ARRIFLEX 435
+ *   Super 16mm           → ARRI 416 / Aaton Xtera
+ *   Vintage Photo Camera → TBD (Sebastien supplies later)
+ */
 export const CAMERA_DATABASE: Record<string, CameraRecord> = {
   'cinefilm-70': {
     id: 'cinefilm-70',
@@ -58,11 +71,12 @@ export const CAMERA_DATABASE: Record<string, CameraRecord> = {
     brand: 'Large Format',
     format: '70mm Film',
     sensor: 'Celluloid',
-    colorScience: '70mm large-format film',
+    colorScience: '65mm IMAX film',
     promptInjection:
-      'shot on large-format 70mm motion-picture film, immense resolution and fine detail, ' +
-      'rich organic film grain, epic cinematic scale and depth, gentle halation around ' +
-      'highlights, deep filmic latitude and creamy highlight roll-off',
+      'shot on an IMAX MKIV 65mm large-format motion-picture film camera with MSM 65mm movement, ' +
+      'immense IMAX resolution and fine detail, rich organic 65mm film grain, epic cinematic ' +
+      'scale and depth, gentle halation around highlights, deep filmic latitude and creamy ' +
+      'highlight roll-off',
     grainBias: 0.4,
     nativeIso: 500,
   },
@@ -72,11 +86,11 @@ export const CAMERA_DATABASE: Record<string, CameraRecord> = {
     brand: 'Digital',
     format: 'Super 35',
     sensor: 'S35-Digital',
-    colorScience: 'filmic color science',
+    colorScience: 'ARRI color science',
     promptInjection:
-      'captured on a professional Super 35 digital cinema sensor with filmic color science, ' +
+      'captured on an ARRI Alexa 35 Super 35 digital cinema camera with ARRI REVEAL color science, ' +
       'natural filmic latitude holding highlight roll-off and deep shadow detail, ' +
-      'soft rendered skin tones, wide dynamic range, organic photochemical-style response',
+      'soft rendered skin tones, seventeen stops of dynamic range, organic photochemical-style response',
     grainBias: 0.12,
     nativeIso: 800,
   },
@@ -86,11 +100,11 @@ export const CAMERA_DATABASE: Record<string, CameraRecord> = {
     brand: 'Digital',
     format: 'Full-Frame 8K',
     sensor: 'Digital-8K',
-    colorScience: 'wide-gamut digital',
+    colorScience: 'RED wide-gamut digital',
     promptInjection:
-      'captured on an 8K digital cinema sensor, razor-sharp precision and micro-detail, ' +
-      'modern high-contrast digital pop, clean crisp edges, punchy saturated color, ' +
-      'pristine commercial-grade clarity',
+      'captured on a RED V-Raptor XL 8K VV digital cinema camera, razor-sharp 8K precision and ' +
+      'micro-detail, modern high-contrast digital pop, clean crisp edges, punchy saturated ' +
+      'REDWideGamut color, pristine commercial-grade clarity',
     grainBias: 0.04,
     nativeIso: 800,
   },
@@ -100,11 +114,11 @@ export const CAMERA_DATABASE: Record<string, CameraRecord> = {
     brand: 'Digital',
     format: 'Full Frame',
     sensor: 'LargeFormat-Digital',
-    colorScience: 'full-frame digital',
+    colorScience: 'Canon full-frame digital',
     promptInjection:
-      'captured on a full-frame mirrorless camera, clean modern digital rendering, ' +
-      'shallow depth of field with smooth natural bokeh, contemporary color, ' +
-      'crisp fine detail and pleasing subject separation',
+      'captured on a Canon EOS R5 Mark II full-frame mirrorless camera, clean modern digital ' +
+      'rendering, shallow full-frame depth of field with smooth natural bokeh, contemporary ' +
+      'Canon color, crisp fine detail and pleasing subject separation',
     grainBias: 0.06,
     nativeIso: 400,
   },
@@ -116,9 +130,9 @@ export const CAMERA_DATABASE: Record<string, CameraRecord> = {
     sensor: 'Celluloid',
     colorScience: 'vintage film emulsion',
     promptInjection:
-      'shot on vintage Super 35 celluloid film stock, warm chemical emulsion response, ' +
-      'gentle halation around highlights, living breathing organic film grain, ' +
-      'subtle gate weave, nostalgic analog photochemical texture',
+      'shot on an ARRIFLEX 435 35mm film camera with vintage Super 35 celluloid stock, warm ' +
+      'chemical emulsion response, gentle halation around highlights, living breathing organic ' +
+      'film grain, subtle gate weave, nostalgic analog photochemical texture',
     grainBias: 0.5,
     nativeIso: 500,
   },
@@ -130,8 +144,9 @@ export const CAMERA_DATABASE: Record<string, CameraRecord> = {
     sensor: 'Celluloid',
     colorScience: '16mm film stock',
     promptInjection:
-      'shot on Super 16mm film, pronounced coarse organic grain, softer nostalgic ' +
-      'resolution, vintage documentary texture, gentle gate weave, warm analog film character',
+      'shot on an ARRI 416 Super 16mm film camera with Aaton Xtera character, pronounced coarse ' +
+      'organic 16mm grain, softer nostalgic resolution, vintage documentary texture, gentle ' +
+      'gate weave, warm analog film character',
     grainBias: 0.65,
     nativeIso: 400,
   },
@@ -141,6 +156,7 @@ export const CAMERA_DATABASE: Record<string, CameraRecord> = {
     brand: 'Celluloid',
     format: '35mm Stills Film',
     sensor: 'Celluloid',
+    // TODO(Sebastien): real reference body still to be specified for this one.
     colorScience: 'photographic film',
     promptInjection:
       'shot on a vintage film photo camera, classic still-photography rendering, ' +

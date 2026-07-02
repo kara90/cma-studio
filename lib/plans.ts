@@ -2,20 +2,35 @@
  * lib/plans.ts - pricing data (client-safe, single source of truth).
  *
  * =========================== PLACEHOLDER PRICING ===========================
- * EVERY price, saving figure, retention window and extension benefit in this
+ * EVERY price, saving figure, retention window and top-up benefit in this
  * file is a PLACEHOLDER. Sebastien finalizes the real numbers before launch.
- * The UI surfaces this with a small "placeholder pricing" chip.
+ * The UI surfaces this with the PRICING_SCOPE_NOTE microcopy line.
  * ===========================================================================
  *
  * The scheme: a low flat fee for the software. Compute runs on the member's
- * own fal.ai key at fal's own rate, no markup from us. Tiers are
- * differentiated by RETENTION and perks, never by removing the core value.
+ * own fal.ai key at fal's rate, no markup from us. Every tier gets ALL
+ * generators (video, image, audio) through the clean interface; Filmmaker
+ * and Pro add the full CMA Studio DP engine. Tiers are differentiated by
+ * RETENTION and perks, never by removing the core value.
  *
- * Retention wording rules: never "permanent", never "unlimited", never
- * "forever". Always "about N days / about 1 year" plus "fair use".
+ * Legal wording rules:
+ *  - Retention: never "permanent", never "unlimited", never "forever".
+ *    Always "about N days / about 1 year" plus "fair use".
+ *  - Pricing: never promise a price will not change. Pricing covers TODAY'S
+ *    toolset; plans may evolve as new tools join, announced ahead of the
+ *    next billing cycle (see PRICING_SCOPE_NOTE).
  */
 
 export type Cycle = 'yearly' | 'monthly';
+
+/**
+ * Shared legal-safety line, rendered under the billing toggle on /pricing.
+ * Scopes every price to the CURRENT toolset without ever promising the price
+ * will not change. Keep the "with notice before your next billing cycle"
+ * clause whenever this wording is revised.
+ */
+export const PRICING_SCOPE_NOTE =
+  'Placeholder pricing. Covers the current toolset. Plans may evolve as new tools join, with notice before your next billing cycle.';
 
 export interface Tier {
   /**
@@ -61,7 +76,7 @@ export const TIERS: Tier[] = [
     retention: 'Renders kept about 30 days · fair use', // PLACEHOLDER
     blurb: 'Start rendering without a credit trap. One small fee for the software, compute on your own key.',
     features: [
-      'The clean model interface, pick any model',
+      'All generators in one clean interface: video, image, audio',
       'Renders run on your own fal.ai key',
       'fal rates only, no markup from us',
       'No expiring credits',
@@ -79,10 +94,10 @@ export const TIERS: Tier[] = [
     price: { yearly: '$14.99', monthly: '$24.99' }, // PLACEHOLDER
     yearlySave: 'About $10 per month saved', // PLACEHOLDER
     retention: 'Renders kept about 90 days · fair use', // PLACEHOLDER
-    blurb: 'Everything in Starter, plus the full CMA Studio. Real camera, lens, film stock and lighting control, engineered server side.',
+    blurb: 'Everything in Starter, plus the full CMA Studio DP engine. Real camera, lens, film stock and lighting control, engineered server side.',
     features: [
-      'Everything in Starter',
-      'Full CMA Studio: camera, lens, film stock, lighting',
+      'Everything in Starter: all generators, video, image, audio',
+      'Full CMA Studio DP engine: camera, lens, film stock, lighting',
       'Prompt engineering handled server side',
       'Tuned to land the shot in fewer tries',
     ],
@@ -99,12 +114,12 @@ export const TIERS: Tier[] = [
     price: { yearly: '$29.99', monthly: '$39.99' }, // PLACEHOLDER
     yearlySave: 'About $10 per month saved', // PLACEHOLDER
     retention: 'Renders kept about 1 year · fair use', // PLACEHOLDER
-    blurb: 'Everything in Filmmaker, plus the longest retention and first access to everything new.',
+    blurb: 'Everything in Filmmaker, plus the longest retention and first looks at new tools as they join.',
     features: [
-      'Everything in Filmmaker',
+      'Everything in Filmmaker: all generators plus the DP engine',
       'Longest retention, about 1 year, fair use',
       'Priority render queue',
-      'Early access to every new CMA tool',
+      'Early access to new CMA tools as they roll out',
     ],
     cta: 'Coming at launch',
     note: 'Self-serve checkout for this tier opens at launch.',
@@ -114,6 +129,10 @@ export const TIERS: Tier[] = [
   },
 ];
 
+/**
+ * Storage top-ups (billing ids stay 'ext' / 'ext-plus', keyed by
+ * lib/billing.ts and the checkout API; display names are free to change).
+ */
 export interface Extension {
   id: string;
   name: string;
@@ -126,17 +145,17 @@ export interface Extension {
 export const EXTENSIONS: Extension[] = [
   {
     id: 'ext',
-    name: 'Extension',
+    name: 'Storage Top-up',
     price: '$5.99', // PLACEHOLDER
-    blurb: 'A monthly add-on that keeps your renders stored longer than your plan alone.',
-    detail: '+ extended retention · exact window TBD',
+    blurb: 'Extend your storage window. A monthly top-up that keeps your renders stored longer than your plan alone.',
+    detail: '+ extended storage window · exact window TBD',
   },
   {
     id: 'ext-plus',
-    name: 'Extension+',
+    name: 'Storage Top-up+',
     price: '$14.99', // PLACEHOLDER
-    blurb: 'The bigger add-on for heavy months, with the most storage headroom.',
-    detail: '+ the biggest retention bump · exact window TBD',
+    blurb: 'The bigger top-up for heavy months, with the most storage headroom.',
+    detail: '+ the biggest storage window bump · exact window TBD',
   },
 ];
 

@@ -8,8 +8,8 @@
  */
 import { memo, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, Video, Image as ImageIcon, Star, Tag, Check } from 'lucide-react';
-import { VIDEO_MODELS, IMAGE_MODELS, findModel, type ModelOption, type ModelStatus, type ModelType } from '@/lib/modelRegistry';
+import { ChevronDown, Video, Image as ImageIcon, AudioLines, Star, Tag, Check } from 'lucide-react';
+import { VIDEO_MODELS, IMAGE_MODELS, AUDIO_MODELS, findModel, type ModelOption, type ModelStatus, type ModelType } from '@/lib/modelRegistry';
 
 const STATUS_STYLE: Record<ModelStatus, string> = {
   live: 'text-emerald-400 border-emerald-400/30',
@@ -19,9 +19,10 @@ const STATUS_STYLE: Record<ModelStatus, string> = {
 const STATUS_LABEL: Record<ModelStatus, string> = { live: 'live', beta: 'beta', preview: 'soon' };
 
 function Row({ m, active, onPick }: { m: ModelOption; active: boolean; onPick: () => void }) {
-  // 'preview' models aren't live on Fal yet — show them, but don't let a user
-  // select one and pay-then-404. They render greyed with a "soon" badge.
-  const soon = m.status === 'preview';
+  // 'preview' models aren't live on Fal yet, and wired:false entries have no
+  // generation endpoint — show them, but don't let a user select one and
+  // pay-then-404. They render greyed with a "soon" badge.
+  const soon = m.status === 'preview' || m.wired === false;
   return (
     <button
       onClick={soon ? undefined : onPick}
@@ -74,12 +75,12 @@ function ModelPickerImpl({ kind, value, onChange }: { kind: ModelType; value: st
     };
   }, [open]);
 
-  const pool = kind === 'video' ? VIDEO_MODELS : IMAGE_MODELS;
+  const pool = kind === 'video' ? VIDEO_MODELS : kind === 'audio' ? AUDIO_MODELS : IMAGE_MODELS;
   const best = pool.filter((m) => m.top);
   const val = pool.filter((m) => m.value);
   const more = pool.filter((m) => !m.top && !m.value);
-  const Icon = kind === 'video' ? Video : ImageIcon;
-  const label = kind === 'video' ? 'Video' : 'Photo';
+  const Icon = kind === 'video' ? Video : kind === 'audio' ? AudioLines : ImageIcon;
+  const label = kind === 'video' ? 'Video' : kind === 'audio' ? 'Audio' : 'Photo';
 
   return (
     <div ref={ref}>

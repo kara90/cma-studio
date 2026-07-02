@@ -12,6 +12,8 @@ export interface GenerateRequestBody {
   model: string;
   /** when true, the Auto-Director picks the hardware; the fields below are ignored */
   auto?: boolean;
+  /** DIRECT mode — raw prompt pass-through for the plain generator pages */
+  direct?: boolean;
   /** rotates Auto-Director coverage across takes */
   variant?: number;
   cameraKey: string;

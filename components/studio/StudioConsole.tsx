@@ -172,28 +172,40 @@ function AutoToggle({ isAuto, onChange, name }: { isAuto: boolean; onChange: (au
   );
 }
 
-/** A cinematography department card: collapsed single Auto line, or the full
- * controls when flipped to Manual. */
+/** A cinematography department card: collapsed single Auto line, the full
+ * controls when flipped to Manual, or a greyed "unavailable" state when the
+ * current selections make the department logically impossible (e.g. anamorphic
+ * with spherical glass — nothing anamorphic is compiled in that case). */
 function DeptSection({
-  title, icon, isAuto, onModeChange, autoNote, children,
+  title, icon, isAuto, onModeChange, autoNote, unavailable, children,
 }: {
   title: string;
   icon: React.ReactNode;
   isAuto: boolean;
   onModeChange: (auto: boolean) => void;
   autoNote: string;
+  /** when set, the department is locked out and this explains why */
+  unavailable?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className={`${CARD} p-4`}>
+    <div className={`${CARD} p-4 ${unavailable ? 'opacity-60 saturate-50' : ''}`}>
       <div className="flex items-center justify-between gap-3">
         <h3 className="flex min-w-0 items-center gap-2 font-[family-name:var(--font-sora)] text-[13px] font-semibold tracking-[0.01em] text-[#e7cfa3]">
           <span className="text-[#bc9863]">{icon}</span>
           <span className="truncate">{title}</span>
         </h3>
-        <AutoToggle isAuto={isAuto} onChange={onModeChange} name={title} />
+        {unavailable ? (
+          <span className="flex-none rounded-full border border-white/12 px-2.5 py-1 font-mono text-[9px] tracking-[0.12em] text-[#8b909e] uppercase">
+            Locked
+          </span>
+        ) : (
+          <AutoToggle isAuto={isAuto} onChange={onModeChange} name={title} />
+        )}
       </div>
-      {isAuto ? (
+      {unavailable ? (
+        <p className="mt-3 text-[11.5px] leading-relaxed text-[#8b909e]">{unavailable}</p>
+      ) : isAuto ? (
         <p className="mt-3 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-[#8b909e]">
           <Wand2 size={13} className="mt-0.5 shrink-0 text-[#bc9863]" /> {autoNote}
         </p>
@@ -278,8 +290,16 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
   }, [lensKey]);
 
   const setDeptMode = useCallback((k: DeptKey, isAuto: boolean) => {
-    setDeptAuto((prev) => ({ ...prev, [k]: isAuto }));
-    if (isAuto) resetDept(k);
+    setDeptAuto((prev) => {
+      // Anamorphic manual control only exists relative to a MANUAL camera
+      // package — when the camera returns to Auto, the scope follows it.
+      if (k === 'camera' && isAuto) return { ...prev, camera: true, anamorphic: true };
+      return { ...prev, [k]: isAuto };
+    });
+    if (isAuto) {
+      resetDept(k);
+      if (k === 'camera') resetDept('anamorphic');
+    }
   }, [resetDept]);
 
   /** Master switch — one tap to open or close every department. */
@@ -314,27 +334,27 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
     [lens],
   );
 
+  // LOGIC RULE (Sebastien): spherical glass has NO anamorphic character, so
+  // choosing a spherical lens LOCKS the Anamorphic department and guarantees
+  // nothing anamorphic is ever compiled into the prompt. Only anamorphic glass
+  // unlocks the scope controls — no silent lens swapping.
   const handleLensChange = useCallback((id: string) => {
     const next = findLens(id)!;
     setLensKey(id);
     setFocalLength(next.focalLengths[0]);
     setAperture(next.maxAperture);
-    setAnamorphic(next.geometry === 'anamorphic' ? '2' : 'none');
+    if (next.geometry === 'anamorphic') {
+      setAnamorphic('2');
+    } else {
+      setAnamorphic('none');
+      setFlare('blue');
+      setDeptAuto((prev) => ({ ...prev, anamorphic: true })); // scope follows the glass
+    }
   }, []);
 
-  // Picking an anamorphic FORMAT while on spherical glass auto-swaps the lens to
-  // Modern Anamorphic, so the lens we compile matches the format the user chose.
   const handleAnamorphicChange = useCallback((id: string) => {
     setAnamorphic(id);
-    if (id === 'none') return;
-    const current = findLens(lensKey)!;
-    if (current.geometry !== 'anamorphic') {
-      const next = findLens('modern-anamorphic')!;
-      setLensKey(next.id);
-      setFocalLength(next.focalLengths[0]);
-      setAperture(next.maxAperture);
-    }
-  }, [lensKey]);
+  }, []);
 
   // Audio models take the text directly — no camera package, no framing.
   const isAudio = modelInfo.output === 'audio';
@@ -449,8 +469,10 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
           duration: duration || undefined,
           aspect: aspect || undefined,
           seed: seed ? Number(seed) : undefined,
-          anamorphic: allAuto || deptAuto.anamorphic ? undefined : anamorphic,
-          flare: allAuto || deptAuto.anamorphic || ana.id === 'none' ? undefined : flare,
+          // Never sent unless the user MANUALLY chose anamorphic glass — spherical
+          // glass guarantees zero anamorphic language in the compiled prompt.
+          anamorphic: allAuto || deptAuto.anamorphic || lens.geometry !== 'anamorphic' ? undefined : anamorphic,
+          flare: allAuto || deptAuto.anamorphic || lens.geometry !== 'anamorphic' || ana.id === 'none' ? undefined : flare,
           userApiKey: apiKey,
         }),
       });
@@ -692,6 +714,15 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
     </DeptSection>
   );
 
+  // The Anamorphic department is only ever interactive when the user has
+  // MANUALLY chosen anamorphic glass — otherwise it is locked with the reason.
+  const lensIsAnamorphic = lens.geometry === 'anamorphic';
+  const anamorphicUnavailable = deptAuto.camera
+    ? 'Follows the Camera Package. Flip Camera to Manual and pick anamorphic glass to take control of the scope.'
+    : !lensIsAnamorphic
+      ? 'Spherical glass has no anamorphic character, so nothing anamorphic is compiled into your prompt. Pick anamorphic glass to unlock the scope.'
+      : undefined;
+
   const deptAnamorphic = (
     <DeptSection
       title="Anamorphic"
@@ -699,6 +730,7 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
       isAuto={deptAuto.anamorphic}
       onModeChange={(a) => setDeptMode('anamorphic', a)}
       autoNote="Auto. We frame the wide scope and flares when the scene calls for them."
+      unavailable={anamorphicUnavailable}
     >
       <div className="grid grid-cols-2 gap-2">
         {ANAMORPHIC_OPTIONS.map((a) => (
@@ -933,7 +965,7 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
                   ...(caps.durations.length ? [['Length', fmtDur(duration)]] : []),
                   ['Body', deptAuto.camera ? 'Auto' : camera.label],
                   ['Glass', deptAuto.camera ? 'Auto' : lens.label],
-                  ['Anamorphic', deptAuto.anamorphic ? 'Auto' : ana.label],
+                  ['Anamorphic', !deptAuto.camera && !lensIsAnamorphic ? 'None · spherical glass' : deptAuto.anamorphic ? 'Auto' : ana.label],
                   ...(!deptAuto.anamorphic && ana.id !== 'none' ? [['Flares', flare === 'gold' ? 'Golden' : 'Blue']] : []),
                   ['Optics', deptAuto.camera ? 'Auto' : `${focalLength}mm · T${aperture.toFixed(1)}`],
                   ['Sensor', deptAuto.sensor ? 'Auto' : camera.isCelluloid ? `Celluloid · ${grain}% grain` : `Digital · ISO ${iso}`],
