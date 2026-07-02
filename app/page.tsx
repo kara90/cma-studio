@@ -1,9 +1,12 @@
 import Link from 'next/link';
-import { ArrowRight, Aperture, Film, Layers, Gauge, KeyRound, ShieldCheck, Wand2, Target } from 'lucide-react';
+import { ArrowRight, Aperture, Film, Layers, Gauge, KeyRound, ShieldCheck, Wand2 } from 'lucide-react';
 import { Reveal } from '@/components/Reveal';
 import { StudioConsole } from '@/components/studio/StudioConsole';
 import { CinematicFooter } from '@/components/ui/motion-footer';
-import { Logo } from '@/components/Logo';
+import { SiteHeader } from '@/components/SiteHeader';
+import { Pillars } from '@/components/marketing/Pillars';
+import { PricingSection } from '@/components/marketing/PricingSection';
+import { Faq } from '@/components/marketing/Faq';
 import { Particles } from '@/components/Particles';
 import { BlurText } from '@/components/BlurText';
 import { WistiaPlayer } from '@/components/WistiaPlayer';
@@ -13,6 +16,9 @@ import { BorderRotate } from '@/components/ui/animated-gradient-border';
  * app/page.tsx — CMA Studio landing hub. The cinematic ground (grain, vignette,
  * drifting leaks) is provided globally by <Atmosphere/> in the layout. Every
  * CTA routes into the gated tool (/login → /studio).
+ *
+ * Positioning: the professional's AI production studio for people who refuse
+ * expiring credit subscriptions. We attack the category, never a competitor.
  */
 
 const MAKES = [
@@ -27,31 +33,8 @@ const MARQUEE = ['Cinefilm 70mm', 'Premium Anamorphic', 'Digital Film S35', "Vin
 export default function Home() {
   return (
     <div className="relative min-h-screen">
-      {/* nav — sticky */}
-      <header className="sticky top-0 z-40 border-b border-[#bc9863]/18 bg-[#07080b]/95 backdrop-blur-xl shadow-[0_16px_44px_-30px_rgba(0,0,0,0.95)]">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
-          <div className="flex items-center gap-3">
-            <Logo size={42} />
-            <span className="font-[family-name:var(--font-sora)] text-[17px] font-semibold tracking-[-0.01em]">
-              CMA Studio
-            </span>
-            <span className="rounded-full border border-[#bc9863]/30 bg-[#bc9863]/8 px-2 py-0.5 font-mono text-[8px] tracking-[0.16em] text-[#bc9863] uppercase">
-              beta
-            </span>
-          </div>
-          <div className="flex items-center gap-5">
-            <Link href="/pricing" className="font-mono text-[13px] text-[#8b8f99] transition hover:text-[#e7cfa3]">
-              Pricing
-            </Link>
-            <Link
-              href="#studio"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-4 py-2.5 text-[13.5px] font-semibold text-black shadow-[0_6px_22px_rgba(188,152,99,0.28)] transition hover:brightness-105"
-            >
-              Try the Studio <ArrowRight size={15} />
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* scroll-aware frosted header — transparent over the hero, condenses on scroll */}
+      <SiteHeader />
 
       <main className="relative z-10">
         {/* hero */}
@@ -61,7 +44,7 @@ export default function Home() {
           <Reveal>
             <div className="mb-5 inline-flex items-center gap-2.5 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">
               <span className="h-px w-6 bg-gradient-to-r from-transparent to-[#bc9863]" />
-              CineMaster Academy
+              The professional&apos;s AI production studio
               <span className="h-px w-6 bg-gradient-to-l from-transparent to-[#bc9863]" />
             </div>
           </Reveal>
@@ -70,8 +53,8 @@ export default function Home() {
             <div className="mb-7 flex flex-wrap items-center justify-center gap-2.5">
               {[
                 { icon: Aperture, t: 'Real film hardware' },
-                { icon: Wand2, t: 'Auto-Direct' },
-                { icon: KeyRound, t: 'Bring your own key' },
+                { icon: Wand2, t: 'Auto by default' },
+                { icon: KeyRound, t: 'No expiring credits' },
               ].map((b) => (
                 <span
                   key={b.t}
@@ -93,8 +76,9 @@ export default function Home() {
           </h1>
           <Reveal delay={0.16}>
             <p className="mx-auto mt-6 max-w-xl text-[clamp(1rem,1.7vw,1.2rem)] leading-relaxed text-[#8b8f99]">
-              A <span className="text-[#f4efe6]">Bring-Your-Own-Key</span> studio that renders cinematic video &amp; photos from real
-              film-camera and lens signatures — 70mm, Super 35, anamorphic, vintage — powered by <span className="text-[#f4efe6]">Fal.ai</span>.
+              Cinematic video and photos from <span className="text-[#f4efe6]">real film camera and lens signatures</span>.
+              A low flat fee for the software. Compute runs on <span className="text-[#f4efe6]">your own Fal.ai key</span> at
+              fal&apos;s own rate. No markup, no credit packs that expire.
             </p>
           </Reveal>
           <Reveal delay={0.24}>
@@ -142,14 +126,15 @@ export default function Home() {
         <section id="studio" className="scroll-mt-6 px-4 pb-8 sm:px-6">
           <Reveal className="mx-auto mb-8 max-w-3xl text-center">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#bc9863]/25 bg-[#bc9863]/[0.06] px-3 py-1 font-mono text-[10px] tracking-[0.2em] text-[#e7cfa3] uppercase">
-              <Wand2 size={12} /> Pick a model or let Auto-Direct choose
+              <Wand2 size={12} /> Four choices. Everything else is Auto.
             </div>
             <h2 className="font-[family-name:var(--font-sora)] text-[clamp(1.8rem,4vw,2.8rem)] font-bold tracking-[-0.03em]">
               <BlurText text="The studio, right here." />
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-[#8b8f99]">
-              This is the real studio — explore every camera, lens and control below. Rendering runs on your own
-              Fal.ai key and unlocks with a <Link href="/pricing" className="text-[#e7cfa3] underline underline-offset-2">subscription</Link>.
+              Pick a model, a resolution, an aspect, and describe your scene. Every cinematography department defaults
+              to Auto. Pros can flip any of them to Manual. Rendering unlocks with a{' '}
+              <Link href="/pricing" className="text-[#e7cfa3] underline underline-offset-2">subscription</Link>.
             </p>
           </Reveal>
           <Reveal delay={0.08}>
@@ -159,26 +144,8 @@ export default function Home() {
           </Reveal>
         </section>
 
-        {/* value strip — why it pays off */}
-        <section className="mx-auto max-w-6xl px-6 py-16">
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              { icon: Target, title: 'Fewer wasted renders', body: 'CMA engineers every prompt before it reaches the model — so you get the shot right the first time and burn fewer credits on your own key.' },
-              { icon: Wand2, title: 'Effortless by default', body: 'Auto-Direct chooses the camera, lenses, lighting, grain, motion and angles for you. Know the gear? Switch to Manual anytime.' },
-              { icon: KeyRound, title: 'Your key, your control', body: 'You pay a simple subscription for the tool. Renders run on your own Fal.ai key — we never touch your compute billing.' },
-            ].map((v, i) => (
-              <Reveal key={v.title} delay={i * 0.08}>
-                <div className="glass glass-gold h-full rounded-2xl p-6">
-                  <div className="mb-4 grid h-11 w-11 place-items-center rounded-xl border border-[#bc9863]/25 bg-[#bc9863]/8 text-[#bc9863]">
-                    <v.icon size={20} />
-                  </div>
-                  <h3 className="mb-2 font-[family-name:var(--font-sora)] text-[1.1rem] font-semibold">{v.title}</h3>
-                  <p className="text-[0.93rem] leading-relaxed text-[#8b8f99]">{v.body}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </section>
+        {/* three pillars — why filmmakers switch */}
+        <Pillars />
 
         {/* marquee */}
         <div className="marquee my-10 border-y border-white/6 py-5">
@@ -216,6 +183,12 @@ export default function Home() {
           </div>
         </section>
 
+        {/* pricing — placeholder tiers, monthly/annual toggle */}
+        <PricingSection />
+
+        {/* honest answers for cold traffic */}
+        <Faq />
+
         {/* mission / beta */}
         <section className="mx-auto max-w-3xl px-6 py-20 text-center">
           <Reveal>
@@ -226,7 +199,7 @@ export default function Home() {
               We build tools for <span className="text-[#bc9863]">real cinema.</span>
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-[1.05rem] leading-relaxed text-[#8b8f99]">
-              CMA Studio is in active beta — the first of a growing family of tools we&apos;re building for
+              CMA Studio is in active beta, the first of a growing family of tools we&apos;re building for
               serious film production. Everything is engineered toward one goal: to help you make magnificent films,
               effortlessly. More is coming, fast.
             </p>
@@ -238,7 +211,7 @@ export default function Home() {
           <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(60% 100% at 50% 100%, rgba(188,152,99,0.16), transparent 70%)' }} />
           <Reveal className="relative mx-auto max-w-2xl">
             <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-[#bc9863]/25 px-3 py-1 font-mono text-[10px] tracking-[0.2em] text-[#bc9863] uppercase">
-              <ShieldCheck size={12} /> Academy access
+              <ShieldCheck size={12} /> Flat fee · your key · your footage
             </div>
             <h2 className="font-[family-name:var(--font-sora)] text-[clamp(2rem,5vw,3.4rem)] font-bold tracking-[-0.035em]">
               Bring your key.<br />

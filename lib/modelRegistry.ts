@@ -5,22 +5,29 @@
  * so the client only ever sends a model id.
  */
 
-export type ModelType = 'video' | 'image';
+export type ModelKind = 'video' | 'image' | 'audio';
+/** Back-compat alias — prefer ModelKind in new code. */
+export type ModelType = ModelKind;
 export type ModelStatus = 'live' | 'beta' | 'preview';
 
 export interface ModelOption {
   id: string;
   label: string;
   provider: string;
-  type: ModelType;
+  type: ModelKind;
   /** what the render produces */
-  output: ModelType;
+  output: ModelKind;
   status: ModelStatus;
   blurb: string;
   /** curated "Best" group (quality flagships) */
   top?: boolean;
   /** curated "Best for price" group (value / cheaper tiers) */
   value?: boolean;
+  /**
+   * false = listed for browsing only, no generation endpoint wired yet.
+   * Absent means wired (true) — all pre-existing entries keep their behavior.
+   */
+  wired?: boolean;
 }
 
 export const MODEL_OPTIONS: ModelOption[] = [
@@ -37,6 +44,26 @@ export const MODEL_OPTIONS: ModelOption[] = [
   { id: 'nano-banana-pro', label: 'Nano Banana Pro', provider: 'Google', type: 'image', output: 'image', status: 'live', blurb: 'Gemini 3 Pro Image · up to 4K', top: true },
   { id: 'nano-banana-2', label: 'Nano Banana 2', provider: 'Google', type: 'image', output: 'image', status: 'beta', blurb: 'Reasoning-guided synthesis', value: true },
   { id: 'gpt-image-2', label: 'GPT Image 2', provider: 'OpenAI', type: 'image', output: 'image', status: 'beta', blurb: 'High-fidelity text-to-image' },
+  // ── Audio ──
+  // AUDIO lineup is a browse-only placeholder: generation wiring (server-side
+  // recipes in lib/modelEndpoints.ts) comes in a later pass, and Sebastien is
+  // to confirm the final lineup. Every entry below was verified live on Fal on
+  // 2026-07-02 via https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=<slug>
+  // (HTTP 200 with a real OpenAPI schema). Slugs stay in comments only, per the
+  // client-safe rule at the top of this file.
+  //
+  // Verified but intentionally omitted from the lineup:
+  //   fal-ai/stable-audio     (older v2, superseded by stable-audio-25)
+  //   fal-ai/f5-tts           (voice-cloning TTS, needs a reference clip; add if voice cloning becomes a feature)
+  // Checked and NOT available on Fal (404, do not add):
+  //   fal-ai/playai/tts/v3, /tts/dialog, /tts/v3-turbo, fal-ai/playht/tts/v3
+  { id: 'lyria2', label: 'Lyria 2', provider: 'Google', type: 'audio', output: 'audio', status: 'preview', wired: false, top: true, blurb: 'Studio-grade instrumental music, cinematic scores and ambient beds' }, // fal-ai/lyria2 (music)
+  { id: 'elevenlabs-multilingual-v2', label: 'ElevenLabs Multilingual v2', provider: 'ElevenLabs', type: 'audio', output: 'audio', status: 'preview', wired: false, top: true, blurb: 'Premium lifelike voiceover in 29 languages, the go-to for polished narration' }, // fal-ai/elevenlabs/tts/multilingual-v2 (tts)
+  { id: 'stable-audio-25', label: 'Stable Audio 2.5', provider: 'Stability AI', type: 'audio', output: 'audio', status: 'preview', wired: false, top: true, blurb: 'Text-to-audio workhorse for sound effects, foley and short musical stems' }, // fal-ai/stable-audio-25/text-to-audio (sfx)
+  { id: 'ace-step', label: 'ACE-Step', provider: 'ACE Studio', type: 'audio', output: 'audio', status: 'preview', wired: false, value: true, blurb: 'Fast open-source song generator, complete tracks with vocals from a text prompt' }, // fal-ai/ace-step (music)
+  { id: 'kokoro-american-english', label: 'Kokoro (American English)', provider: 'Kokoro', type: 'audio', output: 'audio', status: 'preview', wired: false, value: true, blurb: 'Very fast, very cheap American English speech for drafts and high volume' }, // fal-ai/kokoro/american-english (tts)
+  { id: 'minimax-music', label: 'MiniMax Music', provider: 'MiniMax', type: 'audio', output: 'audio', status: 'preview', wired: false, blurb: 'Turns your lyrics plus a reference track into a full song with vocals' }, // fal-ai/minimax-music (music)
+  { id: 'mmaudio-v2', label: 'MMAudio V2', provider: 'MMAudio', type: 'audio', output: 'audio', status: 'preview', wired: false, blurb: 'Watches a video and generates synced sound effects and ambience for it' }, // fal-ai/mmaudio-v2 (video-to-audio sfx)
 ];
 
 export const DEFAULT_MODEL = 'seedance-2';
@@ -47,3 +74,4 @@ export function findModel(id: string): ModelOption | undefined {
 
 export const VIDEO_MODELS = MODEL_OPTIONS.filter((m) => m.type === 'video');
 export const IMAGE_MODELS = MODEL_OPTIONS.filter((m) => m.type === 'image');
+export const AUDIO_MODELS = MODEL_OPTIONS.filter((m) => m.type === 'audio');

@@ -86,6 +86,7 @@ const MagneticButton = React.forwardRef<HTMLElement, MagneticButtonProps>(
 
     useEffect(() => {
       if (typeof window === 'undefined') return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       const element = localRef.current;
       if (!element) return;
 
@@ -148,6 +149,7 @@ export function CinematicFooter() {
 
   useEffect(() => {
     if (typeof window === 'undefined' || !wrapperRef.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(
         giantTextRef.current,
@@ -203,14 +205,21 @@ export function CinematicFooter() {
                 <MagneticButton as="a" href={CONTACT} className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
                   Any questions? Contact us
                 </MagneticButton>
-                <MagneticButton as="a" href="#" className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
+                <MagneticButton as="a" href="/privacy" className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
                   Privacy
                 </MagneticButton>
-                <MagneticButton as="a" href="#" className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
+                <MagneticButton as="a" href="/terms" className="footer-glass-pill px-6 py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
                   Terms
                 </MagneticButton>
               </div>
             </div>
+          </div>
+
+          <div className="relative z-10 w-full px-6 pb-6 flex flex-col items-center gap-2 text-center">
+            <span className="font-mono text-[10px] tracking-[0.26em] uppercase text-muted-foreground">The first of many</span>
+            <p className="text-muted-foreground text-xs md:text-sm max-w-md leading-relaxed">
+              CMA Studio is the first tool in a growing family we are building for serious film production.
+            </p>
           </div>
 
           <div className="relative z-20 w-full pb-8 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-6">

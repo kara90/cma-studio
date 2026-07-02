@@ -4,16 +4,31 @@
  * StudioConsole — the Virtual Camera Package workspace, self-contained so it can
  * run both on the gated /studio page and embedded in the landing.
  *
- *   • AUTO (default, "easy") — connect key, pick a model, describe & render.
- *     CMA's Auto-Director chooses the whole camera package for you.
- *   • MANUAL ("advanced") — full camera package + anamorphic control + live
- *     compiler for hands-on control.
- * The prompt + Render sit directly under the video; recent work shows as a strip
- * beneath it with a full "See all my work" gallery.
+ * The user only ever HAS to pick four things: model, resolution, aspect, and the
+ * scene description. Every cinematography department defaults to AUTO:
+ *   • Camera Package (body · glass · focal · aperture)
+ *   • Anamorphic (format + flares)
+ *   • Sensor & Motion (ISO · grain · shutter)
+ *   • Director's frame (style · lighting · shot · movement · grade)
+ * Each department has its own Auto/Manual toggle. A pro can open any one of
+ * them; a non-pro never has to.
+ *
+ * SERVER MAPPING (front-end only — no backend change in this pass):
+ *   • ALL departments Auto  → sends auto:true (the existing Auto-Direct path;
+ *     the server-side compiler chooses everything).
+ *   • ANY department Manual → sends auto:false with the full manual payload.
+ *     Departments still on Auto submit CMA's tuned defaults for that take.
+ *   ⚠ TRUE mixed-mode ("server picks ISO while I pick the lens") needs
+ *     /api/generate to accept omitted per-field values — flagged for a later
+ *     backend pass. Flipping a department back to Auto resets it to defaults so
+ *     stale manual values are never silently submitted.
  */
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, AlertTriangle, Wand2, SlidersHorizontal, ShieldCheck, Maximize2, Minimize2, Download } from 'lucide-react';
+import {
+  Sparkles, AlertTriangle, Wand2, SlidersHorizontal, ShieldCheck, Maximize2, Minimize2, Download,
+  Camera as CameraIcon, Gauge, RectangleHorizontal, Clapperboard,
+} from 'lucide-react';
 import { downloadRender, renderFilename } from '@/lib/download';
 import {
   CAMERA_OPTIONS,
@@ -46,7 +61,10 @@ import { getModelCaps, fmtRes, fmtDur, fmtAspect } from '@/lib/modelCaps';
 import { DrumSelector } from '@/components/studio/DrumSelector';
 import { ApiKeyVault } from '@/components/studio/ApiKeyVault';
 import { ScopeViewer } from '@/components/studio/ScopeViewer';
-import { ModelPicker } from '@/components/studio/ModelPicker';
+import { ModelBrowser } from '@/components/studio/ModelBrowser';
+import { LookTileRow } from '@/components/studio/LookTileRow';
+import { STYLE_PREVIEWS, LIGHTING_PREVIEWS } from '@/lib/lookPreviews';
+import { HonestNote } from '@/components/marketing/HonestNote';
 import { LensThumb, CameraThumb } from '@/components/studio/HardwareThumb';
 import { GenerationStrip } from '@/components/studio/GenerationStrip';
 import { PromptTagEngine } from '@/components/PromptTagEngine';
@@ -56,7 +74,9 @@ import type { GenerateAccepted, GenerateError, StatusResult, StatusState, Output
 
 const MAX_POLLS = 168;
 const CARD = 'glass glass-gold rounded-2xl';
-type Mode = 'auto' | 'manual';
+
+/** The four cinematography departments a user can flip to Manual. */
+type DeptKey = 'camera' | 'anamorphic' | 'sensor' | 'director';
 
 // Discrete, filmically-real values only — no continuous slider.
 const ISO_STOPS = [100, 600, 800, 1600, 3200] as const;
@@ -119,10 +139,73 @@ function ChipRow<T extends string>({ label, options, value, onChange }: {
   );
 }
 
+/** The Auto ⇄ Manual mini-switch every department carries. */
+function AutoToggle({ isAuto, onChange, name }: { isAuto: boolean; onChange: (auto: boolean) => void; name: string }) {
+  return (
+    <div className="flex flex-none rounded-full border border-white/10 bg-black/30 p-0.5" role="group" aria-label={`${name} mode`}>
+      {(['Auto', 'Manual'] as const).map((m) => {
+        const active = m === 'Auto' ? isAuto : !isAuto;
+        return (
+          <button
+            key={m}
+            type="button"
+            onClick={() => onChange(m === 'Auto')}
+            aria-pressed={active}
+            className={`cursor-pointer rounded-full px-2.5 py-1.5 font-mono text-[9px] tracking-[0.12em] uppercase transition sm:py-1 ${
+              active ? 'bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] font-semibold text-black' : 'text-[#8b8f99] hover:text-[#e7cfa3]'
+            }`}
+          >
+            {m}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** A cinematography department card: collapsed single Auto line, or the full
+ * controls when flipped to Manual. */
+function DeptSection({
+  title, icon, isAuto, onModeChange, autoNote, children,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  isAuto: boolean;
+  onModeChange: (auto: boolean) => void;
+  autoNote: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={`${CARD} p-4`}>
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="flex min-w-0 items-center gap-2 font-[family-name:var(--font-sora)] text-[13px] font-semibold tracking-[0.01em] text-[#e7cfa3]">
+          <span className="text-[#bc9863]">{icon}</span>
+          <span className="truncate">{title}</span>
+        </h3>
+        <AutoToggle isAuto={isAuto} onChange={onModeChange} name={title} />
+      </div>
+      {isAuto ? (
+        <p className="mt-3 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-[#8b909e]">
+          <Wand2 size={13} className="mt-0.5 shrink-0 text-[#bc9863]" /> {autoNote}
+        </p>
+      ) : (
+        <div className="mt-4 flex flex-col gap-4 border-t border-[#bc9863]/12 pt-4">{children}</div>
+      )}
+    </div>
+  );
+}
+
 export function StudioConsole({ locked = false }: { locked?: boolean }) {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>('auto');
-  const auto = mode === 'auto';
+  // Per-department Auto/Manual — everything starts on Auto.
+  const [deptAuto, setDeptAuto] = useState<Record<DeptKey, boolean>>({
+    camera: true, anamorphic: true, sensor: true, director: true,
+  });
+  const allAuto = deptAuto.camera && deptAuto.anamorphic && deptAuto.sensor && deptAuto.director;
+  const allManual = !deptAuto.camera && !deptAuto.anamorphic && !deptAuto.sensor && !deptAuto.director;
+  /** any DP-side department manual → the workspace opens into the 3-column rig */
+  const dpManual = !deptAuto.camera || !deptAuto.anamorphic || !deptAuto.sensor;
+
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState(DEFAULT_MODEL);
   const [prompt, setPrompt] = useState(''); // example lives in the placeholder → grey + clears on type
@@ -159,6 +242,42 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
   const camera = findCamera(cameraKey)!;
   const lens = findLens(lensKey)!;
   const modelInfo = findModel(model)!;
+
+  /** Flipping a department back to Auto resets it to CMA defaults, so stale
+   * manual values never ride along silently on the next render. */
+  const resetDept = useCallback((k: DeptKey) => {
+    if (k === 'camera') {
+      setCameraKey(CAMERA_OPTIONS[0].id);
+      setLensKey(LENS_OPTIONS[0].id);
+      setFocalLength(LENS_OPTIONS[0].focalLengths[0]);
+      setAperture(LENS_OPTIONS[0].maxAperture);
+    } else if (k === 'anamorphic') {
+      const g = findLens(lensKey)?.geometry;
+      setAnamorphic(g === 'anamorphic' ? '2' : 'none');
+      setFlare('blue');
+    } else if (k === 'sensor') {
+      setIso(800);
+      setGrain(40);
+      setShutter(180);
+    } else {
+      setGenre('drama');
+      setStyle('cinematic');
+      setShotSize('medium');
+      setCameraMove('static');
+      setGrade('neutral');
+    }
+  }, [lensKey]);
+
+  const setDeptMode = useCallback((k: DeptKey, isAuto: boolean) => {
+    setDeptAuto((prev) => ({ ...prev, [k]: isAuto }));
+    if (isAuto) resetDept(k);
+  }, [resetDept]);
+
+  /** Master switch — one tap to open or close every department. */
+  const masterSet = useCallback((autoAll: boolean) => {
+    setDeptAuto({ camera: autoAll, anamorphic: autoAll, sensor: autoAll, director: autoAll });
+    if (autoAll) (['camera', 'anamorphic', 'sensor', 'director'] as DeptKey[]).forEach(resetDept);
+  }, [resetDept]);
 
   const cameraItems = useMemo(
     () =>
@@ -208,10 +327,11 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
     }
   }, [lensKey]);
 
-  // Anamorphic preview (manual only; auto lets the server pick the aspect).
+  // Anamorphic preview — only when the department is set manually; on Auto the
+  // server decides the framing at render time.
   const ana = findAnamorphic(anamorphic);
-  const barPct = auto ? 0 : letterboxPct(ana.ratio);
-  const aspectLabel = auto || ana.id === 'none' ? '16:9 · SCOPE' : `${ana.label.split('· ')[1]} · ANAMORPHIC`;
+  const barPct = deptAuto.anamorphic ? 0 : letterboxPct(ana.ratio);
+  const aspectLabel = deptAuto.anamorphic || ana.id === 'none' ? '16:9 · SCOPE' : `${ana.label.split('· ')[1]} · ANAMORPHIC`;
 
   /* ── render job ── */
   const [status, setStatus] = useState<StatusState | 'IDLE'>('IDLE');
@@ -297,17 +417,22 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt, model, auto, variant: variantRef.current,
+          prompt, model, auto: allAuto, variant: variantRef.current,
           cameraKey, lensKey, focalLength, aperture,
-          isoValue: iso, cineNoise: grain, shutterAngle: shutter, genreStyle: genre, style,
-          shotSize, cameraMove, grade,
+          isoValue: iso, cineNoise: grain, shutterAngle: shutter,
+          // Director's frame on Auto → omit, so the server-side compiler chooses.
+          genreStyle: deptAuto.director ? undefined : genre,
+          style: deptAuto.director ? undefined : style,
+          shotSize: deptAuto.director ? undefined : shotSize,
+          cameraMove: deptAuto.director ? undefined : cameraMove,
+          grade: deptAuto.director ? undefined : grade,
           negativePrompt: negativePrompt.trim() || undefined,
           resolution: resolution || undefined,
           duration: duration || undefined,
           aspect: aspect || undefined,
           seed: seed ? Number(seed) : undefined,
-          anamorphic: auto ? undefined : anamorphic,
-          flare: auto || ana.id === 'none' ? undefined : flare,
+          anamorphic: allAuto || deptAuto.anamorphic ? undefined : anamorphic,
+          flare: allAuto || deptAuto.anamorphic || ana.id === 'none' ? undefined : flare,
           userApiKey: apiKey,
         }),
       });
@@ -356,20 +481,31 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
     />
   );
 
-  // prompt + render, directly under the video
+  // prompt + render, directly under the video. The Director's frame lives here
+  // as its own Auto/Manual department.
   const promptRender = (
     <div className={`${CARD} p-4`}>
-      <div className="mb-3 flex flex-col gap-3">
-        {/* Style + Lighting are the "basic" director choices — shown in easy AND advanced */}
-        <ChipRow label="Style" options={STYLE_OPTIONS} value={style} onChange={setStyle} />
-        <ChipRow label="Lighting" options={GENRE_OPTIONS} value={genre} onChange={setGenre} />
-        {/* the rest of the director frame is advanced-only */}
-        {!auto && (
-          <>
+      {/* Director's frame — style, lighting, framing, movement, grade */}
+      <div className="mb-3 rounded-xl border border-white/6 bg-black/20 p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">
+            <Clapperboard size={13} className="text-[#bc9863]" /> Director&apos;s frame
+          </div>
+          <AutoToggle isAuto={deptAuto.director} onChange={(a) => setDeptMode('director', a)} name="Director's frame" />
+        </div>
+        {deptAuto.director ? (
+          <p className="mt-2.5 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-[#8b909e]">
+            <Wand2 size={13} className="mt-0.5 shrink-0 text-[#bc9863]" />
+            Auto. Style, lighting, framing, movement and grade are chosen to fit your scene.
+          </p>
+        ) : (
+          <div className="mt-3.5 flex flex-col gap-4">
+            <LookTileRow label="Style" options={STYLE_OPTIONS} previews={STYLE_PREVIEWS} value={style} onChange={(v) => setStyle(v as VisualStyle)} />
+            <LookTileRow label="Lighting" options={GENRE_OPTIONS} previews={LIGHTING_PREVIEWS} value={genre} onChange={(v) => setGenre(v as GenreStyle)} />
             <ChipRow label="Shot size" options={SHOT_OPTIONS} value={shotSize} onChange={setShotSize} />
             <ChipRow label="Movement" options={MOVE_OPTIONS} value={cameraMove} onChange={setCameraMove} />
             <ChipRow label="Colour grade" options={GRADE_OPTIONS} value={grade} onChange={setGrade} />
-          </>
+          </div>
         )}
       </div>
       <div className="mb-2 flex items-center justify-between">
@@ -426,12 +562,19 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
           Explore every control — rendering unlocks with a plan.
         </p>
       )}
-      {auto && (
+      {allAuto ? (
         <p className="mt-2.5 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-[#8b8f99]">
           <Wand2 size={13} className="mt-0.5 shrink-0 text-[#bc9863]" />
-          Auto-Direct is choosing the camera, lenses, focal length, aperture, ISO, grain, motion and shot angles for you — Style, Lighting and Exclude above are yours to guide.
+          Auto-Direct chooses the camera, glass, light and motion to fit your scene. Flip any department to Manual to take control.
+        </p>
+      ) : (
+        <p className="mt-2.5 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-[#8b8f99]">
+          <SlidersHorizontal size={13} className="mt-0.5 shrink-0 text-[#bc9863]" />
+          Departments left on Auto use CMA&apos;s tuned defaults for this take.
         </p>
       )}
+      {/* honest expectations, right where the decision is made */}
+      <HonestNote compact className="mt-3" />
       {error && (
         <p role="alert" className="mt-3 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/8 px-3 py-2 font-mono text-[11px] text-red-300">
           <AlertTriangle size={13} /> {error}
@@ -497,54 +640,187 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
     </div>
   ) : null;
 
-  // Video + Photo model selectors — live in the Director column, right above the scope.
-  const modelPickers = (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      <ModelPicker kind="video" value={model} onChange={setModel} />
-      <ModelPicker kind="image" value={model} onChange={setModel} />
-    </div>
+  /* ── the three DP department cards (shared between both layouts) ── */
+  const deptCamera = (
+    <DeptSection
+      title="Camera Package"
+      icon={<CameraIcon size={14} />}
+      isAuto={deptAuto.camera}
+      onModeChange={(a) => setDeptMode('camera', a)}
+      autoNote="Auto. We choose the camera body, glass, focal length and aperture that fit your scene."
+    >
+      <div className="grid grid-cols-2 gap-4">
+        <DrumSelector label="Body" items={cameraItems} value={cameraKey} onChange={setCameraKey} itemHeight={90} />
+        <DrumSelector label="Glass" items={lensItems} value={lensKey} onChange={handleLensChange} itemHeight={90} />
+        <DrumSelector label="Focal" items={focalItems} value={String(focalLength)} onChange={(v) => setFocalLength(Number(v))} itemHeight={46} />
+        <DrumSelector label="Aperture" items={apertureItems} value={String(aperture)} onChange={(v) => setAperture(Number(v))} itemHeight={46} />
+      </div>
+      <p className="leading-relaxed text-[11px] text-[#8b909e]">
+        <span className="text-[#c7c2b8]">Focal</span> — lower is wider, higher is tighter.{' '}
+        <span className="text-[#c7c2b8]">Aperture</span> (T-stop) — lower means more background blur.
+      </p>
+    </DeptSection>
   );
 
-  const mainColumn = (
-    <div className="flex flex-col gap-4">
-      {modelPickers}
+  const deptAnamorphic = (
+    <DeptSection
+      title="Anamorphic"
+      icon={<RectangleHorizontal size={14} />}
+      isAuto={deptAuto.anamorphic}
+      onModeChange={(a) => setDeptMode('anamorphic', a)}
+      autoNote="Auto. We frame the wide scope and flares when the scene calls for them."
+    >
+      <div className="grid grid-cols-2 gap-2">
+        {ANAMORPHIC_OPTIONS.map((a) => (
+          <button
+            key={a.id}
+            onClick={() => handleAnamorphicChange(a.id)}
+            className={`cursor-pointer rounded-lg border px-3 py-2 text-left font-mono text-[11px] transition ${
+              anamorphic === a.id ? 'border-[#bc9863] bg-[#bc9863]/12 text-[#e7cfa3]' : 'border-white/8 text-[#8b8f99] hover:border-[#bc9863]/40'
+            }`}
+          >
+            {a.label}
+          </button>
+        ))}
+      </div>
+      <p className="leading-relaxed text-[11px] text-[#8b909e]">
+        The wide cinema look with black bars — the scope previews them live, before you render.
+      </p>
+      {/* flare colour — only meaningful with a squeeze active */}
+      {ana.id !== 'none' && (
+        <div className="border-t border-white/6 pt-3.5">
+          <div className="mb-2 font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">Lens flares</div>
+          <div className="grid grid-cols-2 gap-2">
+            {FLARE_OPTIONS.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFlare(f.id)}
+                className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 font-mono text-[11px] transition ${
+                  flare === f.id ? 'border-[#bc9863] bg-[#bc9863]/12 text-[#e7cfa3]' : 'border-white/8 text-[#8b8f99] hover:border-[#bc9863]/40'
+                }`}
+              >
+                <span className="h-3 w-3 flex-none rounded-full" style={{ background: f.swatch, boxShadow: `0 0 8px ${f.swatch}` }} />
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </DeptSection>
+  );
+
+  const deptSensor = (
+    <DeptSection
+      title="Sensor & Motion"
+      icon={<Gauge size={14} />}
+      isAuto={deptAuto.sensor}
+      onModeChange={(a) => setDeptMode('sensor', a)}
+      autoNote="Auto. ISO, film grain and shutter angle are set to fit your scene."
+    >
+      {/* ISO — real film stops only, not the whole range */}
+      <div>
+        <div className="mb-2 font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">Sensor Gain (ISO)</div>
+        <div className="flex flex-wrap gap-1.5">
+          {ISO_STOPS.map((v) => (
+            <button
+              key={v}
+              onClick={() => setIso(v)}
+              className={`inline-flex min-h-[40px] cursor-pointer items-center justify-center rounded-lg border px-3 py-1.5 font-mono text-[11px] transition sm:min-h-0 ${
+                iso === v ? 'border-[#bc9863] bg-[#bc9863]/12 text-[#e7cfa3]' : 'border-white/8 text-[#8b8f99] hover:border-[#bc9863]/40'
+              }`}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
+      </div>
+      {/* Film Grain — discrete 20-by-20 stops */}
+      <div>
+        <div className="mb-2 font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">Film Grain</div>
+        <div className="flex flex-wrap gap-1.5">
+          {GRAIN_STOPS.map((v) => (
+            <button
+              key={v}
+              onClick={() => setGrain(v)}
+              className={`inline-flex min-h-[40px] cursor-pointer items-center justify-center rounded-lg border px-3 py-1.5 font-mono text-[11px] transition sm:min-h-0 ${
+                grain === v ? 'border-[#bc9863] bg-[#bc9863]/12 text-[#e7cfa3]' : 'border-white/8 text-[#8b8f99] hover:border-[#bc9863]/40'
+              }`}
+            >
+              {v}%
+            </button>
+          ))}
+        </div>
+      </div>
+      {/* Shutter — only the four real cinema angles, with a plain-language note */}
+      <div>
+        <div className="mb-2 font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">Shutter Angle</div>
+        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+          {SHUTTER_STOPS.map((s) => (
+            <button
+              key={s.deg}
+              onClick={() => setShutter(s.deg)}
+              className={`inline-flex min-h-[40px] cursor-pointer items-center justify-center rounded-lg border px-2 py-2 font-mono text-[12px] transition ${
+                shutter === s.deg ? 'border-[#bc9863] bg-[#bc9863]/12 text-[#e7cfa3]' : 'border-white/8 text-[#8b8f99] hover:border-[#bc9863]/40'
+              }`}
+            >
+              {s.deg}°
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 font-mono text-[10.5px] leading-relaxed text-[#bc9863]/80">
+          {SHUTTER_STOPS.find((s) => s.deg === shutter)?.msg}
+        </p>
+      </div>
+    </DeptSection>
+  );
+
+  // Model browsers — Video / Image / Audio mega-menu, right above the scope.
+  const coreStack = (
+    <>
+      <ModelBrowser value={model} onChange={setModel} />
       {scope}
       {downloadBar}
       {promptRender}
       {formatControls}
-      <GenerationStrip onPick={pickGeneration} />
-    </div>
+    </>
   );
 
-  const modeSwitch = (
-    <div className="mb-5 flex justify-center">
+  const masterSwitch = (
+    <div className="mb-5 flex flex-col items-center gap-1.5">
       <div className="glass flex gap-1 rounded-full p-1">
-        {(['auto', 'manual'] as Mode[]).map((m) => (
-          <button
-            key={m}
-            onClick={() => setMode(m)}
-            aria-pressed={mode === m}
-            className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold transition ${
-              mode === m ? 'bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] text-black' : 'text-[#8b8f99] hover:text-[#e7cfa3]'
-            }`}
-          >
-            {m === 'auto' ? <Wand2 size={15} /> : <SlidersHorizontal size={15} />}
-            {m === 'auto' ? 'Auto-Direct' : 'Manual'}
-            <span className={`font-mono text-[9px] tracking-[0.14em] uppercase ${mode === m ? 'opacity-70' : 'opacity-50'}`}>
-              {m === 'auto' ? 'easy' : 'advanced'}
-            </span>
-          </button>
-        ))}
+        <button
+          onClick={() => masterSet(true)}
+          aria-pressed={allAuto}
+          className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold transition ${
+            allAuto ? 'bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] text-black' : 'text-[#8b8f99] hover:text-[#e7cfa3]'
+          }`}
+        >
+          <Wand2 size={15} /> Auto
+          <span className={`font-mono text-[9px] tracking-[0.14em] uppercase ${allAuto ? 'opacity-70' : 'opacity-50'}`}>easy</span>
+        </button>
+        <button
+          onClick={() => masterSet(false)}
+          aria-pressed={allManual}
+          className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold transition ${
+            allManual ? 'bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] text-black' : 'text-[#8b8f99] hover:text-[#e7cfa3]'
+          }`}
+        >
+          <SlidersHorizontal size={15} /> Manual
+          <span className={`font-mono text-[9px] tracking-[0.14em] uppercase ${allManual ? 'opacity-70' : 'opacity-50'}`}>full control</span>
+        </button>
       </div>
+      {!allAuto && !allManual && (
+        <span className="font-mono text-[9px] tracking-[0.18em] text-[#bc9863]/80 uppercase">Custom mix · per department</span>
+      )}
     </div>
   );
 
   return (
     <div>
-      {modeSwitch}
+      {masterSwitch}
 
-      {auto ? (
-        /* ── SIMPLE layout — single column, prompt under the video ── */
+      {!dpManual ? (
+        /* ── SIMPLE layout — single column; departments collapsed to Auto ── */
         <div className="mx-auto max-w-3xl">
           <div className="mb-4 flex flex-col gap-3">
             <div className={`${CARD} p-4`}>
@@ -554,147 +830,66 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
               <ApiKeyVault onKeyChange={setApiKey} embedded />
             </div>
           </div>
-          {mainColumn}
+          <div className="flex flex-col gap-4">
+            {coreStack}
+            {/* the departments, collapsed to slim Auto rows — flip any to take control */}
+            <div>
+              <div className="mb-2 px-1 font-mono text-[9px] tracking-[0.2em] text-[#8b909e] uppercase">
+                Cinematography departments · flip any to Manual
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                {deptCamera}
+                {deptAnamorphic}
+                {deptSensor}
+              </div>
+            </div>
+            <GenerationStrip onPick={pickGeneration} />
+          </div>
         </div>
       ) : (
-        /* ── ADVANCED layout — full camera package (tablet: Director on top, DP + info below) ── */
+        /* ── OPEN RIG — 3 columns; manual departments expanded in the left rail ── */
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-[340px_1fr_340px]">
           <section className="order-2 flex flex-col gap-5 lg:order-1">
             <ColumnTitle title="Director of Photography" sub="Camera · lens · exposure" />
-            {/* logical order: 1 connect · 2 camera package · 3 anamorphic · 4 sensor (model lives in the Director column) */}
             <ApiKeyVault onKeyChange={setApiKey} />
-            <div className={`${CARD} p-4`}>
-              <SectionTitle>Camera Package</SectionTitle>
-              <div className="grid grid-cols-2 gap-4">
-                <DrumSelector label="Body" items={cameraItems} value={cameraKey} onChange={setCameraKey} itemHeight={90} />
-                <DrumSelector label="Glass" items={lensItems} value={lensKey} onChange={handleLensChange} itemHeight={90} />
-                <DrumSelector label="Focal" items={focalItems} value={String(focalLength)} onChange={(v) => setFocalLength(Number(v))} itemHeight={46} />
-                <DrumSelector label="Aperture" items={apertureItems} value={String(aperture)} onChange={(v) => setAperture(Number(v))} itemHeight={46} />
-              </div>
-              <p className="mt-3 leading-relaxed text-[11px] text-[#8b909e]">
-                <span className="text-[#c7c2b8]">Focal</span> — lower is wider, higher is tighter.{' '}
-                <span className="text-[#c7c2b8]">Aperture</span> (T-stop) — lower means more background blur.
-              </p>
-            </div>
-            {/* anamorphic control with live letterbox preview */}
-            <div className={`${CARD} p-4`}>
-              <SectionTitle>Anamorphic</SectionTitle>
-              <div className="grid grid-cols-2 gap-2">
-                {ANAMORPHIC_OPTIONS.map((a) => (
-                  <button
-                    key={a.id}
-                    onClick={() => handleAnamorphicChange(a.id)}
-                    className={`cursor-pointer rounded-lg border px-3 py-2 text-left font-mono text-[11px] transition ${
-                      anamorphic === a.id ? 'border-[#bc9863] bg-[#bc9863]/12 text-[#e7cfa3]' : 'border-white/8 text-[#8b8f99] hover:border-[#bc9863]/40'
-                    }`}
-                  >
-                    {a.label}
-                  </button>
-                ))}
-              </div>
-              <p className="mt-2.5 leading-relaxed text-[11px] text-[#8b909e]">
-                The wide cinema look with black bars — the scope previews them live, before you render.
-              </p>
-              {/* flare colour — only meaningful with a squeeze active */}
-              {ana.id !== 'none' && (
-                <div className="mt-4 border-t border-white/6 pt-3.5">
-                  <div className="mb-2 font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">Lens flares</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {FLARE_OPTIONS.map((f) => (
-                      <button
-                        key={f.id}
-                        onClick={() => setFlare(f.id)}
-                        className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 font-mono text-[11px] transition ${
-                          flare === f.id ? 'border-[#bc9863] bg-[#bc9863]/12 text-[#e7cfa3]' : 'border-white/8 text-[#8b8f99] hover:border-[#bc9863]/40'
-                        }`}
-                      >
-                        <span className="h-3 w-3 flex-none rounded-full" style={{ background: f.swatch, boxShadow: `0 0 8px ${f.swatch}` }} />
-                        {f.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className={`${CARD} flex flex-col gap-4 p-4`}>
-              <SectionTitle>Sensor &amp; Motion</SectionTitle>
-              {/* ISO — real film stops only, not the whole range */}
-              <div>
-                <div className="mb-2 font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">Sensor Gain (ISO)</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {ISO_STOPS.map((v) => (
-                    <button
-                      key={v}
-                      onClick={() => setIso(v)}
-                      className={`inline-flex min-h-[40px] cursor-pointer items-center justify-center rounded-lg border px-3 py-1.5 font-mono text-[11px] transition sm:min-h-0 ${
-                        iso === v ? 'border-[#bc9863] bg-[#bc9863]/12 text-[#e7cfa3]' : 'border-white/8 text-[#8b8f99] hover:border-[#bc9863]/40'
-                      }`}
-                    >
-                      {v}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {/* Film Grain — discrete 20-by-20 stops */}
-              <div>
-                <div className="mb-2 font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">Film Grain</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {GRAIN_STOPS.map((v) => (
-                    <button
-                      key={v}
-                      onClick={() => setGrain(v)}
-                      className={`inline-flex min-h-[40px] cursor-pointer items-center justify-center rounded-lg border px-3 py-1.5 font-mono text-[11px] transition sm:min-h-0 ${
-                        grain === v ? 'border-[#bc9863] bg-[#bc9863]/12 text-[#e7cfa3]' : 'border-white/8 text-[#8b8f99] hover:border-[#bc9863]/40'
-                      }`}
-                    >
-                      {v}%
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {/* Shutter — only the four real cinema angles, with a plain-language note */}
-              <div>
-                <div className="mb-2 font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">Shutter Angle</div>
-                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-                  {SHUTTER_STOPS.map((s) => (
-                    <button
-                      key={s.deg}
-                      onClick={() => setShutter(s.deg)}
-                      className={`inline-flex min-h-[40px] cursor-pointer items-center justify-center rounded-lg border px-2 py-2 font-mono text-[12px] transition ${
-                        shutter === s.deg ? 'border-[#bc9863] bg-[#bc9863]/12 text-[#e7cfa3]' : 'border-white/8 text-[#8b8f99] hover:border-[#bc9863]/40'
-                      }`}
-                    >
-                      {s.deg}°
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-2 font-mono text-[10.5px] leading-relaxed text-[#bc9863]/80">
-                  {SHUTTER_STOPS.find((s) => s.deg === shutter)?.msg}
-                </p>
-              </div>
-            </div>
+            {deptCamera}
+            {deptAnamorphic}
+            {deptSensor}
           </section>
 
           <section className="order-1 flex flex-col gap-5 md:col-span-2 lg:col-span-1 lg:order-2">
             <ColumnTitle title="Director" sub="Scene · look · render" />
-            {mainColumn}
+            <div className="flex flex-col gap-4">
+              {coreStack}
+              <GenerationStrip onPick={pickGeneration} />
+            </div>
           </section>
 
           <section className="order-3 flex flex-col gap-5 lg:order-3">
             <ColumnTitle title="Your Setup" sub="Live compiler · package readout" />
-            <PromptTagEngine
-              prompt={prompt}
-              cameraLabel={camera.label}
-              lensLabel={lens.label}
-              focalLength={focalLength}
-              aperture={aperture}
-              isoValue={iso}
-              cineNoise={grain}
-              shutterAngle={shutter}
-              genre={genre}
-              styleLabel={findStyle(style).label}
-              isCelluloid={camera.isCelluloid}
-            />
+            {allManual ? (
+              <PromptTagEngine
+                prompt={prompt}
+                cameraLabel={camera.label}
+                lensLabel={lens.label}
+                focalLength={focalLength}
+                aperture={aperture}
+                isoValue={iso}
+                cineNoise={grain}
+                shutterAngle={shutter}
+                genre={genre}
+                styleLabel={findStyle(style).label}
+                isCelluloid={camera.isCelluloid}
+              />
+            ) : (
+              <div className={`${CARD} p-4`}>
+                <SectionTitle>Prompt Compiler</SectionTitle>
+                <p className="text-[11.5px] leading-relaxed text-[#8b909e]">
+                  The live compiler appears when every department is set to Manual. Departments on Auto are compiled
+                  server side at render time.
+                </p>
+              </div>
+            )}
             <div className={`${CARD} p-4`}>
               <SectionTitle>Package Readout</SectionTitle>
               <dl className="flex flex-col gap-2.5 font-mono text-[11px]">
@@ -703,17 +898,17 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
                   ...(caps.aspects.length ? [['Aspect', fmtAspect(aspect)]] : []),
                   ...(caps.resolutions.length ? [['Resolution', fmtRes(resolution)]] : []),
                   ...(caps.durations.length ? [['Length', fmtDur(duration)]] : []),
-                  ['Body', camera.label],
-                  ['Glass', lens.label],
-                  ['Anamorphic', ana.label],
-                  ...(ana.id !== 'none' ? [['Flares', flare === 'gold' ? 'Golden' : 'Blue']] : []),
-                  ['Optics', `${focalLength}mm · T${aperture.toFixed(1)}`],
-                  ['Sensor', camera.isCelluloid ? `Celluloid · ${grain}% grain` : `Digital · ISO ${iso}`],
-                  ['Style', findStyle(style).label],
-                  ['Shot', findShot(shotSize).label],
-                  ['Move', findMove(cameraMove).label],
-                  ['Grade', findGrade(grade).label],
-                  ['Genre', genre],
+                  ['Body', deptAuto.camera ? 'Auto' : camera.label],
+                  ['Glass', deptAuto.camera ? 'Auto' : lens.label],
+                  ['Anamorphic', deptAuto.anamorphic ? 'Auto' : ana.label],
+                  ...(!deptAuto.anamorphic && ana.id !== 'none' ? [['Flares', flare === 'gold' ? 'Golden' : 'Blue']] : []),
+                  ['Optics', deptAuto.camera ? 'Auto' : `${focalLength}mm · T${aperture.toFixed(1)}`],
+                  ['Sensor', deptAuto.sensor ? 'Auto' : camera.isCelluloid ? `Celluloid · ${grain}% grain` : `Digital · ISO ${iso}`],
+                  ['Style', deptAuto.director ? 'Auto' : findStyle(style).label],
+                  ['Shot', deptAuto.director ? 'Auto' : findShot(shotSize).label],
+                  ['Move', deptAuto.director ? 'Auto' : findMove(cameraMove).label],
+                  ['Grade', deptAuto.director ? 'Auto' : findGrade(grade).label],
+                  ['Genre', deptAuto.director ? 'Auto' : genre],
                 ].map(([k, v]) => (
                   <div key={k} className="flex items-center justify-between border-b border-white/5 pb-2">
                     <dt className="tracking-[0.14em] text-[#8b909e] uppercase">{k}</dt>
@@ -726,7 +921,7 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
         </div>
       )}
 
-      {lastSummary?.auto && auto && (
+      {lastSummary?.auto && allAuto && (
         <p className="mt-4 text-center font-mono text-[11px] text-[#8b909e]">
           Last take, Auto-Direct chose {lastSummary.camera} · {lastSummary.lens} · {lastSummary.focalLength}mm · {findStyle(lastSummary.style).label} · {lastSummary.genre}.
         </p>

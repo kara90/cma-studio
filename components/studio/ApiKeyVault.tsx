@@ -7,9 +7,13 @@
  * already frames it as a step.
  */
 import { memo, useEffect, useState } from 'react';
-import { KeyRound, Check, Trash2, Eye, EyeOff, ExternalLink } from 'lucide-react';
+import { KeyRound, Check, Trash2, Eye, EyeOff, ExternalLink, PlayCircle } from 'lucide-react';
 
 const STORAGE_KEY = 'cma_fal_key';
+const FAL_KEYS_URL = 'https://fal.ai/dashboard/keys';
+/** PLACEHOLDER — Sebastien will supply a short "how to get your key" tutorial.
+ *  Set this to the video/guide URL and the button below becomes a live link. */
+const KEY_TUTORIAL_URL: string | null = null;
 
 function ApiKeyVaultImpl({ onKeyChange, embedded = false }: { onKeyChange: (key: string) => void; embedded?: boolean }) {
   const [key, setKey] = useState('');
@@ -89,12 +93,32 @@ function ApiKeyVaultImpl({ onKeyChange, embedded = false }: { onKeyChange: (key:
           </button>
         )}
       </div>
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <p className="font-mono text-[10px] leading-relaxed text-[#8b909e]">Used only at render. Never stored.</p>
-        <a href="https://fal.ai/dashboard/keys" target="_blank" rel="noopener" className="inline-flex shrink-0 items-center gap-1 font-mono text-[10px] text-[#bc9863] hover:text-[#e7cfa3]">
-          Get a key <ExternalLink size={11} />
+      {/* one-click key onboarding: grab a key on fal, paste it back here */}
+      <div className="mt-2.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <a
+          href={FAL_KEYS_URL}
+          target="_blank"
+          rel="noopener"
+          className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-[#bc9863]/40 bg-[#bc9863]/8 px-3 py-2 text-[12px] font-semibold text-[#e7cfa3] transition hover:border-[#bc9863] hover:bg-[#bc9863]/14"
+        >
+          <KeyRound size={13} /> Get your fal.ai key <ExternalLink size={11} className="opacity-70" />
         </a>
+        {KEY_TUTORIAL_URL ? (
+          <a
+            href={KEY_TUTORIAL_URL}
+            target="_blank"
+            rel="noopener"
+            className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[12px] text-[#c7c2b8] transition hover:border-[#bc9863]/40 hover:text-[#e7cfa3]"
+          >
+            <PlayCircle size={13} className="text-[#bc9863]" /> How to get your key
+          </a>
+        ) : (
+          <span className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-white/8 px-3 py-2 font-mono text-[10px] tracking-[0.06em] text-[#8b909e]">
+            <PlayCircle size={12} /> Key guide, coming soon
+          </span>
+        )}
       </div>
+      <p className="mt-2 font-mono text-[10px] leading-relaxed text-[#8b909e]">Used only at render. Never stored.</p>
     </>
   );
 

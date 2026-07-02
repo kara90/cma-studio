@@ -1,18 +1,21 @@
 'use client';
 
 /**
- * PricingView — the /pricing experience.
- *   • VISITOR (not paid): base plans + extensions shown as a "later" suggestion.
- *   • MEMBER (already paid): base plans hidden, current plan summary + buyable
+ * PricingView - the /pricing experience.
+ *   - VISITOR (not paid): base plans + extensions shown as a "later" suggestion.
+ *   - MEMBER (already paid): base plans hidden, current plan summary + buyable
  *     extension blocks shown instead.
  * Buying starts a real Stripe Checkout via /api/checkout (price resolved
  * server-side). Membership is read from the authenticated user's entitlement
  * (app_metadata.cma_plan). A dev-only preview switch lets you see both states.
+ *
+ * NOTE: all prices/retention windows come from lib/plans.ts and are
+ * PLACEHOLDERS until Sebastien finalizes them (hence the chip in the UI).
  */
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Check, ShieldCheck, ArrowRight, Plus, Sparkles, Loader2, AlertTriangle } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Check, ShieldCheck, ArrowRight, Plus, Archive, Hourglass, Loader2, AlertTriangle } from 'lucide-react';
 import { getBrowserSupabase } from '@/lib/supabase/client';
 import { isSupabaseConfigured, IS_PROD } from '@/lib/access';
 import { TIERS, EXTENSIONS, findTier, type Cycle, type Tier } from '@/lib/plans';
@@ -112,8 +115,19 @@ type CheckoutFn = (payload: Record<string, unknown>, id: string) => void;
 
 /* ── visitor: full plans ── */
 function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; setCycle: (c: Cycle) => void; busyId: string | null; onCheckout: CheckoutFn }) {
+  const reduce = useReducedMotion();
   return (
     <div>
+      {/* Category positioning: flat software fee vs expiring-credit subscriptions. */}
+      <div className="mx-auto mb-10 max-w-xl text-center">
+        <p className="text-[15px] leading-relaxed text-[#8b8f99]">
+          A low flat fee for the software. Compute runs on your own fal.ai key at fal&apos;s own rate, with no markup from us. No expiring credits, no wasted budget.
+        </p>
+        <span className="mt-4 inline-block rounded border border-white/10 px-2 py-0.5 font-mono text-[9px] tracking-[0.16em] text-[#8b909e] uppercase">
+          Placeholder pricing
+        </span>
+      </div>
+
       <div className="glass mx-auto mb-12 flex w-fit items-center gap-1 rounded-full p-1">
         {(['yearly', 'monthly'] as Cycle[]).map((c) => (
           <button
@@ -123,8 +137,14 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
               cycle === c ? 'text-black' : 'text-[#8b8f99] hover:text-[#e7cfa3]'
             }`}
           >
-            {cycle === c && <motion.span layoutId="cycle-pill" className="absolute inset-0 rounded-full bg-gradient-to-b from-[#e7cfa3] to-[#bc9863]" transition={{ type: 'spring', stiffness: 400, damping: 32 }} />}
-            <span className="relative">{c === 'yearly' ? 'Yearly · save' : 'Monthly'}</span>
+            {cycle === c && (
+              <motion.span
+                layoutId="cycle-pill"
+                className="absolute inset-0 rounded-full bg-gradient-to-b from-[#e7cfa3] to-[#bc9863]"
+                transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 32 }}
+              />
+            )}
+            <span className="relative">{c === 'yearly' ? 'Yearly · up to $10/mo off' : 'Monthly'}</span>
           </button>
         ))}
       </div>
@@ -139,23 +159,26 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
 }
 
 function TierCard({ tier, cycle, busyId, onCheckout }: { tier: Tier; cycle: Cycle; busyId: string | null; onCheckout: CheckoutFn }) {
-  const custom = tier.price[cycle] === 'Custom';
   const id = `tier-${tier.id}`;
   const busy = busyId === id;
   return (
-    <div className={`relative flex flex-col rounded-2xl p-7 transition ${tier.featured ? 'glass glass-gold border-[#bc9863] shadow-[0_30px_80px_-30px_rgba(188,152,99,0.4)]' : 'glass'}`}>
+    <div
+      id={tier.id}
+      className={`relative flex scroll-mt-28 flex-col rounded-2xl p-7 transition ${tier.featured ? 'glass glass-gold border-[#bc9863] shadow-[0_30px_80px_-30px_rgba(188,152,99,0.4)]' : 'glass'}`}
+    >
       {tier.featured && (
         <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-3 py-1 font-mono text-[10px] font-semibold tracking-[0.18em] text-black uppercase whitespace-nowrap">
-          Most chosen
+          Most popular
         </span>
       )}
       <div className="font-mono text-[11px] tracking-[0.22em] text-[#bc9863] uppercase">{tier.name}</div>
       <div className="mt-4 flex items-end gap-1.5">
         <span className="font-[family-name:var(--font-sora)] text-4xl font-bold tracking-[-0.03em]">{tier.price[cycle]}</span>
-        {!custom && <span className="mb-1.5 font-mono text-[11px] text-[#8b8f99]">/mo{cycle === 'yearly' ? ' · yearly' : ''}</span>}
+        <span className="mb-1.5 font-mono text-[11px] text-[#8b8f99]">/mo{cycle === 'yearly' ? ' · billed yearly' : ''}</span>
       </div>
+      {cycle === 'yearly' && <div className="mt-1.5 font-mono text-[10px] tracking-[0.06em] text-[#e7cfa3]">{tier.yearlySave}</div>}
       <div className="mt-4 flex items-center gap-2 rounded-lg border border-[#bc9863]/20 bg-[#bc9863]/6 px-3 py-2 font-mono text-[11px] text-[#e7cfa3]">
-        <Sparkles size={13} className="text-[#bc9863]" /> {tier.cap}
+        <Archive size={13} className="shrink-0 text-[#bc9863]" /> {tier.retention}
       </div>
       <p className="mt-4 text-sm text-[#8b8f99]">{tier.blurb}</p>
       <ul className="mt-5 mb-7 flex flex-1 flex-col gap-3">
@@ -165,24 +188,27 @@ function TierCard({ tier, cycle, busyId, onCheckout }: { tier: Tier; cycle: Cycl
           </li>
         ))}
       </ul>
-      {custom ? (
-        <a
-          href="mailto:hello@cinemasteracademy.com?subject=CMA%20Studio%20Pro%20—%20Studio%20tier"
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/12 px-5 py-3 text-sm font-semibold text-[#f4efe6] transition hover:border-[#bc9863] hover:text-[#e7cfa3]"
-        >
-          {tier.cta} <ArrowRight size={15} />
-        </a>
-      ) : (
+      {tier.checkout ? (
         <button
           onClick={() => onCheckout({ kind: 'tier', tier: tier.id, cycle }, id)}
           disabled={busy}
-          className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition disabled:opacity-60 ${
+          className={`inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition disabled:opacity-60 ${
             tier.featured ? 'bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] text-black hover:brightness-105' : 'border border-white/12 text-[#f4efe6] hover:border-[#bc9863] hover:text-[#e7cfa3]'
           }`}
         >
           {busy ? <Loader2 size={15} className="animate-spin" /> : tier.academy ? <ShieldCheck size={15} /> : null}
           {tier.cta}
           {!busy && <ArrowRight size={15} />}
+        </button>
+      ) : (
+        /* Not checkout-able yet (no Stripe price in lib/billing.ts) - a real
+           checkout call would 400, so this stays a quiet disabled button. */
+        <button
+          disabled
+          aria-disabled="true"
+          className="inline-flex min-h-[44px] cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold text-[#8b909e]"
+        >
+          <Hourglass size={15} /> {tier.cta}
         </button>
       )}
       <p className="mt-3 text-center font-mono text-[10px] text-[#8b909e]">{tier.note}</p>
@@ -200,25 +226,25 @@ function MemberView({ tier }: { tier: Tier }) {
         </div>
         <h3 className="font-[family-name:var(--font-sora)] text-2xl font-bold">You&apos;re on {tier.name}</h3>
         <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[#bc9863]/20 bg-[#bc9863]/6 px-3 py-2 font-mono text-[12px] text-[#e7cfa3]">
-          <Sparkles size={14} className="text-[#bc9863]" /> {tier.cap}
+          <Archive size={14} className="shrink-0 text-[#bc9863]" /> {tier.retention}
         </div>
-        <p className="mt-4 text-sm text-[#8b8f99]">Need more headroom this month? Add an extension below — no plan change, cancel anytime.</p>
-        <Link href="/studio" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-6 py-3 text-sm font-semibold text-black transition hover:brightness-105">
-          Open CMA Studio Pro <ArrowRight size={15} />
+        <p className="mt-4 text-sm text-[#8b8f99]">Want your renders kept longer? Add an extension below, no plan change, cancel anytime.</p>
+        <Link href="/studio" className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-6 py-3 text-sm font-semibold text-black transition hover:brightness-105">
+          Open CMA Studio <ArrowRight size={15} />
         </Link>
       </div>
     </div>
   );
 }
 
-/* ── extensions — suggestion for visitors, buyable for members ── */
+/* ── extensions - suggestion for visitors, buyable for members ── */
 function Extensions({ member, busyId, onCheckout }: { member: boolean; busyId: string | null; onCheckout: CheckoutFn }) {
   return (
     <div className="mt-16">
       <div className="mb-8 text-center">
-        <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">{member ? 'Extend your plan' : 'Add-ons — later'}</div>
-        <h3 className="font-[family-name:var(--font-sora)] text-[clamp(1.5rem,3vw,2rem)] font-bold tracking-[-0.02em]">{member ? 'Top up your renders' : 'Need more? Extend anytime.'}</h3>
-        {!member && <p className="mx-auto mt-3 max-w-md text-sm text-[#8b8f99]">Once you&apos;re on a plan, you can stack a monthly extension for extra output — no upgrade required.</p>}
+        <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">{member ? 'Extend your plan' : 'Add-ons for later'}</div>
+        <h3 className="font-[family-name:var(--font-sora)] text-[clamp(1.5rem,3vw,2rem)] font-bold tracking-[-0.02em]">{member ? 'Keep your renders longer' : 'Need more? Extend anytime.'}</h3>
+        {!member && <p className="mx-auto mt-3 max-w-md text-sm text-[#8b8f99]">Once you&apos;re on a plan, you can stack a monthly extension for extra headroom, no upgrade required.</p>}
       </div>
       <div className="mx-auto grid max-w-3xl grid-cols-1 gap-5 sm:grid-cols-2">
         {EXTENSIONS.map((e) => {
@@ -239,7 +265,7 @@ function Extensions({ member, busyId, onCheckout }: { member: boolean; busyId: s
               <button
                 disabled={!member || busy}
                 onClick={() => member && onCheckout({ kind: 'extension', extensionId: e.id }, id)}
-                className={`mt-5 inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition ${
+                className={`mt-5 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition ${
                   member ? 'cursor-pointer bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] text-black hover:brightness-105 disabled:opacity-60' : 'cursor-not-allowed border border-white/10 text-[#8b909e]'
                 }`}
               >
