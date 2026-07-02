@@ -180,6 +180,33 @@ export function findStyle(id: string): { id: VisualStyle; label: string; hint: s
   return STYLE_OPTIONS.find((s) => s.id === id) ?? STYLE_OPTIONS[0];
 }
 
+/**
+ * Style ↔ Lighting exclusivity — the anamorphic-lock pattern applied to the
+ * look axes. A lighting mood listed here CONTRADICTS the style (the compiled
+ * prompt would fight itself), so the UI locks those tiles and the server
+ * coerces any raw payload to the style's fallback mood. One style of video,
+ * never a corrupted mix.
+ */
+export const STYLE_LIGHTING_LOCKS: Record<VisualStyle, GenreStyle[]> = {
+  cinematic: [], // the universal filmic look — every mood fits
+  commercial: ['horror'], // glossy product light vs chiaroscuro horror = contradiction
+  vintage: [], // a period treatment works over any mood
+  noir: ['neutral', 'action-high-motion'], // flat "no bias" light and teal-orange action light both fight noir's hard shadows
+};
+
+/** Where a lock collides with the current mood, fall back to the style's home mood. */
+export const STYLE_DEFAULT_LIGHTING: Record<VisualStyle, GenreStyle> = {
+  cinematic: 'drama',
+  commercial: 'neutral',
+  vintage: 'drama',
+  noir: 'drama',
+};
+
+/** Returns the mood unchanged when it fits the style, else the style's fallback. */
+export function resolveLighting(style: VisualStyle, genre: GenreStyle): GenreStyle {
+  return STYLE_LIGHTING_LOCKS[style].includes(genre) ? STYLE_DEFAULT_LIGHTING[style] : genre;
+}
+
 /* ── Director controls (Manual): framing, movement, colour grade ──────────────
  * Each maps to a descriptive injection compiled server-side, exactly like style
  * and genre. Auto-Direct sets its own framing via the shot ANGLE, so these are

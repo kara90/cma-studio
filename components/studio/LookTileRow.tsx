@@ -22,19 +22,26 @@ export function LookTileRow({
   previews,
   value,
   onChange,
+  lockedIds,
+  lockedNote,
 }: {
   label: string;
   options: readonly { id: string; label: string; hint?: string }[];
   previews: Record<string, LookPreview>;
   value: string;
   onChange: (id: string) => void;
+  /** Options that contradict another current selection — dimmed, unclickable. */
+  lockedIds?: readonly string[];
+  /** One-line reason shown on locked tiles and under the row. */
+  lockedNote?: string;
 }) {
   const reduce = useReducedMotion();
+  const anyLocked = Boolean(lockedIds?.length);
 
   return (
     <div>
       <div className="mb-1.5 font-mono text-[9px] tracking-[0.18em] text-[#8b909e] uppercase">
-        {label}
+        {label} · pick one
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {options.map((o) => {
@@ -42,19 +49,24 @@ export function LookTileRow({
           const clip = preview?.clip;
           const poster = preview?.poster ?? FALLBACK_POSTER;
           const active = value === o.id;
-          const playClip = Boolean(clip) && !reduce;
+          const locked = lockedIds?.includes(o.id) ?? false;
+          const playClip = Boolean(clip) && !reduce && !locked;
 
           return (
             <button
               key={o.id}
               type="button"
-              onClick={() => onChange(o.id)}
-              title={o.hint}
+              onClick={locked ? undefined : () => onChange(o.id)}
+              disabled={locked}
+              title={locked ? lockedNote : o.hint}
               aria-pressed={active}
-              className={`group min-h-[44px] cursor-pointer overflow-hidden rounded-xl border text-left transition ${
-                active
-                  ? 'border-[#bc9863] ring-1 ring-[#bc9863]/50'
-                  : 'border-white/8 hover:border-[#bc9863]/40'
+              aria-disabled={locked}
+              className={`group min-h-[44px] overflow-hidden rounded-xl border text-left transition ${
+                locked
+                  ? 'cursor-not-allowed border-white/5 opacity-35 saturate-0'
+                  : active
+                    ? 'cursor-pointer border-[#bc9863] ring-1 ring-[#bc9863]/50'
+                    : 'cursor-pointer border-white/8 hover:border-[#bc9863]/40'
               }`}
             >
               <div className="relative aspect-video w-full">
@@ -75,9 +87,14 @@ export function LookTileRow({
                     style={{ background: poster }}
                   />
                 )}
-                {!clip && (
+                {!clip && !locked && (
                   <span className="absolute top-1.5 right-1.5 rounded border border-white/10 bg-black/55 px-1.5 py-0.5 font-mono text-[9px] tracking-[0.14em] text-[#8b8f99] uppercase">
                     sample
+                  </span>
+                )}
+                {locked && (
+                  <span className="absolute top-1.5 right-1.5 rounded border border-white/10 bg-black/70 px-1.5 py-0.5 font-mono text-[9px] tracking-[0.14em] text-[#8b8f99] uppercase">
+                    locked
                   </span>
                 )}
               </div>
@@ -92,6 +109,9 @@ export function LookTileRow({
           );
         })}
       </div>
+      {anyLocked && lockedNote && (
+        <p className="mt-1.5 font-mono text-[10px] leading-relaxed text-[#8b909e]">{lockedNote}</p>
+      )}
     </div>
   );
 }

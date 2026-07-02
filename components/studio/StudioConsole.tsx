@@ -51,6 +51,8 @@ import {
   findGrade,
   findSpeed,
   letterboxPct,
+  STYLE_LIGHTING_LOCKS,
+  resolveLighting,
   type GenreStyle,
   type FlareColor,
   type VisualStyle,
@@ -365,6 +367,14 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
     setAnamorphic(id);
   }, []);
 
+  // One style of video: picking a style locks the lighting moods that
+  // contradict it (the anamorphic pattern on the look axes). If the current
+  // mood just became contradictory, snap it to the style's home mood.
+  const handleStyleChange = useCallback((v: VisualStyle) => {
+    setStyle(v);
+    setGenre((g) => resolveLighting(v, g));
+  }, []);
+
   // Audio models take the text directly — no camera package, no framing.
   const isAudio = modelInfo.output === 'audio';
 
@@ -554,8 +564,16 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
             </p>
           ) : (
             <div className="mt-3.5 flex flex-col gap-4">
-              <LookTileRow label="Style" options={STYLE_OPTIONS} previews={STYLE_PREVIEWS} value={style} onChange={(v) => setStyle(v as VisualStyle)} />
-              <LookTileRow label="Lighting" options={GENRE_OPTIONS} previews={LIGHTING_PREVIEWS} value={genre} onChange={(v) => setGenre(v as GenreStyle)} />
+              <LookTileRow label="Style" options={STYLE_OPTIONS} previews={STYLE_PREVIEWS} value={style} onChange={(v) => handleStyleChange(v as VisualStyle)} />
+              <LookTileRow
+                label="Lighting"
+                options={GENRE_OPTIONS}
+                previews={LIGHTING_PREVIEWS}
+                value={genre}
+                onChange={(v) => setGenre(v as GenreStyle)}
+                lockedIds={STYLE_LIGHTING_LOCKS[style]}
+                lockedNote={`Locked — contradicts the ${findStyle(style).label} style.`}
+              />
               <ChipRow label="Shot size" options={SHOT_OPTIONS} value={shotSize} onChange={setShotSize} />
               <ChipRow label="Movement" options={MOVE_OPTIONS} value={cameraMove} onChange={setCameraMove} />
               {/* temporal speed — video renders only */}

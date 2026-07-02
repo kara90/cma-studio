@@ -16,7 +16,7 @@ import { queueSubmitUrl, falAuthHeader } from '@/lib/falConfig';
 import { getModelEndpoint } from '@/lib/modelEndpoints';
 import { getModelCaps } from '@/lib/modelCaps';
 import { getCamera, getLens } from '@/lib/vcpMatrix';
-import { findAnamorphic } from '@/lib/vcpManifest';
+import { findAnamorphic, resolveLighting } from '@/lib/vcpManifest';
 
 // Runs in the Cloudflare Workers node-compat runtime via OpenNext (no 'edge' export).
 export const dynamic = 'force-dynamic';
@@ -218,6 +218,11 @@ export async function POST(request: Request) {
     if (body.style) hw.style = body.style;
     if (body.genreStyle) hw.genreStyle = body.genreStyle;
   }
+
+  // One style of video: a raw payload can pair a style with a lighting mood
+  // that contradicts it (the UI locks those tiles) — coerce to the style's
+  // home mood so the compiled prompt never fights itself.
+  hw.genreStyle = resolveLighting(hw.style, hw.genreStyle);
 
   if (!getCamera(hw.cameraKey)) return bad(400, auto ? 'Auto-Director failed.' : 'Invalid cameraKey.');
   if (!getLens(hw.lensKey)) return bad(400, auto ? 'Auto-Director failed.' : 'Invalid lensKey.');
