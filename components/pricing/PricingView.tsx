@@ -159,6 +159,20 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
           <TierCard key={t.id} tier={t} cycle={cycle} busyId={busyId} onCheckout={onCheckout} />
         ))}
       </div>
+
+      {/* Clickwrap reaffirmation at the payment step (accounts already agreed
+          at signup — this restates it where money changes hands). */}
+      <p className="mx-auto mt-8 max-w-md text-center text-[12px] leading-relaxed text-[#8b909e]">
+        By subscribing you agree to the{' '}
+        <Link href="/terms" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
+          Terms of Service
+        </Link>{' '}
+        and{' '}
+        <Link href="/privacy" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
+          Privacy Policy
+        </Link>
+        .
+      </p>
     </div>
   );
 }

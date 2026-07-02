@@ -82,11 +82,23 @@ moment Stripe works, the business works.
    `app_metadata.cma_plan` → render on a real fal key → file appears in
    /files → download works → cancel sub in Stripe → render returns 402.
 
+## Optional Stripe extra: consent at the payment page itself
+
+The app already has clickwrap: a required checkbox at signup (acceptance
+timestamp + terms version stamped on the account via `lib/legal.ts`
+TERMS_VERSION) and a reaffirmation line on /pricing. If you also want the
+checkbox ON Stripe's own payment page: Stripe dashboard → Settings → Business →
+Public details → set the Terms of Service URL, then add
+`consent_collection: { terms_of_service: 'required' }` to the session in
+`app/api/checkout/route.ts`. Do NOT add the code before the dashboard URL is
+set — Stripe rejects the session otherwise.
+
 ## Blocked on people, not dashboards
 
 - Legal counsel: entity/LLC, DMCA agent registration (~$6, copyright.gov),
-  arbitration clause, clickwrap checkbox at signup, governing law.
+  arbitration clause, governing law. (Clickwrap at signup is BUILT — counsel
+  just reviews the wording.)
 - Final pricing numbers + plan retention windows (placeholders live in
   `lib/plans.ts` / `lib/retention.ts`).
-- Noir look-preview clip + any extra showcase media (drop into
-  `lib/showcase.ts` / `lib/lookPreviews.ts`).
+- Extra showcase media whenever ready (drop into `lib/showcase.ts` /
+  `lib/lookPreviews.ts` — all look tiles have real clips as of 2026-07-02).

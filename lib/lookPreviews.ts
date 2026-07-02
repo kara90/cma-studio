@@ -49,7 +49,7 @@ export const STYLE_PREVIEWS: Record<string, LookPreview> = {
   vintage: {
     id: 'vintage',
     label: 'Vintage',
-    clip: undefined,
+    clip: '/clips/style-vintage.mp4', // Sebastien's real sample, compressed for web
     // Warm faded amber with lifted blacks and a slight magenta bloom.
     poster:
       'radial-gradient(120% 90% at 30% 20%, rgba(224,148,168,0.24) 0%, rgba(224,148,168,0) 58%), linear-gradient(112deg, #55402c 0%, #8a6a44 48%, #b08a5b 78%, #caa878 100%)',

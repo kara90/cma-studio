@@ -13,6 +13,7 @@ import { Logo } from '@/components/Logo';
 import { Turnstile, type TurnstileHandle } from '@/components/Turnstile';
 import { getBrowserSupabase } from '@/lib/supabase/client';
 import { isSupabaseConfigured, isAcademyEmail, hasActivePlan, IS_PROD } from '@/lib/access';
+import { TERMS_VERSION } from '@/lib/legal';
 
 type Mode = 'signin' | 'signup';
 
@@ -32,6 +33,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [agreed, setAgreed] = useState(false);
   const turnstileRef = useRef<TurnstileHandle>(null);
   const turnstileEnabled = Boolean(TURNSTILE_SITE_KEY);
 
@@ -49,6 +51,10 @@ export default function LoginPage() {
       return;
     }
 
+    if (mode === 'signup' && !agreed) {
+      setError('Please agree to the Terms of Service and Privacy Policy to create your account.');
+      return;
+    }
     if (turnstileEnabled && !captchaToken) {
       setError('Please complete the human-verification check.');
       return;
@@ -58,7 +64,16 @@ export default function LoginPage() {
     setBusy(true);
     try {
       if (mode === 'signup') {
-        const { error: e1 } = await supabase.auth.signUp({ email, password, options: { captchaToken: captcha } });
+        const { error: e1 } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            captchaToken: captcha,
+            // Clickwrap record: WHEN they agreed and to WHICH version of the
+            // documents. Stamped at account creation, kept on the account.
+            data: { terms_accepted_at: new Date().toISOString(), terms_version: TERMS_VERSION },
+          },
+        });
         if (e1) throw e1;
         setNotice('Check your inbox to confirm your address, then sign in.');
         setMode('signin');
@@ -147,6 +162,30 @@ export default function LoginPage() {
               </p>
             )}
 
+            {mode === 'signup' && (
+              /* Clickwrap: unchecked by default, blocks signup until ticked.
+                 Links open in a new tab so the form state is never lost. */
+              <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-white/10 bg-black/40 px-3.5 py-3">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#bc9863]"
+                />
+                <span className="text-xs leading-relaxed text-[#8b8f99]">
+                  I have read and agree to the{' '}
+                  <Link href="/terms" target="_blank" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
+                    Terms of Service
+                  </Link>{' '}
+                  and{' '}
+                  <Link href="/privacy" target="_blank" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
+                    Privacy Policy
+                  </Link>
+                  .
+                </span>
+              </label>
+            )}
+
             {turnstileEnabled && (
               <Turnstile
                 ref={turnstileRef}
@@ -158,7 +197,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={busy || (turnstileEnabled && !captchaToken)}
+              disabled={busy || (turnstileEnabled && !captchaToken) || (mode === 'signup' && !agreed)}
               className="mt-1 inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] py-3 text-sm font-semibold text-black transition hover:brightness-105 disabled:opacity-60"
             >
               {busy && <Loader2 size={15} className="animate-spin" />}

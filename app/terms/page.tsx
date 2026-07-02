@@ -33,7 +33,7 @@ const SECTIONS: LegalSection[] = [
   {
     title: 'Acceptance of These Terms',
     blocks: [
-      'These Terms of Service (the "Terms") are a binding agreement between you and CineMaster Academy ("CineMaster Academy", "we", "us" or "our") governing your access to and use of CMA Studio, including our websites, applications, render pipeline and related services (together, the "Service"). By creating an account, purchasing a subscription or using the Service, you accept these Terms. If you do not agree to them, do not use the Service.',
+      'These Terms of Service (the "Terms") are a binding agreement between you and CineMaster Academy ("CineMaster Academy", "we", "us" or "our") governing your access to and use of CMA Studio, including our websites, applications, render pipeline and related services (together, the "Service"). You accept these Terms by checking the agreement box when you create your account, and you reaffirm that acceptance by purchasing a subscription or continuing to use the Service. We record the date and the version of the Terms you accepted. If you do not agree to them, do not use the Service.',
       'If you use the Service on behalf of a company or another legal entity, you represent that you have the authority to bind that entity, and "you" refers to both you and that entity.',
     ],
   },
