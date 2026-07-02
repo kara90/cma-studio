@@ -9,7 +9,7 @@
  * Do NOT import this file from a client component.
  */
 import { CAMERA_DATABASE, LENS_DATABASE, type CameraRecord, type LensRecord } from './vcpMatrix';
-import type { GenreStyle, VisualStyle, ShotSize, CameraMove, ColorGrade } from './vcpManifest';
+import type { GenreStyle, VisualStyle, ShotSize, CameraMove, ColorGrade, SpeedStyle } from './vcpManifest';
 import type { GenerateRequestBody } from './vcpTypes';
 
 /* ── texture math ─────────────────────────────────────────────────────────
@@ -127,6 +127,22 @@ function gradeInjection(g: ColorGrade): string {
   }
 }
 
+/* ── temporal speed treatment (video only — the route omits it for stills) ── */
+
+function speedInjection(s: SpeedStyle): string | undefined {
+  switch (s) {
+    case 'slow-motion':
+      return 'graceful overcranked slow motion, high-frame-rate capture, silky temporal detail, every movement stretched and deliberate';
+    case 'speed-ramp':
+      return 'dynamic speed ramp, footage flowing at real time then snapping into dramatic slow motion at the peak action beat and ramping back';
+    case 'timelapse':
+      return 'time-lapse compression, hours flowing past in seconds, streaking motion trails, accelerated world';
+    case 'normal':
+    default:
+      return undefined; // natural speed needs no injection
+  }
+}
+
 /* ── shutter → motion cue ─────────────────────────────────────────────────── */
 
 function motionCue(shutterAngle: number): string {
@@ -173,6 +189,7 @@ export function compileProductionPrompt(input: CompileInput): CompileOutput {
     input.autoAngle,
     input.shotSize ? shotInjection(input.shotSize) : undefined,
     input.cameraMove ? moveInjection(input.cameraMove) : undefined,
+    input.speed ? speedInjection(input.speed) : undefined,
     camera.promptInjection,
     lens.promptInjection,
     optics,

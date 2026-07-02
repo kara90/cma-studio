@@ -12,11 +12,28 @@
 import { findModel } from './modelRegistry';
 import type { OutputKind } from './vcpTypes';
 
+/** Image-input variant (start/end frames or reference images) — slugs + exact
+ * param names verified against the live fal OpenAPI schemas 2026-07-02. */
+export interface ImageVariant {
+  slug: string;
+  /** param carrying the start/reference image URL */
+  imageParam: string;
+  /** param carrying the END frame, when the endpoint supports one */
+  endImageParam?: string;
+  /** true when the image param is an ARRAY of URLs (image edit models) */
+  imageIsArray?: boolean;
+  /** i2v schemas that DROP aspect_ratio vs their t2v sibling (Kling family) */
+  noAspect?: boolean;
+  /** used only when BOTH frames are present and a dedicated endpoint exists (Veo) */
+  firstLast?: { slug: string; firstParam: string; lastParam: string };
+}
+
 export interface ModelEndpoint {
   slug: string;
   output: OutputKind;
   buildBody: (prompt: string) => Record<string, unknown>;
   parseResult: (json: Record<string, unknown>) => string | undefined;
+  i2v?: ImageVariant;
 }
 
 const base = (prompt: string) => ({ prompt });
@@ -36,23 +53,57 @@ const audioUrl = (j: Record<string, unknown>) => {
 };
 
 const ENDPOINTS: Record<string, ModelEndpoint> = {
-  // ── Video ── (verified slugs)
-  'seedance-2': { slug: 'bytedance/seedance-2.0/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
-  'seedance-2-mini': { slug: 'bytedance/seedance-2.0/fast/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
-  'kling-2-5': { slug: 'fal-ai/kling-video/v2.5-turbo/pro/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
-  'kling-2-6': { slug: 'fal-ai/kling-video/v2.6/pro/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
+  // ── Video ── (verified slugs; i2v variants schema-verified 2026-07-02)
+  'seedance-2': {
+    slug: 'bytedance/seedance-2.0/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl,
+    i2v: { slug: 'bytedance/seedance-2.0/image-to-video', imageParam: 'image_url', endImageParam: 'end_image_url' },
+  },
+  'seedance-2-mini': {
+    slug: 'bytedance/seedance-2.0/fast/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl,
+    i2v: { slug: 'bytedance/seedance-2.0/fast/image-to-video', imageParam: 'image_url', endImageParam: 'end_image_url' },
+  },
+  'kling-2-5': {
+    slug: 'fal-ai/kling-video/v2.5-turbo/pro/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl,
+    i2v: { slug: 'fal-ai/kling-video/v2.5-turbo/pro/image-to-video', imageParam: 'image_url', endImageParam: 'tail_image_url', noAspect: true },
+  },
+  'kling-2-6': {
+    slug: 'fal-ai/kling-video/v2.6/pro/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl,
+    // ⚠ 2.6 renames the start image to start_image_url (2.5 and o3 use image_url)
+    i2v: { slug: 'fal-ai/kling-video/v2.6/pro/image-to-video', imageParam: 'start_image_url', endImageParam: 'end_image_url', noAspect: true },
+  },
   // best-known for the Kling o-series; update when the v3 slug is final.
-  'kling-3': { slug: 'fal-ai/kling-video/o3/standard/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
-  hailuo: { slug: 'fal-ai/minimax/hailuo-2.3/standard/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
-  // best-known Veo slug on fal; confirm the exact 3.1 path when wiring live.
-  'veo-3-1': { slug: 'fal-ai/veo3.1', output: 'video', buildBody: base, parseResult: videoUrl },
+  'kling-3': {
+    slug: 'fal-ai/kling-video/o3/standard/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl,
+    i2v: { slug: 'fal-ai/kling-video/o3/standard/image-to-video', imageParam: 'image_url', endImageParam: 'end_image_url', noAspect: true },
+  },
+  hailuo: {
+    slug: 'fal-ai/minimax/hailuo-2.3/standard/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl,
+    i2v: { slug: 'fal-ai/minimax/hailuo-2.3/standard/image-to-video', imageParam: 'image_url', noAspect: true },
+  },
+  'veo-3-1': {
+    slug: 'fal-ai/veo3.1', output: 'video', buildBody: base, parseResult: videoUrl,
+    i2v: {
+      slug: 'fal-ai/veo3.1/image-to-video', imageParam: 'image_url',
+      // both frames → Veo's dedicated first/last endpoint
+      firstLast: { slug: 'fal-ai/veo3.1/first-last-frame-to-video', firstParam: 'first_frame_url', lastParam: 'last_frame_url' },
+    },
+  },
   // preview — no confirmed Fal slug yet; kept so the UI can list it.
   'grok-imagine': { slug: 'fal-ai/grok-imagine/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
-  // ── Image ── (verified slugs)
-  'nano-banana-pro': { slug: 'fal-ai/nano-banana-pro', output: 'image', buildBody: base, parseResult: imageUrl },
-  'nano-banana-2': { slug: 'fal-ai/nano-banana-2', output: 'image', buildBody: base, parseResult: imageUrl },
+  // ── Image ── (verified slugs; edit variants take image_urls ARRAYS)
+  'nano-banana-pro': {
+    slug: 'fal-ai/nano-banana-pro', output: 'image', buildBody: base, parseResult: imageUrl,
+    i2v: { slug: 'fal-ai/nano-banana-pro/edit', imageParam: 'image_urls', imageIsArray: true },
+  },
+  'nano-banana-2': {
+    slug: 'fal-ai/nano-banana-2', output: 'image', buildBody: base, parseResult: imageUrl,
+    i2v: { slug: 'fal-ai/nano-banana-2/edit', imageParam: 'image_urls', imageIsArray: true },
+  },
   // best-known GPT Image slug on fal; update when GPT Image 2 lands.
-  'gpt-image-2': { slug: 'fal-ai/gpt-image-1/text-to-image', output: 'image', buildBody: base, parseResult: imageUrl },
+  'gpt-image-2': {
+    slug: 'fal-ai/gpt-image-1/text-to-image', output: 'image', buildBody: base, parseResult: imageUrl,
+    i2v: { slug: 'fal-ai/gpt-image-1/edit-image', imageParam: 'image_urls', imageIsArray: true },
+  },
   // ── Audio ── (params verified against the live fal OpenAPI schemas 2026-07-02;
   // duration params are merged by the route from lib/modelCaps, numerically)
   lyria2: { slug: 'fal-ai/lyria2', output: 'audio', buildBody: base, parseResult: audioUrl },

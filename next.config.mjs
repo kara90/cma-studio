@@ -61,7 +61,10 @@ const csp = [
   // fal.media MUST be in connect-src too: the Download button fetch()es the finished
   // render into a blob to save it with a real filename. Without this the fetch is
   // CSP-blocked and downloads silently degrade to "open in a new tab" (no save).
-  `connect-src 'self' ${supabaseOrigin} ${supabaseWs} https://fal.media https://*.fal.media https://*.fal.run ${wistiaConnect} ${turnstile}`.trim().replace(/\s+/g, ' '),
+  // *.fal.ai + storage.googleapis.com: start/end-frame uploads go DIRECTLY from the
+  // browser to fal storage on the user's own key (rest.alpha.fal.ai initiate + a
+  // presigned PUT) — BYOK-pure, never through our server.
+  `connect-src 'self' ${supabaseOrigin} ${supabaseWs} https://fal.media https://*.fal.media https://*.fal.run https://*.fal.ai https://storage.googleapis.com ${wistiaConnect} ${turnstile}`.trim().replace(/\s+/g, ' '),
 ]
   .filter(Boolean)
   .join('; ');

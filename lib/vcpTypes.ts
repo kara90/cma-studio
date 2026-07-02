@@ -2,7 +2,7 @@
  * lib/vcpTypes.ts — shared wire types (safe for client + server).
  * Only type declarations live here, so importing it ships nothing to the bundle.
  */
-import type { GenreStyle, VisualStyle, ShotSize, CameraMove, ColorGrade } from './vcpManifest';
+import type { GenreStyle, VisualStyle, ShotSize, CameraMove, ColorGrade, SpeedStyle } from './vcpManifest';
 
 export type OutputKind = 'video' | 'image' | 'audio';
 
@@ -32,6 +32,14 @@ export interface GenerateRequestBody {
   shotSize?: ShotSize;
   cameraMove?: CameraMove;
   grade?: ColorGrade;
+  /** temporal speed treatment — video renders only */
+  speed?: SpeedStyle;
+  /** sound on/off for models with a generate_audio switch (cost can change) */
+  sound?: boolean;
+  /** start frame (image URL or data URI) — switches video models to image-to-video */
+  startImage?: string;
+  /** end/tail frame — only for models whose i2v endpoint supports it */
+  endImage?: string;
   /** "what to avoid" — forwarded only to Fal models that accept negative_prompt */
   negativePrompt?: string;
   /** output format — validated per-model against lib/modelCaps before sending */

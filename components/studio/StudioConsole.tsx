@@ -41,6 +41,7 @@ import {
   SHOT_OPTIONS,
   MOVE_OPTIONS,
   GRADE_OPTIONS,
+  SPEED_OPTIONS,
   findCamera,
   findLens,
   findAnamorphic,
@@ -48,6 +49,7 @@ import {
   findShot,
   findMove,
   findGrade,
+  findSpeed,
   letterboxPct,
   type GenreStyle,
   type FlareColor,
@@ -55,6 +57,7 @@ import {
   type ShotSize,
   type CameraMove,
   type ColorGrade,
+  type SpeedStyle,
 } from '@/lib/vcpManifest';
 import { DEFAULT_MODEL, findModel } from '@/lib/modelRegistry';
 import { getModelCaps, fmtRes, fmtDur, fmtAspect } from '@/lib/modelCaps';
@@ -243,6 +246,7 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
     setResolution((r) => (c.resolutions.includes(r) ? r : c.resolutionDefault ?? ''));
     setDuration((d) => (c.durations.includes(d) ? d : c.durationDefault ?? ''));
     setAspect((a) => (c.aspects.includes(a) ? a : c.aspectDefault ?? ''));
+    setSound(null); // back to the new model's own sound default
   }, [model]);
   const [cameraKey, setCameraKey] = useState(CAMERA_OPTIONS[0].id);
   const [lensKey, setLensKey] = useState(LENS_OPTIONS[0].id);
@@ -256,6 +260,9 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
   const [shotSize, setShotSize] = useState<ShotSize>('medium'); // director controls
   const [cameraMove, setCameraMove] = useState<CameraMove>('static');
   const [grade, setGrade] = useState<ColorGrade>('neutral');
+  const [speed, setSpeed] = useState<SpeedStyle>('normal'); // temporal treatment, video only
+  /** null = follow the model's own default; true/false = the user's explicit pick */
+  const [sound, setSound] = useState<boolean | null>(null);
   const [anamorphic, setAnamorphic] = useState('2'); // default squeeze for anamorphic glass
   const [flare, setFlare] = useState<FlareColor>('blue'); // anamorphic streak-flare colour
   const [promptBig, setPromptBig] = useState(false);
@@ -286,6 +293,7 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
       setShotSize('medium');
       setCameraMove('static');
       setGrade('neutral');
+      setSpeed('normal');
     }
   }, [lensKey]);
 
@@ -464,6 +472,10 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
           shotSize: deptAuto.director ? undefined : shotSize,
           cameraMove: deptAuto.director ? undefined : cameraMove,
           grade: deptAuto.director ? undefined : grade,
+          // temporal speed is a video concept — never sent for stills
+          speed: deptAuto.director || isImage ? undefined : speed,
+          // explicit sound pick only; null lets the server use the model default
+          sound: sound === null ? undefined : sound,
           negativePrompt: negativePrompt.trim() || undefined,
           resolution: resolution || undefined,
           duration: duration || undefined,
@@ -545,6 +557,8 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
               <LookTileRow label="Lighting" options={GENRE_OPTIONS} previews={LIGHTING_PREVIEWS} value={genre} onChange={(v) => setGenre(v as GenreStyle)} />
               <ChipRow label="Shot size" options={SHOT_OPTIONS} value={shotSize} onChange={setShotSize} />
               <ChipRow label="Movement" options={MOVE_OPTIONS} value={cameraMove} onChange={setCameraMove} />
+              {/* temporal speed — video renders only */}
+              {!isImage && <ChipRow label="Speed" options={SPEED_OPTIONS} value={speed} onChange={setSpeed} />}
               <ChipRow label="Colour grade" options={GRADE_OPTIONS} value={grade} onChange={setGrade} />
             </div>
           )}
@@ -650,7 +664,8 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
 
   // Per-model output format — its own block UNDER the prompt. Shows only the
   // options this model really accepts (hidden if it exposes none).
-  const hasFormat = caps.resolutions.length > 0 || caps.durations.length > 0 || caps.aspects.length > 0 || caps.supportsSeed;
+  const hasFormat = caps.resolutions.length > 0 || caps.durations.length > 0 || caps.aspects.length > 0 || caps.supportsSeed || Boolean(caps.audioParam);
+  const soundOn = sound ?? caps.audioDefault ?? true;
   const formatControls = hasFormat ? (
     <div className={`${CARD} flex flex-col gap-3 p-4`}>
       <SectionTitle>Output format</SectionTitle>
@@ -667,6 +682,20 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
       )}
       {caps.durations.length > 0 && (
         <ChipRow label="Length" options={caps.durations.map((v) => ({ id: v, label: fmtDur(v) }))} value={duration} onChange={setDuration} />
+      )}
+      {/* sound on/off — only for models with a real generate_audio switch */}
+      {caps.audioParam && (
+        <div>
+          <ChipRow
+            label="Sound"
+            options={[{ id: 'on', label: 'Sound on' }, { id: 'off', label: 'Sound off' }]}
+            value={soundOn ? 'on' : 'off'}
+            onChange={(v) => setSound(v === 'on')}
+          />
+          <p className="mt-1.5 font-mono text-[9px] leading-relaxed tracking-[0.04em] text-[#8b909e]">
+            Sound changes the compute price on some models. Check the model&apos;s cost note.
+          </p>
+        </div>
       )}
       {caps.supportsSeed && (
         <div>
@@ -963,6 +992,8 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
                   ...(caps.aspects.length ? [['Aspect', fmtAspect(aspect)]] : []),
                   ...(caps.resolutions.length ? [['Resolution', fmtRes(resolution)]] : []),
                   ...(caps.durations.length ? [['Length', fmtDur(duration)]] : []),
+                  ...(caps.audioParam ? [['Sound', soundOn ? 'On' : 'Off']] : []),
+                  ...(!isImage ? [['Speed', deptAuto.director ? 'Auto' : findSpeed(speed).label]] : []),
                   ['Body', deptAuto.camera ? 'Auto' : camera.label],
                   ['Glass', deptAuto.camera ? 'Auto' : lens.label],
                   ['Anamorphic', !deptAuto.camera && !lensIsAnamorphic ? 'None · spherical glass' : deptAuto.anamorphic ? 'Auto' : ana.label],

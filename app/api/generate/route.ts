@@ -50,6 +50,12 @@ const BodySchema = z.object({
   shotSize: z.enum(['wide', 'full', 'medium', 'close', 'extreme-close']).optional(),
   cameraMove: z.enum(['static', 'push-in', 'tracking', 'pan', 'tilt', 'crane', 'handheld']).optional(),
   grade: z.enum(['neutral', 'warm', 'cool', 'teal-orange', 'bleach', 'mono']).optional(),
+  speed: z.enum(['normal', 'slow-motion', 'speed-ramp', 'timelapse']).optional(),
+  /** sound on/off for models with a generate_audio switch */
+  sound: z.boolean().optional(),
+  /** start/end frames (https URL or data URI) — flips video models to image-to-video */
+  startImage: z.string().max(14_000_000).regex(/^(https:\/\/|data:image\/)/, 'Invalid start image.').optional(),
+  endImage: z.string().max(14_000_000).regex(/^(https:\/\/|data:image\/)/, 'Invalid end image.').optional(),
   negativePrompt: z.string().trim().max(1000).optional(),
   resolution: z.string().max(20).optional(),
   duration: z.string().max(10).optional(),
@@ -102,7 +108,26 @@ export async function POST(request: Request) {
   if (endpoint.output === 'audio' || body.direct === true) {
     const audioCaps = getModelCaps(body.model);
     const audioBody: Record<string, unknown> = endpoint.buildBody(body.prompt);
-    if (audioCaps.aspectParam && audioCaps.aspects.length) {
+
+    // START/END FRAMES — flip to the model's image-to-video (or edit) variant.
+    // Slugs + exact param names are schema-verified per model in modelEndpoints.
+    let submitSlug = endpoint.slug;
+    let skipAspect = false;
+    if (body.startImage && endpoint.i2v) {
+      const v = endpoint.i2v;
+      skipAspect = Boolean(v.noAspect);
+      if (body.endImage && v.firstLast) {
+        submitSlug = v.firstLast.slug;
+        audioBody[v.firstLast.firstParam] = body.startImage;
+        audioBody[v.firstLast.lastParam] = body.endImage;
+      } else {
+        submitSlug = v.slug;
+        audioBody[v.imageParam] = v.imageIsArray ? [body.startImage] : body.startImage;
+        if (body.endImage && v.endImageParam) audioBody[v.endImageParam] = body.endImage;
+      }
+    }
+
+    if (!skipAspect && audioCaps.aspectParam && audioCaps.aspects.length) {
       const a = body.aspect && audioCaps.aspects.includes(body.aspect) ? body.aspect : audioCaps.aspectDefault;
       if (a) audioBody[audioCaps.aspectParam] = a;
     }
@@ -119,8 +144,12 @@ export async function POST(request: Request) {
       audioBody.seed = Math.trunc(body.seed);
     }
     if (audioCaps.safetyTolerance) audioBody.safety_tolerance = audioCaps.safetyTolerance;
+    // Sound on/off — ALWAYS sent explicitly where supported so cost is predictable.
+    if (audioCaps.audioParam) {
+      audioBody[audioCaps.audioParam] = typeof body.sound === 'boolean' ? body.sound : audioCaps.audioDefault;
+    }
     try {
-      const falRes = await fetch(queueSubmitUrl(endpoint.slug), {
+      const falRes = await fetch(queueSubmitUrl(submitSlug), {
         method: 'POST',
         headers: { Authorization: falAuthHeader(body.userApiKey), 'Content-Type': 'application/json' },
         body: JSON.stringify(audioBody),
@@ -204,6 +233,7 @@ export async function POST(request: Request) {
       shotSize: auto ? undefined : body.shotSize,
       cameraMove: auto ? undefined : body.cameraMove,
       grade: auto ? undefined : body.grade,
+      speed: auto ? undefined : body.speed,
     });
   } catch (e) {
     return bad(400, e instanceof Error ? e.message : 'Prompt compilation failed.');
@@ -263,6 +293,11 @@ export async function POST(request: Request) {
   // nothing, so this can never 422 a render.
   if (caps.safetyTolerance) {
     falBody.safety_tolerance = caps.safetyTolerance;
+  }
+  // Sound on/off — ALWAYS sent explicitly where supported so cost is predictable
+  // (audio can double the price on Kling 2.6 and Veo).
+  if (caps.audioParam) {
+    falBody[caps.audioParam] = typeof body.sound === 'boolean' ? body.sound : caps.audioDefault;
   }
 
   try {

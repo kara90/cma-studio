@@ -6,17 +6,27 @@
  * mode): no studio recipe, no camera package, no compiled cinematography.
  * One kind per page; the ModelPicker only offers models of that kind.
  *
+ * DESIGN: the clean everyday tool, visually distinct from the Studio flagship.
+ * Two-column desktop grid — a 400px composer sidebar in plain .glass on the
+ * left, the result canvas (ScopeViewer) + download bar + recent work on the
+ * right. Mobile stacks the composer first. Gold is reserved for the Generate
+ * button and active chips; section labels are slim mono.
+ *
  * Wire protocol mirrors StudioConsole exactly:
- *   POST /api/generate { prompt, model, direct:true, …format, userApiKey }
- *   → { ok, trackingToken, output } → poll POST /api/status every 2500ms
- *   (MAX_POLLS cap) → COMPLETED gives mediaUrl (+ optional seed, stored).
+ *   POST /api/generate { prompt, model, direct:true, …format, startImage?,
+ *   endImage?, sound?, userApiKey } → { ok, trackingToken, output } → poll
+ *   POST /api/status every 2500ms (MAX_POLLS cap) → COMPLETED gives mediaUrl
+ *   (+ optional seed, stored).
+ * Start/end frames are uploaded AT GENERATE TIME straight to fal on the
+ * user's own key (lib/falUpload) — they never touch CMA servers.
  */
 import { useEffect, useRef, useState, useCallback, useId } from 'react';
 import Link from 'next/link';
-import { Sparkles, AlertTriangle, Download, ArrowRight } from 'lucide-react';
+import { Sparkles, AlertTriangle, Download, ArrowRight, ImagePlus, X } from 'lucide-react';
 import { downloadRender, renderFilename } from '@/lib/download';
 import { findModel } from '@/lib/modelRegistry';
 import { getModelCaps, fmtRes, fmtDur, fmtAspect } from '@/lib/modelCaps';
+import { uploadToFal } from '@/lib/falUpload';
 import { ModelPicker } from '@/components/studio/ModelPicker';
 import { ApiKeyVault } from '@/components/studio/ApiKeyVault';
 import { ScopeViewer } from '@/components/studio/ScopeViewer';
@@ -27,7 +37,7 @@ import { makeThumb } from '@/lib/makeThumb';
 import type { GenerateAccepted, GenerateError, StatusResult, StatusState, OutputKind } from '@/lib/vcpTypes';
 
 const MAX_POLLS = 168;
-const CARD = 'glass glass-gold rounded-2xl';
+const MAX_FRAME_BYTES = 10 * 1024 * 1024; // 10 MB client-side ceiling per frame
 
 type DirectKind = 'video' | 'image' | 'audio';
 
@@ -81,8 +91,92 @@ function ChipRow<T extends string>({ label, options, value, onChange }: {
   );
 }
 
+/** A picked frame: the file plus its object-URL preview (revoked on replace/remove). */
+interface FramePick {
+  file: File;
+  url: string;
+}
+
+/**
+ * FrameSlot — one dashed drop/click tile for a start, end or reference image.
+ * Hidden file input behind a keyboard-accessible label; picked files show a
+ * thumbnail preview with the name and a remove button. Type + size checks
+ * surface friendly errors via onIssue. Stateless: the parent owns the pick
+ * (and its preview URL), so this stays a pure controlled component.
+ */
+function FrameSlot({ inputId, label, sublabel, frame, onFile, onIssue }: {
+  inputId: string;
+  label: string;
+  sublabel: string;
+  frame: FramePick | null;
+  onFile: (f: File | null) => void;
+  onIssue: (msg: string | null) => void;
+}) {
+  const accept = (f: File | null | undefined) => {
+    if (!f) return;
+    if (!f.type.startsWith('image/')) {
+      onIssue('Frames must be images. Pick a JPG or PNG file.');
+      return;
+    }
+    if (f.size > MAX_FRAME_BYTES) {
+      onIssue('That image is over 10 MB. Pick a smaller file.');
+      return;
+    }
+    onIssue(null);
+    onFile(f);
+  };
+
+  return (
+    <div>
+      <div className="mb-1.5 flex items-baseline gap-2">
+        <span className="font-mono text-[9px] tracking-[0.18em] text-[#8b909e] uppercase">{label}</span>
+        <span className="font-mono text-[9px] tracking-[0.04em] text-[#8b909e]/70">{sublabel}</span>
+      </div>
+      {frame ? (
+        <div className="relative overflow-hidden rounded-xl border border-white/10 bg-black/40">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={frame.url} alt={`${label} preview`} className="h-24 w-full object-cover" />
+          <button
+            type="button"
+            onClick={() => { onFile(null); onIssue(null); }}
+            aria-label={`Remove ${label.toLowerCase()}`}
+            title={`Remove ${label.toLowerCase()}`}
+            className="absolute right-1.5 top-1.5 grid h-8 w-8 cursor-pointer place-items-center rounded-lg bg-black/70 text-white transition hover:bg-black/90"
+          >
+            <X size={14} />
+          </button>
+          <p className="truncate border-t border-white/8 px-2.5 py-1.5 font-mono text-[10px] text-[#8b909e]">{frame.file.name}</p>
+        </div>
+      ) : (
+        <>
+          <input
+            id={inputId}
+            type="file"
+            accept="image/*"
+            className="peer sr-only"
+            onChange={(e) => { accept(e.target.files?.[0]); e.target.value = ''; }}
+          />
+          <label
+            htmlFor={inputId}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => { e.preventDefault(); accept(e.dataTransfer.files?.[0]); }}
+            className="flex min-h-[72px] cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-white/15 bg-black/25 px-3 py-4 text-center transition hover:border-white/30 peer-focus-visible:border-[#bc9863] peer-focus-visible:ring-1 peer-focus-visible:ring-[#bc9863]/50"
+          >
+            <ImagePlus size={16} className="text-[#8b909e]" />
+            <span className="text-[12px] text-[#8b8f99]">Drop an image or click to browse</span>
+          </label>
+        </>
+      )}
+    </div>
+  );
+}
+
 export function DirectGenerator({ kind }: { kind: DirectKind }) {
-  const promptId = useId();
+  const uid = useId();
+  const promptId = `${uid}-prompt`;
+  const startFrameId = `${uid}-start-frame`;
+  const endFrameId = `${uid}-end-frame`;
+
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState(DEFAULT_BY_KIND[kind]);
   const [prompt, setPrompt] = useState('');
@@ -93,18 +187,43 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
   const [aspect, setAspect] = useState(caps.aspectDefault ?? '');
   const [seed, setSeed] = useState(''); // '' = random; a number locks it
   const [lastSeed, setLastSeed] = useState<number | null>(null);
-  // When the model changes, snap format to what the new model supports.
-  useEffect(() => {
+  /** null = untouched (omit from the request); true/false = explicit user pick */
+  const [sound, setSound] = useState<boolean | null>(null);
+  const [startFrame, setStartFrame] = useState<FramePick | null>(null);
+  const [endFrame, setEndFrame] = useState<FramePick | null>(null);
+  const [frameError, setFrameError] = useState<string | null>(null);
+
+  /** Replace/clear a frame pick, revoking the old preview URL as it goes. */
+  const pickStartFrame = (f: File | null) => {
+    if (startFrame) URL.revokeObjectURL(startFrame.url);
+    setStartFrame(f ? { file: f, url: URL.createObjectURL(f) } : null);
+  };
+  const pickEndFrame = (f: File | null) => {
+    if (endFrame) URL.revokeObjectURL(endFrame.url);
+    setEndFrame(f ? { file: f, url: URL.createObjectURL(f) } : null);
+  };
+
+  // When the model changes, snap format + frames + sound to what it supports
+  // (state adjustment during render — no effect, no extra paint).
+  const [prevModel, setPrevModel] = useState(model);
+  if (prevModel !== model) {
+    setPrevModel(model);
     const c = getModelCaps(model);
-    setResolution((r) => (c.resolutions.includes(r) ? r : c.resolutionDefault ?? ''));
-    setDuration((d) => (c.durations.includes(d) ? d : c.durationDefault ?? ''));
-    setAspect((a) => (c.aspects.includes(a) ? a : c.aspectDefault ?? ''));
-  }, [model]);
+    setResolution(c.resolutions.includes(resolution) ? resolution : c.resolutionDefault ?? '');
+    setDuration(c.durations.includes(duration) ? duration : c.durationDefault ?? '');
+    setAspect(c.aspects.includes(aspect) ? aspect : c.aspectDefault ?? '');
+    setSound(null); // back to the new model's default until the user picks
+    if (!c.frames && startFrame) { URL.revokeObjectURL(startFrame.url); setStartFrame(null); }
+    if (c.frames !== 'start-end' && endFrame) { URL.revokeObjectURL(endFrame.url); setEndFrame(null); }
+    setFrameError(null);
+  }
 
   const modelInfo = findModel(model)!;
+  const showFrames = kind !== 'audio' && !!caps.frames;
 
   /* ── render job ── */
   const [status, setStatus] = useState<StatusState | 'IDLE'>('IDLE');
+  const [uploading, setUploading] = useState(false);
   const [mediaUrl, setMediaUrl] = useState<string | undefined>();
   const [outputKind, setOutputKind] = useState<OutputKind>(kind);
   const [queuePos, setQueuePos] = useState<number | undefined>();
@@ -194,6 +313,23 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
       return;
     }
     genMetaRef.current = { prompt: prompt.trim(), model: modelInfo.label };
+
+    // Frames upload AT GENERATE TIME, straight to fal on the user's own key.
+    let startImage: string | undefined;
+    let endImage: string | undefined;
+    if (showFrames && (startFrame || endFrame)) {
+      setUploading(true);
+      try {
+        if (startFrame) startImage = await uploadToFal(startFrame.file, apiKey);
+        if (caps.frames === 'start-end' && endFrame) endImage = await uploadToFal(endFrame.file, apiKey);
+      } catch (e) {
+        setUploading(false);
+        failWith(e instanceof Error && e.message ? e.message : 'Could not upload the frame. Try a smaller image.');
+        return;
+      }
+      setUploading(false);
+    }
+
     setStatus('IN_QUEUE');
     try {
       const res = await fetch('/api/generate', {
@@ -208,6 +344,11 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
           duration: duration || undefined,
           aspect: aspect || undefined,
           seed: seed ? Number(seed) : undefined,
+          startImage,
+          endImage,
+          // only when the user explicitly toggled the Sound chip; otherwise
+          // omitted and the server applies the model's own default
+          sound: sound === null ? undefined : sound,
           userApiKey: apiKey,
         }),
       });
@@ -229,86 +370,120 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
     setStatus('COMPLETED');
   }, [stopPolling]);
 
-  const busy = status === 'IN_QUEUE' || status === 'IN_PROGRESS';
-  const hasFormat = caps.resolutions.length > 0 || caps.durations.length > 0 || caps.aspects.length > 0 || caps.supportsSeed;
+  const rolling = status === 'IN_QUEUE' || status === 'IN_PROGRESS';
+  const busy = uploading || rolling;
+  const hasFormat = caps.resolutions.length > 0 || caps.durations.length > 0 || caps.aspects.length > 0 || caps.supportsSeed || !!caps.audioParam;
   const costLine = modelInfo.costHint
     ? `${modelInfo.costHint} · billed by fal on your key`
     : "compute billed by fal on your key at fal's rate";
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* ── result first: the scope monitor ── */}
-      <ScopeViewer
-        status={status}
-        mediaUrl={mediaUrl}
-        output={outputKind}
-        queuePosition={queuePos}
-        barPct={0}
-        aspectLabel={`${kind.toUpperCase()} · DIRECT`}
-        engineLabel={modelInfo.label}
-        promptLabel={prompt.trim() || undefined}
-        onMediaError={() => {
-          failWith('The finished render could not be loaded (the Fal URL may have expired).');
-        }}
-        onDownload={
-          mediaUrl
-            ? () => downloadRender(mediaUrl, renderFilename(prompt.trim() || 'render', outputKind, modelInfo.label))
-            : undefined
-        }
-      />
+    <div className="grid items-start gap-5 lg:grid-cols-[400px_1fr] lg:gap-6">
+      {/* ── LEFT: the composer sidebar (plain glass, minimal gold) ── */}
+      <aside className="glass flex flex-col gap-5 rounded-2xl p-4 sm:p-5">
+        {/* 1 · key */}
+        <section>
+          <div className="mb-2 font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">Connect your key</div>
+          <ApiKeyVault onKeyChange={setApiKey} embedded />
+        </section>
 
-      {/* prominent download the moment a render finishes */}
-      {status === 'COMPLETED' && mediaUrl && (
-        <div className="flex justify-center">
-          <button
-            type="button"
-            onClick={() => downloadRender(mediaUrl, renderFilename(prompt.trim() || 'render', outputKind, modelInfo.label))}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-5 py-2.5 text-[13px] font-semibold text-black shadow-[0_8px_24px_rgba(188,152,99,0.3)] transition hover:brightness-105"
-          >
-            <Download size={15} /> Download this render
-          </button>
-        </div>
-      )}
+        {/* 2 · model */}
+        <section className="border-t border-white/8 pt-5">
+          <ModelPicker kind={kind} value={model} onChange={setModel} />
+        </section>
 
-      {/* ── the composer ── */}
-      <div className={`${CARD} p-4 sm:p-5`}>
-        <label htmlFor={promptId} className="mb-2 block font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">
-          Your prompt
-        </label>
-        <textarea
-          id={promptId}
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder={kind === 'audio' ? AUDIO_HINTS[model] ?? PLACEHOLDER_BY_KIND.audio : PLACEHOLDER_BY_KIND[kind]}
-          className="min-h-[128px] w-full resize-y overflow-y-auto rounded-xl border border-white/10 bg-black/40 p-3.5 text-[15px] leading-relaxed text-[#f4efe6] outline-none transition focus:border-[#bc9863] placeholder:text-[#8b909e]"
-          style={{ maxHeight: 620 }}
-        />
-        <p className="mt-1.5 text-[11.5px] leading-relaxed text-[#8b909e]">
-          Sent to the model exactly as written. No studio recipe is added on this page.
-        </p>
-        {kind === 'audio' && AUDIO_HINTS[model] && (
-          <p className="mt-1.5 font-mono text-[10px] leading-relaxed text-[#bc9863]/80">{AUDIO_HINTS[model]}</p>
+        {/* 3 · frames — only for models that take a start/end/reference image */}
+        {showFrames && (
+          <section className="border-t border-white/8 pt-5">
+            <div className="mb-3 font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">
+              {kind === 'video' ? 'Frames' : 'Reference'}
+            </div>
+            <div className="flex flex-col gap-3">
+              {kind === 'video' ? (
+                <>
+                  <FrameSlot
+                    inputId={startFrameId}
+                    label="Start frame"
+                    sublabel="optional"
+                    frame={startFrame}
+                    onFile={pickStartFrame}
+                    onIssue={setFrameError}
+                  />
+                  {caps.frames === 'start-end' && (
+                    <FrameSlot
+                      inputId={endFrameId}
+                      label="End frame"
+                      sublabel="optional"
+                      frame={endFrame}
+                      onFile={pickEndFrame}
+                      onIssue={setFrameError}
+                    />
+                  )}
+                </>
+              ) : (
+                <FrameSlot
+                  inputId={startFrameId}
+                  label="Reference image"
+                  sublabel="optional, guides the generation"
+                  frame={startFrame}
+                  onFile={pickStartFrame}
+                  onIssue={setFrameError}
+                />
+              )}
+            </div>
+            {frameError && (
+              <p role="alert" className="mt-2 flex items-center gap-1.5 font-mono text-[10px] text-red-400">
+                <AlertTriangle size={11} className="shrink-0" /> {frameError}
+              </p>
+            )}
+            {(startFrame || endFrame) && (
+              <p className="mt-2 font-mono text-[9px] leading-relaxed tracking-[0.04em] text-[#8b909e]">
+                Uploads go straight to fal on your key. Never through our servers.
+              </p>
+            )}
+          </section>
         )}
 
-        {/* only shown for models that actually honour a negative prompt */}
-        {caps.supportsNegativePrompt && (
-          <div className="mt-3">
-            <label className="mb-1.5 block font-mono text-[9px] tracking-[0.18em] text-red-400 uppercase">
-              Exclude <span className="normal-case tracking-normal text-red-400/70">(what to avoid, optional)</span>
-            </label>
-            <input
-              type="text"
-              value={negativePrompt}
-              onChange={(e) => setNegativePrompt(e.target.value)}
-              placeholder="blurry, text, watermark, distorted hands, extra limbs…"
-              className="w-full rounded-lg border border-red-500/30 bg-black/40 px-3 py-2 font-mono text-[12px] text-red-200 outline-none transition focus:border-red-400 placeholder:text-red-400/35"
-            />
-          </div>
-        )}
+        {/* 4 · prompt */}
+        <section className="border-t border-white/8 pt-5">
+          <label htmlFor={promptId} className="mb-2 block font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">
+            Your prompt
+          </label>
+          <textarea
+            id={promptId}
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder={kind === 'audio' ? AUDIO_HINTS[model] ?? PLACEHOLDER_BY_KIND.audio : PLACEHOLDER_BY_KIND[kind]}
+            className="min-h-[128px] w-full resize-y overflow-y-auto rounded-xl border border-white/10 bg-black/40 p-3.5 text-[15px] leading-relaxed text-[#f4efe6] outline-none transition focus:border-[#bc9863] placeholder:text-[#8b909e]"
+            style={{ maxHeight: 620 }}
+          />
+          <p className="mt-1.5 text-[11.5px] leading-relaxed text-[#8b909e]">
+            Sent to the model exactly as written. No studio recipe is added on this page.
+          </p>
+          {kind === 'audio' && AUDIO_HINTS[model] && (
+            <p className="mt-1.5 font-mono text-[10px] leading-relaxed text-[#bc9863]/80">{AUDIO_HINTS[model]}</p>
+          )}
 
-        {/* per-model output format — only the options this model really accepts */}
+          {/* only shown for models that actually honour a negative prompt */}
+          {caps.supportsNegativePrompt && (
+            <div className="mt-3">
+              <label className="mb-1.5 block font-mono text-[9px] tracking-[0.18em] text-red-400 uppercase">
+                Exclude <span className="normal-case tracking-normal text-red-400/70">(what to avoid, optional)</span>
+              </label>
+              <input
+                type="text"
+                value={negativePrompt}
+                onChange={(e) => setNegativePrompt(e.target.value)}
+                placeholder="blurry, text, watermark, distorted hands, extra limbs…"
+                className="w-full rounded-lg border border-red-500/30 bg-black/40 px-3 py-2 font-mono text-[12px] text-red-200 outline-none transition focus:border-red-400 placeholder:text-red-400/35"
+              />
+            </div>
+          )}
+        </section>
+
+        {/* 5 · per-model output format — only what this model really accepts */}
         {hasFormat && (
-          <div className="mt-4 flex flex-col gap-3 border-t border-[#bc9863]/12 pt-4">
+          <section className="flex flex-col gap-3 border-t border-white/8 pt-5">
             <div className="font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">Output format</div>
             {caps.aspects.length > 0 && (
               <ChipRow label="Aspect" options={caps.aspects.map((v) => ({ id: v, label: fmtAspect(v) }))} value={aspect} onChange={setAspect} />
@@ -323,6 +498,19 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
             )}
             {caps.durations.length > 0 && (
               <ChipRow label="Length" options={caps.durations.map((v) => ({ id: v, label: fmtDur(v) }))} value={duration} onChange={setDuration} />
+            )}
+            {caps.audioParam && (
+              <div>
+                <ChipRow
+                  label="Sound"
+                  options={[{ id: 'on', label: 'Sound on' }, { id: 'off', label: 'Sound off' }] as const}
+                  value={(sound ?? caps.audioDefault ?? true) ? 'on' : 'off'}
+                  onChange={(v) => setSound(v === 'on')}
+                />
+                <p className="mt-1.5 font-mono text-[9px] leading-relaxed tracking-[0.04em] text-[#8b909e]">
+                  Sound changes the compute price on some models.
+                </p>
+              </div>
             )}
             {caps.supportsSeed && (
               <div>
@@ -346,59 +534,88 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
                 </div>
               </div>
             )}
-          </div>
+          </section>
         )}
 
-        {/* key + model — the vault sits right above the picker */}
-        <div className="mt-4 flex flex-col gap-4 border-t border-[#bc9863]/12 pt-4">
-          <div>
-            <div className="mb-2 font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">Connect your key</div>
-            <ApiKeyVault onKeyChange={setApiKey} embedded />
-          </div>
-          <ModelPicker kind={kind} value={model} onChange={setModel} />
-        </div>
-
-        {/* generate */}
-        <button
-          type="button"
-          onClick={generate}
-          disabled={busy || !apiKey}
-          aria-disabled={busy || !apiKey}
-          title={!apiKey ? 'Connect your Fal.ai key first' : undefined}
-          className="mt-4 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-5 py-3.5 text-[15px] font-semibold text-black shadow-[0_10px_30px_rgba(188,152,99,0.3)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Sparkles size={17} />
-          {busy ? 'Rolling…' : !apiKey ? 'Connect a key to generate' : `Generate ${kind}`}
-        </button>
-
-        {/* cost transparency, right where the decision is made */}
-        <div className="mt-2.5 flex justify-center">
-          <span className="inline-flex items-center rounded-lg border border-white/8 px-2.5 py-1 font-mono text-[10px] tracking-[0.04em] text-[#8b909e]">
-            {costLine}
-          </span>
-        </div>
-
-        <HonestNote compact className="mt-3" />
-
-        {error && (
-          <div role="alert" className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-500/30 bg-red-500/8 px-3 py-2">
-            <span className="flex min-w-0 items-center gap-2 font-mono text-[11px] text-red-300">
-              <AlertTriangle size={13} className="shrink-0" /> {error}
+        {/* 6 · cost + honesty + generate */}
+        <section className="border-t border-white/8 pt-5">
+          {/* cost transparency, right where the decision is made */}
+          <div className="flex justify-center">
+            <span className="inline-flex items-center rounded-lg border border-white/8 px-2.5 py-1 text-center font-mono text-[10px] leading-relaxed tracking-[0.04em] text-[#8b909e]">
+              {costLine}
             </span>
-            {showPlans && (
-              <Link
-                href="/pricing"
-                className="inline-flex flex-none cursor-pointer items-center gap-1.5 rounded-lg bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-3 py-1.5 text-[11px] font-semibold text-black transition hover:brightness-105"
-              >
-                See plans <ArrowRight size={12} />
-              </Link>
-            )}
+          </div>
+
+          <HonestNote compact className="mt-3" />
+
+          <button
+            type="button"
+            onClick={generate}
+            disabled={busy || !apiKey}
+            aria-disabled={busy || !apiKey}
+            aria-busy={busy}
+            title={!apiKey ? 'Connect your Fal.ai key first' : undefined}
+            className="mt-4 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-5 py-3.5 text-[15px] font-semibold text-black shadow-[0_10px_30px_rgba(188,152,99,0.3)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Sparkles size={17} />
+            {!apiKey ? 'Connect a key to generate' : uploading ? 'Uploading frames…' : rolling ? 'Rolling…' : `Generate ${kind}`}
+          </button>
+
+          {error && (
+            <div role="alert" className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-500/30 bg-red-500/8 px-3 py-2">
+              <span className="flex min-w-0 items-center gap-2 font-mono text-[11px] text-red-300">
+                <AlertTriangle size={13} className="shrink-0" /> {error}
+              </span>
+              {showPlans && (
+                <Link
+                  href="/pricing"
+                  className="inline-flex flex-none cursor-pointer items-center gap-1.5 rounded-lg bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-3 py-1.5 text-[11px] font-semibold text-black transition hover:brightness-105"
+                >
+                  See plans <ArrowRight size={12} />
+                </Link>
+              )}
+            </div>
+          )}
+        </section>
+      </aside>
+
+      {/* ── RIGHT: the result canvas ── */}
+      <div className="flex min-w-0 flex-col gap-4">
+        <ScopeViewer
+          status={status}
+          mediaUrl={mediaUrl}
+          output={outputKind}
+          queuePosition={queuePos}
+          barPct={0}
+          aspectLabel={`${kind.toUpperCase()} · DIRECT`}
+          engineLabel={modelInfo.label}
+          promptLabel={prompt.trim() || undefined}
+          onMediaError={() => {
+            failWith('The finished render could not be loaded (the Fal URL may have expired).');
+          }}
+          onDownload={
+            mediaUrl
+              ? () => downloadRender(mediaUrl, renderFilename(prompt.trim() || 'render', outputKind, modelInfo.label))
+              : undefined
+          }
+        />
+
+        {/* prominent download the moment a render finishes */}
+        {status === 'COMPLETED' && mediaUrl && (
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={() => downloadRender(mediaUrl, renderFilename(prompt.trim() || 'render', outputKind, modelInfo.label))}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-5 py-2.5 text-[13px] font-semibold text-black shadow-[0_8px_24px_rgba(188,152,99,0.3)] transition hover:brightness-105"
+            >
+              <Download size={15} /> Download this render
+            </button>
           </div>
         )}
-      </div>
 
-      {/* recent work + the My Files library */}
-      <GenerationStrip onPick={pickGeneration} />
+        {/* recent work + the My Files library */}
+        <GenerationStrip onPick={pickGeneration} />
+      </div>
     </div>
   );
 }

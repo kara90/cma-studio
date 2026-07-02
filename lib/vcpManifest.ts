@@ -215,9 +215,19 @@ export const GRADE_OPTIONS: { id: ColorGrade; label: string; hint: string }[] = 
   { id: 'mono', label: 'B&W', hint: 'Monochrome' },
 ];
 
+/** Temporal speed treatment — video renders only (meaningless for stills/audio). */
+export type SpeedStyle = 'normal' | 'slow-motion' | 'speed-ramp' | 'timelapse';
+export const SPEED_OPTIONS: { id: SpeedStyle; label: string; hint: string }[] = [
+  { id: 'normal', label: 'Real time', hint: 'Natural, unaltered speed' },
+  { id: 'slow-motion', label: 'Slow motion', hint: 'Silky overcranked slow motion' },
+  { id: 'speed-ramp', label: 'Speed ramp', hint: 'Real time snapping into dramatic slow motion' },
+  { id: 'timelapse', label: 'Time-lapse', hint: 'Hours compressed into seconds' },
+];
+
 export function findShot(id: string) { return SHOT_OPTIONS.find((o) => o.id === id) ?? SHOT_OPTIONS[2]; }
 export function findMove(id: string) { return MOVE_OPTIONS.find((o) => o.id === id) ?? MOVE_OPTIONS[0]; }
 export function findGrade(id: string) { return GRADE_OPTIONS.find((o) => o.id === id) ?? GRADE_OPTIONS[0]; }
+export function findSpeed(id: string) { return SPEED_OPTIONS.find((o) => o.id === id) ?? SPEED_OPTIONS[0]; }
 
 export function findCamera(id: string): CameraOption | undefined {
   return CAMERA_OPTIONS.find((c) => c.id === id);

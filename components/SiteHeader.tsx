@@ -26,6 +26,7 @@ const DEFAULT_LINKS: NavLink[] = [
   { href: '/image', label: 'Image' },
   { href: '/audio', label: 'Audio' },
   { href: '/studio', label: 'Studio' },
+  { href: '/files', label: 'Library' },
   { href: '/pricing', label: 'Pricing' },
 ];
 

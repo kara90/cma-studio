@@ -1,30 +1,30 @@
 import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/SiteHeader';
-import { DirectGenerator } from '@/components/generate/DirectGenerator';
+import { LibraryClient } from './LibraryClient';
 
 export const metadata: Metadata = {
-  title: 'Generate Video | CMA Studio',
+  title: 'Your Library | CMA Studio',
   description:
-    'Type a prompt, pick a frontier video model and render on your own Fal.ai key. No credit packs, no markup on compute.',
+    'Every finished render, synced to your account and kept for your plan\'s storage window. Open or download anything you made.',
 };
 
-export default function VideoPage() {
+export default function FilesPage() {
   return (
     <div className="relative min-h-screen">
       <SiteHeader />
 
       <main className="relative z-10 mx-auto max-w-6xl px-6 pb-24 pt-10">
-        <div className="mx-auto mb-8 max-w-2xl text-center">
-          <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">Direct generation</div>
-          <h1 className="font-[family-name:var(--font-sora)] text-[clamp(1.55rem,3.2vw,2.15rem)] font-bold tracking-[-0.03em]">
-            Generate video.
+        <div className="mx-auto mb-12 max-w-2xl text-center">
+          <div className="mb-4 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">Your library</div>
+          <h1 className="font-[family-name:var(--font-sora)] text-[clamp(2.2rem,5vw,3.6rem)] font-bold tracking-[-0.035em]">
+            Everything <span className="bg-gradient-to-r from-[#e7cfa3] to-[#bc9863] bg-clip-text text-transparent">you made.</span>
           </h1>
-          <p className="mx-auto mt-3 max-w-lg text-[0.95rem] leading-relaxed text-[#8b8f99]">
-            Your prompt, your key, every frontier model. No credit packs.
+          <p className="mx-auto mt-4 max-w-lg text-[1.05rem] leading-relaxed text-[#8b8f99]">
+            Every finished render, synced to your account and kept for your plan&apos;s storage window.
           </p>
         </div>
 
-        <DirectGenerator kind="video" />
+        <LibraryClient />
       </main>
 
       <footer className="relative z-10 border-t border-white/6 px-6 py-10">

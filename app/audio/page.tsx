@@ -13,13 +13,13 @@ export default function AudioPage() {
     <div className="relative min-h-screen">
       <SiteHeader />
 
-      <main className="relative z-10 mx-auto max-w-4xl px-6 pb-24 pt-10">
-        <div className="mx-auto mb-10 max-w-2xl text-center">
-          <div className="mb-4 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">Direct generation</div>
-          <h1 className="font-[family-name:var(--font-sora)] text-[clamp(2rem,4.5vw,3rem)] font-bold tracking-[-0.035em]">
+      <main className="relative z-10 mx-auto max-w-6xl px-6 pb-24 pt-10">
+        <div className="mx-auto mb-8 max-w-2xl text-center">
+          <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">Direct generation</div>
+          <h1 className="font-[family-name:var(--font-sora)] text-[clamp(1.55rem,3.2vw,2.15rem)] font-bold tracking-[-0.03em]">
             Generate audio.
           </h1>
-          <p className="mx-auto mt-4 max-w-lg text-[1.02rem] leading-relaxed text-[#8b8f99]">
+          <p className="mx-auto mt-3 max-w-lg text-[0.95rem] leading-relaxed text-[#8b8f99]">
             Your prompt, your key, every frontier model. No credit packs.
           </p>
         </div>
