@@ -32,8 +32,10 @@ export type Cycle = 'yearly' | 'monthly';
 export const PRICING_SCOPE_NOTE =
   'Plans cover the current toolset and may evolve as new tools join. Price changes only ever apply to new subscribers: your rate is locked for as long as you stay subscribed.';
 
-/** Beta price-lock banner, rendered above the plan cards. */
-export const PRICE_LOCK_NOTE = 'Beta pricing. Your rate is locked for as long as you stay subscribed.';
+/** Beta price-lock banner, rendered above the plan cards. Future-proofed for
+ *  new CMA tools joining the family without ever weakening the lock. */
+export const PRICE_LOCK_NOTE =
+  'Beta pricing. Your rate is locked for as long as you stay subscribed. Plans cover the current toolset; new tools may join your plan or arrive as optional add-ons, always announced before your next billing cycle.';
 
 export interface Tier {
   /**
@@ -83,7 +85,7 @@ export const TIERS: Tier[] = [
       'Renders run on your own fal.ai key',
       'fal rates only, no markup from us',
       'No expiring credits',
-      '5 DP-engine generations included monthly, taste the difference',
+      '5 engine generations included monthly, taste the difference',
       'Your prompts, sent as written. The full DP engine lives in Filmmaker and Pro.',
     ],
     cta: 'Start rendering',
@@ -103,7 +105,7 @@ export const TIERS: Tier[] = [
     features: [
       'Everything in Starter: all generators, video, image, audio',
       'Full CMA Studio DP engine: camera, lens, film stock, lighting',
-      '150 DP-engine generations included every month',
+      '150 engine generations included every month, shared across all CMA tools',
       'Prompt engineering handled server side',
       'Tuned to land the shot in fewer tries',
     ],
@@ -123,7 +125,7 @@ export const TIERS: Tier[] = [
     blurb: 'Everything in Filmmaker, plus the longest retention and first looks at new tools as they join.',
     features: [
       'Everything in Filmmaker: all generators plus the DP engine',
-      '300 DP-engine generations included every month',
+      '300 engine generations included every month, shared across all CMA tools',
       'Longest retention, about 1 year, fair use',
       'Priority render queue',
       'Early access to new CMA tools as they roll out',

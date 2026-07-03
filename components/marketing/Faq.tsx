@@ -88,6 +88,10 @@ const GROUPS: readonly FaqGroup[] = [
         q: 'What happens if I use all my engine generations?',
         a: 'You can keep rendering with your own prompts on your key, upgrade your tier, or wait for your monthly refresh. Nothing expires and nothing is charged automatically.',
       },
+      {
+        q: 'What happens when CMA launches new tools?',
+        a: 'Your rate never goes up. Lightweight tools join your plan at no charge. Tools that use the engine draw from your monthly generation pool. Heavy standalone products may launch with their own optional pricing, always announced before your next billing cycle, and never required.',
+      },
     ],
   },
   {

@@ -390,6 +390,10 @@ function Extensions({ member, busyId, onCheckout }: { member: boolean; busyId: s
           );
         })}
       </div>
+      {/* the future-proof top-up promise, codified (mirrored in the Refund Policy) */}
+      <p className="mx-auto mt-6 max-w-md text-center font-mono text-[11px] leading-relaxed tracking-[0.06em] text-[#8b909e]">
+        Any CMA top-up, storage or generations, never expires while your subscription is active.
+      </p>
     </div>
   );
 }

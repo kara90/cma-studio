@@ -66,9 +66,10 @@ const SECTIONS: LegalSection[] = [
     ],
   },
   {
-    title: 'Storage Top-Ups',
+    title: 'Top-Ups',
     blocks: [
-      'Recurring storage top-ups follow the monthly rules: cancel anytime, the top-up stays active until the end of the period you paid for, no partial-period refunds, and no further charges after cancellation. Cancelling a top-up never touches your base plan.',
+      'Recurring top-ups follow the monthly rules: cancel anytime, the top-up stays active until the end of the period you paid for, no partial-period refunds, and no further charges after cancellation. Cancelling a top-up never touches your base plan.',
+      'Any CMA top-up, storage or generations, never expires while your subscription is active.',
     ],
   },
   {
