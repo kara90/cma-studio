@@ -17,6 +17,7 @@ import { getModelEndpoint } from '@/lib/modelEndpoints';
 import { getModelCaps } from '@/lib/modelCaps';
 import { getCamera, getLens } from '@/lib/vcpMatrix';
 import { findAnamorphic, resolveLighting } from '@/lib/vcpManifest';
+import { readEngineUsage, incrementEngineUsage } from '@/lib/engineUsage';
 
 // Runs in the Cloudflare Workers node-compat runtime via OpenNext (no 'edge' export).
 export const dynamic = 'force-dynamic';
@@ -195,6 +196,18 @@ export async function POST(request: Request) {
     }
   }
 
+  // ── DP-ENGINE ALLOWANCE ── every studio render below this line is one
+  // engine call (Auto or Manual alike — same compiler). Checked BEFORE any
+  // compute is spent; incremented only after fal accepts the job. Raw/direct
+  // renders took the raw path above and are never counted.
+  const engineUsage = await readEngineUsage(access.userId, access.tier);
+  if (access.userId !== 'dev-user' && engineUsage.used >= engineUsage.included) {
+    return bad(
+      402,
+      `You have used all ${engineUsage.included} DP-engine generations included this month. Raw renders on your own key stay open on the Video, Image and Audio pages, or upgrade your plan for more. Your allowance refreshes on ${engineUsage.refreshesOn}.`,
+    );
+  }
+
   // Choose the camera package: Auto-Director, or the user's own selection.
   const auto = Boolean(body.auto);
   const hw = auto
@@ -338,6 +351,10 @@ export async function POST(request: Request) {
     const queued = (await falRes.json()) as { request_id?: string; status?: string };
     if (!queued.request_id) return bad(502, 'Render service did not return a tracking token.');
 
+    // The engine call succeeded — consume one generation (dev bypass excluded).
+    const engineUsed =
+      access.userId === 'dev-user' ? engineUsage.used : await incrementEngineUsage(access.userId, engineUsage.used);
+
     return Response.json(
       {
         ok: true,
@@ -345,6 +362,7 @@ export async function POST(request: Request) {
         status: queued.status ?? 'IN_QUEUE',
         model: body.model,
         output: endpoint.output,
+        engineAllowance: { used: engineUsed, included: engineUsage.included, refreshesOn: engineUsage.refreshesOn },
         summary: {
           model: body.model,
           camera: compiled.camera.label,

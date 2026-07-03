@@ -396,6 +396,24 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const [lastSummary, setLastSummary] = useState<GenerateAccepted['summary'] | null>(null);
 
+  /* ── DP-engine allowance — shown near the render button so the included
+     monthly generations are never a surprise. Loaded once for members,
+     refreshed from every successful render response. ── */
+  const [allowance, setAllowance] = useState<{ used: number; included: number; refreshesOn: string } | null>(null);
+  useEffect(() => {
+    if (locked) return; // visitors exploring the locked console have no account yet
+    let live = true;
+    fetch('/api/usage')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (live && d?.ok && d.allowance) setAllowance(d.allowance);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [locked]);
+
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const attemptsRef = useRef(0);
   const variantRef = useRef(0);
@@ -503,10 +521,11 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
           userApiKey: apiKey,
         }),
       });
-      const data: GenerateAccepted | GenerateError = await res.json();
+      const data: (GenerateAccepted & { engineAllowance?: { used: number; included: number; refreshesOn: string } }) | GenerateError = await res.json();
       if (!data.ok) { setError(data.error); setStatus('ERROR'); return; }
       setOutputKind(data.output);
       setLastSummary(data.summary);
+      if (data.engineAllowance) setAllowance(data.engineAllowance);
       poll(data.trackingToken);
     } catch {
       setError('Could not reach the render service.');
@@ -624,6 +643,14 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
             className="w-full rounded-lg border border-red-500/30 bg-black/40 px-3 py-2 font-mono text-[12px] text-red-200 outline-none transition focus:border-red-400 placeholder:text-red-400/35"
           />
         </div>
+      )}
+      {/* DP-engine inclusion meter — visible before the decision, never a surprise */}
+      {!locked && !isAudio && allowance && (
+        <p className="mt-3 flex items-center justify-center gap-2 font-mono text-[10.5px] tracking-[0.08em] text-[#8b909e]">
+          <span className={`h-1.5 w-1.5 rounded-full ${allowance.included - allowance.used > 0 ? 'bg-[#bc9863]' : 'bg-red-400'}`} />
+          DP engine: {Math.max(0, allowance.included - allowance.used)} of {allowance.included} generations left this
+          month · refreshes {allowance.refreshesOn}
+        </p>
       )}
       <button
         onClick={locked ? () => router.push('/pricing') : generate}

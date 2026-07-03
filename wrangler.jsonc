@@ -20,6 +20,14 @@
   "ratelimits": [
     { "name": "RENDER_LIMITER", "namespace_id": "1001", "simple": { "limit": 12, "period": 60 } }
   ],
+  // KV — DP-engine allowance metering. One counter per user per calendar
+  // month (key u/{userId}/{YYYY-MM}); the studio path checks it before
+  // spending the user's fal budget and increments it after a successful
+  // queue submit. Raw/direct renders are NEVER counted. Fails OPEN: if KV
+  // is unreachable a paying user is never blocked.
+  "kv_namespaces": [
+    { "binding": "ENGINE_USAGE", "id": "f231230184d140e296268feb21a465a4" }
+  ],
   // R2 — CMA render storage. Finished renders are copied here at completion so
   // users keep access for their plan's retention window (fal deletes its copies
   // after ~7 days). ⚠ TEMPORARILY DISABLED (2026-07-02): R2 is not yet ENABLED

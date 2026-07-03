@@ -34,12 +34,20 @@ interface R2Bucket {
   }>;
 }
 
+/** Minimal KV surface used by the allowance metering. */
+interface KVNamespace {
+  get(key: string): Promise<string | null>;
+  put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
+}
+
 declare global {
   interface CloudflareEnv {
     // Native Workers rate-limit binding declared in wrangler.jsonc (12 renders / 60s).
     RENDER_LIMITER?: RateLimit;
     // R2 render storage (bucket `cma-renders`) — plan-retention file library.
     RENDERS?: R2Bucket;
+    // KV — DP-engine allowance counters, one per user per calendar month.
+    ENGINE_USAGE?: KVNamespace;
   }
 }
 
