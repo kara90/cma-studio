@@ -25,13 +25,15 @@ export type Cycle = 'yearly' | 'monthly';
 
 /**
  * Shared legal-safety line, rendered under the billing toggle on /pricing.
- * Scopes every price to the CURRENT toolset without ever promising the price
- * will not change. Keep the "with notice before your next billing cycle"
- * clause whenever this wording is revised.
+ * Sebastien's price-lock decision (2026-07-02): existing subscribers keep
+ * their rate for as long as they stay subscribed; future price changes apply
+ * to NEW subscribers only. Keep both halves whenever this wording is revised.
  */
-// (Amounts remain internal placeholders, but customers never see that word.)
 export const PRICING_SCOPE_NOTE =
-  'Plans cover the current toolset and may evolve as new tools join, always announced before your next billing cycle.';
+  'Plans cover the current toolset and may evolve as new tools join. Price changes only ever apply to new subscribers: your rate is locked for as long as you stay subscribed.';
+
+/** Beta price-lock banner, rendered above the plan cards. */
+export const PRICE_LOCK_NOTE = 'Beta pricing. Your rate is locked for as long as you stay subscribed.';
 
 export interface Tier {
   /**
@@ -81,6 +83,8 @@ export const TIERS: Tier[] = [
       'Renders run on your own fal.ai key',
       'fal rates only, no markup from us',
       'No expiring credits',
+      '5 DP-engine generations included monthly, taste the difference',
+      'Your prompts, sent as written. The full DP engine lives in Filmmaker and Pro.',
     ],
     cta: 'Start rendering',
     note: 'Cancel anytime. Compute billed by fal at fal rates.',
@@ -99,6 +103,7 @@ export const TIERS: Tier[] = [
     features: [
       'Everything in Starter: all generators, video, image, audio',
       'Full CMA Studio DP engine: camera, lens, film stock, lighting',
+      '150 DP-engine generations included every month',
       'Prompt engineering handled server side',
       'Tuned to land the shot in fewer tries',
     ],
@@ -118,6 +123,7 @@ export const TIERS: Tier[] = [
     blurb: 'Everything in Filmmaker, plus the longest retention and first looks at new tools as they join.',
     features: [
       'Everything in Filmmaker: all generators plus the DP engine',
+      '300 DP-engine generations included every month',
       'Longest retention, about 1 year, fair use',
       'Priority render queue',
       'Early access to new CMA tools as they roll out',

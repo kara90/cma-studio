@@ -40,12 +40,16 @@ const GROUPS: readonly FaqGroup[] = [
         a: 'Three things: a CMA account, an active plan, and a fal.ai API key. That is the whole setup, and the Studio walks you through each step the first time you sign in.',
       },
       {
-        q: 'How do I get a fal.ai key, and is it safe to paste it here?',
-        a: 'Create a free account at fal.ai and generate a key from its dashboard in about a minute. Your key is used only at render time to call the model on your behalf and is never stored on our servers. You can revoke or rotate it in your fal dashboard whenever you like.',
+        q: 'What is a fal key and is it hard to set up?',
+        a: 'It is a free account credential from fal.ai, the infrastructure our renders run on. Setup takes about five minutes once. Full walkthrough in the key guide.',
+      },
+      {
+        q: 'Is it safe to paste my key here?',
+        a: 'Yes. Your key is used only at render time to call the model on your behalf and is never stored on our servers. You can revoke or rotate it in your fal dashboard whenever you like.',
       },
       {
         q: 'Which models are available?',
-        a: 'Video: Seedance 2 and Seedance 2 Mini, Kling 3, 2.6 and 2.5, Veo 3.1 and Hailuo 2.3. Image: Nano Banana Pro, Nano Banana 2 and GPT Image 2. Audio covers music, voiceover and sound design with Lyria 2, ElevenLabs, Stable Audio 2.5 and more, and the lineup keeps growing as strong new models land.',
+        a: 'Video: Seedance 2, Kling 3 Pro, Sora 2 and Sora 2 Pro, Veo 3.1 and Veo 3.1 Fast, Hailuo 2.3, Wan 2.5, LTX-2, Seedance 1.5 Pro, the Kling 2.x line and more. Image: Nano Banana Pro, Seedream 4.5, FLUX.2 Pro, Imagen 4, Ideogram V3, FLUX 1.1 Ultra, Recraft V4.1 and GPT Image. Audio covers music, voiceover and sound design with Lyria 2, ElevenLabs, Stable Audio 2.5 and more, and the lineup keeps growing as strong new models land.',
       },
     ],
   },
@@ -54,7 +58,7 @@ const GROUPS: readonly FaqGroup[] = [
     items: [
       {
         q: 'What does the subscription cover, and what does fal bill me?',
-        a: 'The subscription covers the software: the interface, the DP engine on Filmmaker and Pro, your Library and your retention window. Compute is separate. fal bills your own account for each render at fal’s rate, and we never touch or mark up that charge.',
+        a: 'The subscription covers the software: the interface, your Library, your retention window, and your monthly DP-engine generations (5 on Starter to taste the difference, 150 on Filmmaker, 300 on Pro). Compute is separate. fal bills your own account for each render at fal’s rate, and we never touch or mark up that charge.',
       },
       {
         q: 'How much does a render cost?',
@@ -66,11 +70,23 @@ const GROUPS: readonly FaqGroup[] = [
       },
       {
         q: 'Do prices ever change?',
-        a: 'Plans cover today’s toolset and may evolve as new tools join the family. Any change is announced before your next billing cycle, so you always decide with the new terms in front of you.',
+        a: 'Your rate is locked: the price you subscribe at stays your price for as long as you stay subscribed. Any future price change applies to new subscribers only. Plans cover today’s toolset and may evolve as new tools join the family, always announced ahead of your next billing cycle.',
       },
       {
         q: 'What about refunds?',
-        a: 'Monthly plans cancel anytime: you keep access to the end of the paid month and are never charged again. Yearly plans are discounted for the commitment and are non-refundable, with one exception — if the platform itself stops working for an extended period because of us, we refund the unused time. Compute is billed by fal.ai on your own key, so it is never ours to refund. The full rules live in the Refund & Cancellation Policy.',
+        a: 'Monthly plans cancel anytime: you keep access to the end of the paid month and are never charged again. Yearly plans carry a 14-day money-back guarantee on your first yearly payment; after that window they are non-refundable, with one exception: if the platform itself stops working for an extended period because of us, we refund the unused time. Compute is billed by fal.ai on your own key, so it is never ours to refund. The full rules live in the Refund & Cancellation Policy.',
+      },
+      {
+        q: 'Why is this cheaper than credit platforms?',
+        a: 'Because we do not resell compute. You pay fal directly at their published rates. Our fee covers the studio, the DP engine, and your render library. Our margin does not depend on marking up your renders.',
+      },
+      {
+        q: 'What counts as a DP-engine generation?',
+        a: 'One engine call. Each time the DP engine composes or recomposes a prompt for you, that is one generation. Raw renders on your own key are never counted.',
+      },
+      {
+        q: 'What happens if I use all my engine generations?',
+        a: 'You can keep rendering with your own prompts on your key, upgrade your tier, or wait for your monthly refresh. Nothing expires and nothing is charged automatically.',
       },
     ],
   },

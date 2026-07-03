@@ -40,6 +40,13 @@ export interface ShowcaseItem {
    * and switches on the section-wide non-affiliation footnote.
    */
   disclaimer?: string;
+  /**
+   * Caption slot under the tile: the model that made it + a one-line
+   * description. TODO — SEBASTIEN FILLS THESE, DO NOT FABRICATE: only he
+   * knows which model rendered each clip. Caption renders only when set.
+   */
+  madeWith?: string;
+  desc?: string;
 }
 
 // Every tile below carries a REAL render (Sebastien's clips, compressed for

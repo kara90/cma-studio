@@ -46,7 +46,8 @@ const SECTIONS: LegalSection[] = [
   {
     title: 'Yearly Plans',
     blocks: [
-      'Yearly plans are discounted specifically because they are a commitment for the full year. Once a yearly billing period starts, the fee for that year is non-refundable, except as set out in the Extended Outage section below or where applicable law requires otherwise.',
+      'Yearly plans are discounted because they are a commitment for the full year, and they carry a 14-day money-back guarantee: if the plan is not for you, email us within 14 days of your first yearly payment and we refund that payment in full.',
+      'After the 14-day window, the remainder of the year is non-refundable, except as set out in the Extended Outage section below or where applicable law requires otherwise.',
       'You can cancel a yearly plan at any time. Cancellation stops the renewal: you keep full access until the end of the year you have already paid for, and you are not charged again.',
       'Before a yearly plan renews, we send a reminder to the email on your account so a renewal never takes you by surprise.',
     ],
@@ -82,9 +83,9 @@ const SECTIONS: LegalSection[] = [
     ],
   },
   {
-    title: 'Automatic Renewal',
+    title: 'Automatic Renewal and Your Locked Rate',
     blocks: [
-      'All subscriptions renew automatically at the end of each billing period, at the then-current price for your plan, until you cancel. Price changes are announced in advance and only ever apply from your next billing cycle — never mid-period. If you do not agree with a new price, cancel before the cycle renews and you will not be charged it.',
+      'All subscriptions renew automatically at the end of each billing period until you cancel, and they renew at YOUR rate: the price you subscribed at is locked for as long as you stay subscribed. Price changes apply to new subscribers only. If your subscription lapses and you return later, the rates in force at that time apply.',
     ],
   },
   {
@@ -153,10 +154,11 @@ export default function RefundsPage() {
           Last updated: July 2, 2026
         </p>
         <p className="mt-6 text-[0.95rem] leading-[1.75] text-[#8b8f99]">
-          The short version: monthly plans cancel anytime — you keep access to the end of the paid month and are
-          never charged again. Yearly plans are discounted for the commitment and are non-refundable, with one
-          exception: if the platform itself stops working for an extended period because of us, we refund the unused
-          time. Compute runs on your own fal.ai key and is billed by fal.ai directly — it is never ours to refund.
+          The short version: monthly plans cancel anytime, you keep access to the end of the paid month and are
+          never charged again. Yearly plans carry a 14-day money-back guarantee; after that window they are
+          non-refundable, with one exception: if the platform itself stops working for an extended period because of
+          us, we refund the unused time. Compute runs on your own fal.ai key and is billed by fal.ai directly, so it
+          is never ours to refund.
         </p>
 
         <div className="glass glass-gold mt-10 rounded-2xl p-6 sm:p-8">

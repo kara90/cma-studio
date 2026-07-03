@@ -11,9 +11,8 @@ import { KeyRound, Check, Trash2, Eye, EyeOff, ExternalLink, PlayCircle } from '
 
 const STORAGE_KEY = 'cma_fal_key';
 const FAL_KEYS_URL = 'https://fal.ai/dashboard/keys';
-/** PLACEHOLDER — Sebastien will supply a short "how to get your key" tutorial.
- *  Set this to the video/guide URL and the button below becomes a live link. */
-const KEY_TUTORIAL_URL: string | null = null;
+/** The step-by-step walkthrough page (app/key-guide) — screenshots pending. */
+const KEY_TUTORIAL_URL = '/key-guide';
 
 function ApiKeyVaultImpl({ onKeyChange, embedded = false }: { onKeyChange: (key: string) => void; embedded?: boolean }) {
   const [key, setKey] = useState('');
@@ -103,20 +102,14 @@ function ApiKeyVaultImpl({ onKeyChange, embedded = false }: { onKeyChange: (key:
         >
           <KeyRound size={13} /> Get your fal.ai key <ExternalLink size={11} className="opacity-70" />
         </a>
-        {KEY_TUTORIAL_URL ? (
-          <a
-            href={KEY_TUTORIAL_URL}
-            target="_blank"
-            rel="noopener"
-            className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[12px] text-[#c7c2b8] transition hover:border-[#bc9863]/40 hover:text-[#e7cfa3]"
-          >
-            <PlayCircle size={13} className="text-[#bc9863]" /> How to get your key
-          </a>
-        ) : (
-          <span className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-white/8 px-3 py-2 font-mono text-[10px] tracking-[0.06em] text-[#8b909e]">
-            <PlayCircle size={12} /> Key guide, coming soon
-          </span>
-        )}
+        <a
+          href={KEY_TUTORIAL_URL}
+          target="_blank"
+          rel="noopener"
+          className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-[12px] text-[#c7c2b8] transition hover:border-[#bc9863]/40 hover:text-[#e7cfa3]"
+        >
+          <PlayCircle size={13} className="text-[#bc9863]" /> Key guide (5 minutes)
+        </a>
       </div>
       <p className="mt-2 font-mono text-[10px] leading-relaxed text-[#8b909e]">Used only at render. Never stored.</p>
     </>

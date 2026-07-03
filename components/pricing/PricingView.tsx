@@ -19,7 +19,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { Check, ShieldCheck, ArrowRight, Plus, Archive, Hourglass, Loader2, AlertTriangle } from 'lucide-react';
 import { getBrowserSupabase } from '@/lib/supabase/client';
 import { isSupabaseConfigured, IS_PROD } from '@/lib/access';
-import { TIERS, EXTENSIONS, PRICING_SCOPE_NOTE, findTier, type Cycle, type Tier } from '@/lib/plans';
+import { TIERS, EXTENSIONS, PRICING_SCOPE_NOTE, PRICE_LOCK_NOTE, findTier, type Cycle, type Tier } from '@/lib/plans';
 
 type PlanMeta = { tier?: string; status?: string; expires?: string } | undefined;
 
@@ -122,11 +122,61 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
   return (
     <div>
       {/* Category positioning: flat software fee vs expiring-credit subscriptions. */}
-      <div className="mx-auto mb-10 max-w-xl text-center">
+      <div className="mx-auto mb-8 max-w-xl text-center">
         <p className="text-[15px] leading-relaxed text-[#8b8f99]">
           A low flat fee for the software. Compute runs on your own fal.ai key at fal&apos;s own rate, with no markup from us. No expiring credits, no wasted budget.
         </p>
       </div>
+
+      {/* Beta price lock — the strongest cold-traffic reason to subscribe NOW. */}
+      <div className="mx-auto mb-8 flex w-fit items-center gap-2 rounded-full border border-[#bc9863]/40 bg-[#bc9863]/10 px-5 py-2.5">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#bc9863]" aria-hidden />
+        <p className="font-mono text-[12px] tracking-[0.08em] text-[#e7cfa3]">{PRICE_LOCK_NOTE}</p>
+      </div>
+
+      {/* ── WEDGE MATH — one identical render, two ways to pay for it ── */}
+      <section id="wedge-math" className="mx-auto mb-12 max-w-3xl scroll-mt-24">
+        <h3 className="mb-5 text-center font-[family-name:var(--font-sora)] text-[clamp(1.4rem,3vw,1.9rem)] font-bold tracking-[-0.02em]">
+          Do the math <span className="text-[#bc9863]">yourself.</span>
+        </h3>
+        <p className="mx-auto mb-6 max-w-lg text-center text-[13.5px] leading-relaxed text-[#8b8f99]">
+          One identical render: a 5 second, 720p Seedance 2.0 clip.
+        </p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="glass rounded-2xl p-6">
+            <div className="mb-3 font-mono text-[11px] tracking-[0.2em] text-[#8b909e] uppercase">Typical credit platform</div>
+            {/* TODO — VERIFY BEFORE LAUNCH, DO NOT FABRICATE: replace the range
+                below with a current, defensible effective-cost calculation
+                (mid-tier credit pack price divided by the credits that class of
+                video model consumes per clip). */}
+            <p className="font-[family-name:var(--font-sora)] text-[1.7rem] font-bold text-[#f4efe6]">
+              $2.50 to $5.00 <span className="text-[0.85rem] font-normal text-[#8b8f99]">per clip, effective</span>
+            </p>
+            <p className="mt-3 text-[13px] leading-relaxed text-[#8b8f99]">
+              What that clip typically costs once you divide a mid-tier credit pack by the credits premium video
+              models consume.
+            </p>
+            <p className="mt-3 font-mono text-[10px] leading-relaxed text-[#8b909e]">
+              Credit prices vary by platform and pack size, and unused credits often expire.
+            </p>
+          </div>
+          <div className="glass glass-gold rounded-2xl border border-[#bc9863]/35 p-6">
+            <div className="mb-3 font-mono text-[11px] tracking-[0.2em] text-[#e7cfa3] uppercase">CMA Studio</div>
+            <p className="font-[family-name:var(--font-sora)] text-[1.7rem] font-bold text-[#f4efe6]">
+              about $1.50 <span className="text-[0.85rem] font-normal text-[#8b8f99]">at fal&apos;s published rate</span>
+            </p>
+            <p className="mt-3 text-[13px] leading-relaxed text-[#cfcabf]">
+              Plus your flat CMA fee, no markup, no expiring credits.
+            </p>
+            <p className="mt-3 font-mono text-[10px] leading-relaxed text-[#8b909e]">
+              fal bills you directly. We never touch your compute money.
+            </p>
+          </div>
+        </div>
+        <p className="mt-5 text-center font-[family-name:var(--font-sora)] text-[1.05rem] font-semibold text-[#e7cfa3]">
+          Same model. Same output. You keep the difference.
+        </p>
+      </section>
 
       <div className="glass mx-auto mb-4 flex w-fit items-center gap-1 rounded-full p-1">
         {(['yearly', 'monthly'] as Cycle[]).map((c) => (
@@ -160,6 +210,45 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
         ))}
       </div>
 
+      {/* ── objection-killer strip: the 3 questions cold traffic actually has,
+          answered where the buying decision happens ── */}
+      <section className="mx-auto mt-12 max-w-3xl">
+        <h3 className="mb-5 text-center font-[family-name:var(--font-sora)] text-[1.2rem] font-semibold text-[#f4efe6]">
+          Before you decide
+        </h3>
+        <div className="flex flex-col gap-3">
+          {[
+            {
+              q: 'What counts as a DP-engine generation?',
+              a: 'One engine call. Each time the DP engine composes or recomposes a prompt for you, that is one generation. Raw renders on your own key are never counted.',
+            },
+            {
+              q: 'Why is this cheaper than credit platforms?',
+              a: 'Because we do not resell compute. You pay fal directly at their published rates. Our fee covers the studio, the DP engine, and your render library. Our margin does not depend on marking up your renders.',
+            },
+            {
+              q: 'What is a fal key and is it hard to set up?',
+              a: 'It is a free account credential from fal.ai, the infrastructure our renders run on. Setup takes about five minutes once. Full walkthrough in the key guide.',
+            },
+          ].map((f) => (
+            <div key={f.q} className="glass rounded-2xl p-5">
+              <div className="mb-1.5 font-[family-name:var(--font-sora)] text-[14.5px] font-semibold text-[#e7cfa3]">{f.q}</div>
+              <p className="text-[13.5px] leading-relaxed text-[#8b8f99]">{f.a}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 text-center">
+          <Link href="/faq" className="font-mono text-[12px] tracking-[0.14em] text-[#bc9863] uppercase transition hover:text-[#e7cfa3]">
+            See all questions →
+          </Link>
+        </p>
+      </section>
+
+      {/* founder student line — the price itself stays inside the course dashboard */}
+      <p className="mx-auto mt-10 text-center font-mono text-[12px] tracking-[0.06em] text-[#8b909e]">
+        CineMaster Academy students: your student rate is waiting inside your course dashboard.
+      </p>
+
       {/* Clickwrap reaffirmation at the payment step (accounts already agreed
           at signup — this restates it where money changes hands). */}
       <p className="mx-auto mt-8 max-w-md text-center text-[12px] leading-relaxed text-[#8b909e]">
@@ -175,8 +264,9 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
         <Link href="/refunds" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
           Refund &amp; Cancellation Policy
         </Link>
-        . Every plan renews automatically at the end of its period, at the then-current price, until you cancel —
-        cancelling takes one click or one email. Monthly plans cancel anytime; yearly plans are non-refundable.
+        . Plans renew automatically until you cancel, and cancelling takes one click or one email. Your rate is
+        locked while you stay subscribed; price changes apply to new subscribers only. Monthly plans cancel anytime.
+        Yearly plans carry a 14-day money-back guarantee.
       </p>
     </div>
   );

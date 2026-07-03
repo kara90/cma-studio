@@ -56,14 +56,14 @@ const KIND_ICON = {
  * the 2x2 feature (also square) and the 2:1 wide strip always line up.
  */
 const SPANS = [
-  'col-span-2 row-span-2 aspect-square', // 0: feature
-  'aspect-square', // 1
-  'aspect-square', // 2
-  'aspect-square', // 3
-  'aspect-square', // 4
-  'col-span-2 aspect-[2/1]', // 5: wide strip
-  'aspect-square', // 6
-  'aspect-square', // 7
+  { cell: 'col-span-2 row-span-2', aspect: 'aspect-square' }, // 0: feature
+  { cell: '', aspect: 'aspect-square' }, // 1
+  { cell: '', aspect: 'aspect-square' }, // 2
+  { cell: '', aspect: 'aspect-square' }, // 3
+  { cell: '', aspect: 'aspect-square' }, // 4
+  { cell: 'col-span-2', aspect: 'aspect-[2/1]' }, // 5: wide strip
+  { cell: '', aspect: 'aspect-square' }, // 6
+  { cell: '', aspect: 'aspect-square' }, // 7
 ];
 
 function Tile({ item, span }: { item: ShowcaseItem; span: string }) {
@@ -156,11 +156,38 @@ export function Showcase() {
 
       <Reveal delay={0.08}>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {ITEMS.map((item, i) => (
-            <Tile key={item.id} item={item} span={SPANS[i % SPANS.length]} />
-          ))}
+          {ITEMS.map((item, i) => {
+            const s = SPANS[i % SPANS.length];
+            return (
+              <div key={item.id} className={`flex flex-col gap-1.5 ${s.cell}`}>
+                <Tile item={item} span={`${s.aspect} flex-1`} />
+                {/* caption slot: model used + one-line description (set in lib/showcase.ts) */}
+                {(item.madeWith || item.desc) && (
+                  <p className="px-1 font-mono text-[10px] leading-relaxed tracking-[0.06em] text-[#8b909e]">
+                    {item.madeWith && <span className="text-[#bc9863]">{item.madeWith}</span>}
+                    {item.madeWith && item.desc && ' · '}
+                    {item.desc}
+                  </p>
+                )}
+              </div>
+            );
+          })}
         </div>
       </Reveal>
+
+      {/*
+        TODO — REAL USER TESTIMONIALS · DO NOT FABRICATE, LEAVE AS PLACEHOLDER
+        until three real users have agreed in writing. Each entry needs:
+        name, role (e.g. "music video director"), and a concrete result line.
+        Suggested markup when real quotes exist:
+        <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <blockquote className="glass rounded-2xl p-5 text-[14px] leading-relaxed text-[#cfcabf]">
+            "QUOTE"
+            <footer className="mt-3 font-mono text-[11px] text-[#8b909e]">NAME · ROLE · RESULT</footer>
+          </blockquote>
+          ... x3
+        </div>
+      */}
 
       {ITEMS.some((item) => item.disclaimer) && (
         <p className="mt-4 text-center text-[12px] leading-relaxed text-[#5b5f6a]">
