@@ -14,6 +14,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { OPERATOR_IDENTITY } from '@/lib/legal';
+import { TrademarkNotice } from '@/components/TrademarkNotice';
 
 export const metadata: Metadata = {
   title: 'Terms of Service | CMA Studio',
@@ -34,6 +36,7 @@ const SECTIONS: LegalSection[] = [
     title: 'Acceptance of These Terms',
     blocks: [
       'These Terms of Service (the "Terms") are a binding agreement between you and CineMaster Academy ("CineMaster Academy", "we", "us" or "our") governing your access to and use of CMA Studio, including our websites, applications, render pipeline and related services (together, the "Service"). You accept these Terms by checking the agreement box when you create your account, and you reaffirm that acceptance by purchasing a subscription or continuing to use the Service. We record the date and the version of the Terms you accepted. If you do not agree to them, do not use the Service.',
+      OPERATOR_IDENTITY,
       'If you use the Service on behalf of a company or another legal entity, you represent that you have the authority to bind that entity, and "you" refers to both you and that entity.',
     ],
   },
@@ -42,6 +45,12 @@ const SECTIONS: LegalSection[] = [
     blocks: [
       'CMA Studio is a software layer. It provides a professional interface, server-side prompt engineering and a render library on top of third-party AI models that are hosted and served by fal.ai and its model partners (the "Model Providers"). We are not the model provider. We do not host, train or operate the underlying models, and we do not supply the compute that runs your generations.',
       'The capabilities, availability, pricing and content rules of each model are set by the Model Providers and can change at any time without notice to us. We may add, modify or retire models, features and integrations as the platform evolves.',
+      'Features labeled beta are provided for evaluation, may change or be withdrawn at any time, and may carry additional limits.',
+      'Service continuity, outages, and discontinuation.',
+      '(a) Temporary interruptions. The Service depends on third-party technologies, including Model Providers, our render pipeline provider, and hosting and infrastructure services, and interruptions can occur, on our side or theirs. When they do, we will use commercially reasonable efforts to restore the Service as quickly as possible. Temporary interruptions are not a breach of these Terms, and we are not liable for losses caused by unavailability beyond the remedies in this Section.',
+      '(b) Extended outages. If core functionality of the Service is materially unavailable for more than seven (7) consecutive days, for any reason, including a Model Provider or infrastructure failure, we will extend your subscription by the length of the downtime or, at your request, credit or refund the affected period pro-rata. If core functionality remains materially unavailable for more than thirty (30) consecutive days, you may cancel and receive a pro-rata refund of the unused remainder of your prepaid period, whether monthly or yearly.',
+      '(c) Discontinuation. If a technology that is material to operating the Service becomes unavailable or discontinued, is restricted in a way that prohibits our use, becomes unlawful for us to use, or changes in cost or terms so materially that continued operation is commercially impracticable, and no reasonable substitute is available after our commercially reasonable efforts to find one, we may retire the affected features or discontinue the Service on notice. If we discontinue the Service or a paid capability during a period you have prepaid for, we will refund the unused remainder of your prepaid period pro-rata, whether monthly or yearly, as described in the Refund & Cancellation Policy.',
+      '(d) Sole remedy. The extensions, credits, and refunds in this Section are your sole and exclusive remedy for unavailability, degradation, or discontinuation of the Service, and none of these events is a breach of these Terms.',
     ],
   },
   {
@@ -156,6 +165,7 @@ const SECTIONS: LegalSection[] = [
         'Fair use caps protect the platform. If your stored volume is far outside normal use for your tier, we may ask you to reduce it or apply limits.',
         'We do not guarantee stored renders against loss or corruption. Keep your own backups of any render that matters to you.',
       ],
+      'If we reduce a plan’s retention window, the reduction applies only to renders created after the change, or we will give you at least thirty (30) days’ notice to download existing renders before it applies to them.',
     ],
   },
   {
@@ -210,21 +220,22 @@ const SECTIONS: LegalSection[] = [
   },
   {
     // ========================================================================
-    // PLACEHOLDER JURISDICTION: State of California / Los Angeles County is
-    // a placeholder. Sebastien confirms the real governing law and venue
-    // with licensed counsel before launch.
+    // GOVERNING LAW: Nevada / Clark County, set per operator's decision.
+    // Licensed counsel confirms at the launch gate, alongside the arbitration
+    // strategy decision (class-action waiver + small-claims carve-out + opt-out).
     // ========================================================================
     title: 'Governing Law and Disputes',
     blocks: [
-      'These Terms are governed by the laws of the State of California, USA, without regard to its conflict of law rules. You and CineMaster Academy agree to the exclusive jurisdiction of the state and federal courts located in Los Angeles County, California, for any dispute that is not resolved informally.',
+      'These Terms are governed by the laws of the State of Nevada, USA, without regard to its conflict of law rules. You and CineMaster Academy agree to the exclusive jurisdiction of the state and federal courts located in Clark County, Nevada, for any dispute that is not resolved informally.',
       'Before filing a claim, you agree to first contact us at hello@cinemasteracademy.com and give us 30 days to work toward an informal resolution.',
+      'Either party may bring a qualifying claim in small claims court. Any claim must be brought within one (1) year after it arises or it is permanently barred, to the extent permitted by law.',
     ],
   },
   {
     title: 'General',
     blocks: [
       'If any provision of these Terms is found invalid or unenforceable, that provision will be enforced to the maximum extent permitted and the remaining provisions will stay in full force. Our failure to enforce a provision is not a waiver of our right to enforce it later.',
-      'These Terms, together with the Privacy Policy and the plan details shown at purchase, are the entire agreement between you and us regarding the Service. You may not assign or transfer these Terms without our prior written consent; we may assign them in connection with a merger, acquisition, reorganization or sale of assets.',
+      'These Terms, together with the Privacy Policy and the plan details shown at purchase, are the entire agreement between you and us regarding the Service. You may not assign or transfer these Terms without our prior written consent; we may assign them in connection with a merger, acquisition, reorganization or sale of assets, including to a business entity we form, an affiliate, or a successor.',
       'We are not liable for any delay or failure caused by events beyond our reasonable control, including outages or decisions of Model Providers, hosting or network providers, acts of government, natural disasters, internet disturbances or labor disputes.',
     ],
   },
@@ -232,6 +243,7 @@ const SECTIONS: LegalSection[] = [
     title: 'Contact',
     blocks: [
       'Questions about these Terms can be sent to hello@cinemasteracademy.com. A real person reads and answers them.',
+      OPERATOR_IDENTITY,
     ],
   },
 ];
@@ -265,7 +277,7 @@ export default function TermsPage() {
           Working draft, review by counsel before launch
         </div>
         <p className="mt-4 font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">
-          Last updated: July 2, 2026
+          Last updated: July 3, 2026
         </p>
         <p className="mt-6 text-[0.95rem] leading-[1.75] text-[#8b8f99]">
           The short version: CMA Studio is software. You pay us a flat subscription for the interface and the prompt
@@ -319,6 +331,7 @@ export default function TermsPage() {
           </Link>
           .
         </p>
+        <TrademarkNotice className="mt-6" />
       </main>
     </div>
   );

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/SiteHeader';
+import { TrademarkNotice } from '@/components/TrademarkNotice';
 import { LibraryClient } from './LibraryClient';
 
 export const metadata: Metadata = {
@@ -45,6 +46,7 @@ export default function FilesPage() {
             </span>
           </div>
         </div>
+        <TrademarkNotice className="mx-auto mt-4 max-w-6xl text-center" />
       </footer>
     </div>
   );

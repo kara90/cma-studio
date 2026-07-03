@@ -113,10 +113,77 @@ Academy + the agent email (hello@cinemasteracademy.com). Ten minutes.
 
 ## Blocked on people, not dashboards
 
-- Legal counsel: entity/LLC, arbitration clause, governing law (Terms §19 is
-  a placeholder). (Clickwrap at signup and the Refund & Cancellation Policy
-  are BUILT — counsel just reviews the wording.)
+- Legal counsel: entity/LLC, and the arbitration strategy decision (consumer
+  arbitration clause with class-action waiver, small-claims carve-out, 30-day
+  opt-out). Governing law is now set to Nevada / Clark County in Terms §19;
+  counsel confirms it. The clickwrap, checkout consent, and all three legal
+  documents are BUILT; counsel reviews the wording.
 - Final pricing numbers + plan retention windows (placeholders live in
   `lib/plans.ts` / `lib/retention.ts`).
 - Extra showcase media whenever ready (drop into `lib/showcase.ts` /
   `lib/lookPreviews.ts` — all look tiles have real clips as of 2026-07-02).
+
+---
+
+## Legal launch gate (ONE deploy: draft banners OFF + payments ON, all or nothing)
+
+HARD RULE: never enable payments while any item below is open. The
+"Working draft, review by counsel before launch" banners on /terms, /privacy,
+/refunds are the visible "still pre-gate" signal and stay up until this deploy.
+
+### Already DONE in beta (live now, banners still up, payments still off)
+- Operator identity on Terms (Sections 1 and 21), Privacy, and Refund pages
+  (`lib/legal.ts` OPERATOR_IDENTITY, one source of truth).
+- Governing law Nevada / Clark County, small-claims carve-out, 1-year claim
+  limit (Terms §19).
+- Privacy Security section; Model Provider training pointer.
+- Beta clause (Terms §2); assignment extension (Terms §20); retention fairness
+  (Terms §12); site-wide trademark footer (`components/TrademarkNotice.tsx`);
+  homepage storage line.
+- Service continuity, outages, and discontinuation clause verbatim (Terms §2),
+  with the Refund Policy aligned: 7-day remedy from ANY cause including
+  provider/infra, 30-day cancellation right, discontinuation refunded the same
+  for monthly and yearly.
+- Top-ups reconciled to storage only (no "generations" charge implied).
+- Signup: "I am 18 or older" attestation + Terms/Privacy/Refund clickwrap,
+  acceptance recorded (`terms_accepted_at`, `terms_version`,
+  `agreed_terms_privacy_refund`, `over_18` in Supabase user_metadata).
+- Checkout consent gate on /pricing (`CheckoutConsent`): plan, price,
+  frequency, "Renews automatically until cancelled," cancellation method, and
+  the verbatim required consent checkbox (auto-renewal + immediate performance
+  + 14-day proportionate-deduction). The consent + timestamp + terms version
+  are sent to `/api/checkout` and stamped onto the Stripe session and
+  subscription metadata.
+- Moderated / failed render notice in the studio and generators (compute may
+  still be consumed on the provider side).
+- Key-never-logged + no-tracker test (`npm test`, `tests/no-key-logging.test.mjs`).
+
+### REMAINING for the gate deploy (build these, then flip banners + payments together)
+1. Post-purchase acknowledgment email (G4.5): on `checkout.session.completed`,
+   send an email restating plan, price, renewal frequency, and how to cancel.
+   Needs an email provider (Resend) key + a send in the webhook handler. Use the
+   same Resend account pattern as BTE-FORM-WORKER.
+2. Yearly renewal reminder job (G4.6): a WORKING scheduled job that sends 15 to
+   45 days before renewal. Fastest path is Stripe's native upcoming-renewal
+   email (step 4.5); a branded alternative is a Cloudflare Cron Trigger worker
+   querying Stripe for upcoming renewals. One of the two must be live.
+3. Webhook consent persistence: mirror the Stripe session `consent`,
+   `consent_at`, `consent_version` metadata into `app_metadata` so the checkout
+   acceptance is recorded per account (the checkout route already stamps Stripe
+   metadata; the webhook needs to copy it).
+4. Customer Billing Portal + `/api/portal` route + a "Manage billing" link so
+   cancel is one click (matches the Refund Policy). See step 4.4 above.
+5. DMCA designated agent registered, then add the agent's details to Terms §11
+   and switch that section from a voluntary channel to registered safe harbor.
+6. Banner removal (G5): delete the "Working draft" banners on /terms, /privacy,
+   /refunds and set each "Last updated" to the launch date. ONLY in this deploy.
+
+### Manual for Sebastien (people, not code)
+- Clark County fictitious firm name filing for CineMaster Academy (the
+  contracting name on these Terms), alongside the Beyond the Edge filing.
+- Register the DMCA agent with the US Copyright Office (~$6, self-serve).
+- Attorney hour: this gate plus the arbitration strategy decision.
+- On custom-domain migration: carry acceptance records and terms versions over
+  unchanged, and 301 the workers.dev legal URLs.
+- When community sharing ships: STOP and expand the Terms first (public display
+  license, reporting, moderation for shared content).

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Faq } from '@/components/marketing/Faq';
 import { SiteHeader } from '@/components/SiteHeader';
+import { TrademarkNotice } from '@/components/TrademarkNotice';
 
 export const metadata: Metadata = {
   title: 'FAQ | CMA Studio | CineMaster Academy',
@@ -33,6 +34,7 @@ export default function FaqPage() {
             </a>
           </div>
         </div>
+        <TrademarkNotice className="mx-auto mt-4 max-w-6xl text-center" />
       </footer>
     </div>
   );

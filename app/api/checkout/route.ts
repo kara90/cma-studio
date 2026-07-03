@@ -26,7 +26,15 @@ export async function POST(request: Request) {
   if (!access.ok) return bad(access.status, access.error);
   if (!access.email) return bad(400, 'Your account has no email on file.');
 
-  let body: { kind?: string; tier?: string; cycle?: Cycle; extensionId?: string };
+  let body: {
+    kind?: string;
+    tier?: string;
+    cycle?: Cycle;
+    extensionId?: string;
+    consent?: boolean;
+    consent_at?: string;
+    consent_version?: string;
+  };
   try {
     body = await request.json();
   } catch {
@@ -35,6 +43,16 @@ export async function POST(request: Request) {
 
   let priceId: string | undefined;
   const metadata: Record<string, string> = { supabase_user_id: access.userId };
+
+  // Checkout-time acceptance record (G4.4): the shopper ticked the required
+  // consent adjacent to the pay button. Stamp it onto the Stripe session AND
+  // subscription metadata so date, time, and terms version are durably tied to
+  // the purchase (the webhook can mirror this to the account at the gate).
+  if (body.consent === true) {
+    metadata.consent = 'true';
+    if (typeof body.consent_at === 'string') metadata.consent_at = body.consent_at.slice(0, 40);
+    if (typeof body.consent_version === 'string') metadata.consent_version = body.consent_version.slice(0, 40);
+  }
 
   if (body.kind === 'extension') {
     priceId = priceForExtension(body.extensionId ?? '');

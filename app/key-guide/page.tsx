@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { KeyRound, CreditCard, Copy, ClipboardPaste, ShieldCheck, ExternalLink } from 'lucide-react';
 import { SiteHeader } from '@/components/SiteHeader';
+import { TrademarkNotice } from '@/components/TrademarkNotice';
 import { Reveal } from '@/components/Reveal';
 
 export const metadata: Metadata = {
@@ -130,6 +131,7 @@ export default function KeyGuidePage() {
             <a href="/refunds" className="transition hover:text-[#e7cfa3]">Refunds</a>
           </div>
         </div>
+        <TrademarkNotice className="mx-auto mt-4 max-w-6xl text-center" />
       </footer>
     </div>
   );

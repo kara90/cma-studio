@@ -3,22 +3,28 @@
  * licensed attorney review and approve every clause before launch.
  *
  * app/refunds/page.tsx - Refund & Cancellation Policy for CMA Studio.
- * Business rules set by Sebastien (2026-07-02): yearly plans are
- * non-refundable except a pro-rata refund for an extended platform outage
- * that is OUR fault; monthly plans cancel anytime effective at the end of
- * the paid month, with no further charges. Compute never touches our books:
- * it is billed by fal.ai directly on the user's own key, so it is expressly
- * out of scope here. Incorporated by reference into the Terms of Service.
+ * Business rules: monthly plans cancel anytime effective at the end of the
+ * paid month; yearly plans carry a 14-day money-back guarantee, then are
+ * non-refundable except (a) an extended outage of core functionality for
+ * more than 7 consecutive days FROM ANY CAUSE (pro-rata extension/credit/
+ * refund), (b) a 30-day-outage cancellation right (pro-rata refund), and
+ * (c) discontinuation or no-cause termination (pro-rata refund), monthly
+ * and yearly refunded the same way. Aligned with Terms Section 2 (Service
+ * continuity, outages, and discontinuation). Compute never touches our
+ * books: fal.ai bills the user directly, out of scope here. Incorporated
+ * by reference into the Terms of Service.
  */
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { OPERATOR_IDENTITY } from '@/lib/legal';
+import { TrademarkNotice } from '@/components/TrademarkNotice';
 
 export const metadata: Metadata = {
   title: 'Refund & Cancellation Policy | CMA Studio',
   description:
-    'How refunds and cancellation work at CMA Studio: monthly plans cancel anytime and simply stop renewing, yearly plans are non-refundable except for an extended platform outage on our side, and compute is billed by fal.ai directly to you and is never ours to refund.',
+    'How refunds and cancellation work at CMA Studio: monthly plans cancel anytime and simply stop renewing, yearly plans carry a 14-day money-back guarantee, an extended outage of core functionality from any cause is refunded pro-rata, and compute is billed by fal.ai directly to you and is never ours to refund.',
 };
 
 type Block = string | string[];
@@ -33,14 +39,14 @@ const SECTIONS: LegalSection[] = [
     title: 'What This Policy Covers',
     blocks: [
       'This Refund & Cancellation Policy applies to the CMA Studio software subscription: the plan tiers shown on our pricing page, billed monthly or yearly, and any recurring storage top-ups. It forms part of, and is incorporated into, our Terms of Service. If anything in this policy conflicts with a right that the law of your country gives you and that cannot be waived, the law wins.',
-      'It does not cover compute. Every render runs on your own fal.ai key and fal.ai bills you directly, under fal.ai’s own terms. We never receive that money, we cannot see those charges and we cannot reverse or refund them — including for renders that fail, disappoint or violate a model provider’s content rules. Questions about compute charges go to fal.ai.',
+      'It does not cover compute. Every render runs on your own fal.ai key and fal.ai bills you directly, under fal.ai’s own terms. We never receive that money, we cannot see those charges and we cannot reverse or refund them, including for renders that fail, disappoint or violate a model provider’s content rules. Questions about compute charges go to fal.ai.',
     ],
   },
   {
     title: 'Monthly Plans',
     blocks: [
       'Monthly plans are commitment-free. You can cancel at any time, and cancellation takes effect at the end of the month you have already paid for: you keep full access until that date, and you are not charged again.',
-      'We do not refund the current month or parts of it — cancelling simply stops the next charge. This keeps monthly pricing simple and low: you only ever risk one month.',
+      'We do not refund the current month or parts of it. Cancelling simply stops the next charge. This keeps monthly pricing simple and low: you only ever risk one month.',
     ],
   },
   {
@@ -53,34 +59,31 @@ const SECTIONS: LegalSection[] = [
     ],
   },
   {
-    title: 'The One Exception: Extended Platform Outage',
+    title: 'Extended Outages and Discontinuation',
     blocks: [
-      'If CMA Studio itself is materially unavailable — you cannot sign in, generate or reach your library — for more than seven (7) consecutive days because of a failure in our own systems, you may request a remedy:',
-      [
-        'On a yearly plan: a pro-rata refund of the unused remainder of your year, or (your choice) equivalent service credit.',
-        'On a monthly plan: a refund of the month in which the outage occurred.',
-      ],
-      'This exception does not apply to unavailability caused by things outside our systems, including: outages, degradation or moderation decisions at fal.ai or any model provider; problems with your own fal.ai account, key or billing; your device, network or internet provider; scheduled maintenance we announced in advance; events beyond our reasonable control (force majeure); or suspension of your account for a breach of the Terms of Service.',
-      'To claim it, email hello@cinemasteracademy.com from your account email within 30 days of the outage ending. We verify the outage against our own monitoring and respond within 10 business days.',
-      'Separately from outages: if we ever discontinue CMA Studio, or terminate your account without cause, before a period you have paid for ends, we refund the unused remainder pro-rata. You never pay for time we chose not to deliver.',
+      'If core functionality of CMA Studio (signing in, generating, or reaching your library) is materially unavailable for more than seven (7) consecutive days, for any reason, including a failure in our own systems, a Model Provider, or an infrastructure provider, we will extend your subscription by the length of the downtime or, at your request, credit or refund the affected period pro-rata.',
+      'If core functionality remains materially unavailable for more than thirty (30) consecutive days, you may cancel and receive a pro-rata refund of the unused remainder of your prepaid period, whether monthly or yearly.',
+      'Short interruptions of under seven consecutive days, whether on our side or a provider’s, are a normal part of operating a service that depends on third-party technology and are not covered by these remedies. Per-render failures, where a Model Provider still consumed compute on your fal.ai key, are addressed in the compute section above and are a matter between you and fal.ai.',
+      'Discontinuation. If we discontinue CMA Studio or a paid capability, or terminate your account without cause, during a period you have prepaid for, we refund the unused remainder of your prepaid period pro-rata, refunded the same way for monthly and yearly plans. You never pay for time we chose not to deliver.',
+      'To claim an outage remedy, email hello@cinemasteracademy.com from your account email within 30 days of the outage ending. We verify the outage against our own monitoring and respond within 10 business days. Suspension of your account for a breach of the Terms of Service is not an outage and is not covered.',
     ],
   },
   {
     title: 'Top-Ups',
     blocks: [
-      'Recurring top-ups follow the monthly rules: cancel anytime, the top-up stays active until the end of the period you paid for, no partial-period refunds, and no further charges after cancellation. Cancelling a top-up never touches your base plan.',
-      'Any CMA top-up, storage or generations, never expires while your subscription is active.',
+      'Recurring storage top-ups follow the monthly rules: cancel anytime, the top-up stays active until the end of the period you paid for, no partial-period refunds, and no further charges after cancellation. Cancelling a top-up never touches your base plan.',
+      'Any CMA storage top-up never expires while your subscription is active.',
     ],
   },
   {
     title: 'How to Cancel',
     blocks: [
-      'Cancelling must be as easy as subscribing — no calls, no chats with a retention team, no hoops:',
+      'Cancelling must be as easy as subscribing, with no calls, no chats with a retention team, and no hoops:',
       [
         'From your account: manage your subscription through the billing portal and cancel with a click.',
         'By email: write to hello@cinemasteracademy.com from your account email with the word "cancel". We confirm within 2 business days, effective as of the day you wrote.',
       ],
-      'After cancellation your access continues to the end of the paid period. Your renders remain available for whatever remains of your plan’s retention window — download anything you want to keep before your access ends.',
+      'After cancellation your access continues to the end of the paid period. Your renders remain available for whatever remains of your plan’s retention window. Download anything you want to keep before your access ends.',
     ],
   },
   {
@@ -99,7 +102,7 @@ const SECTIONS: LegalSection[] = [
   {
     title: 'Chargebacks',
     blocks: [
-      'If you believe a charge is wrong, contact us first at hello@cinemasteracademy.com — a real person reads it. Duplicate charges and charges made in error are always refunded in full, without argument, as soon as we verify them.',
+      'If you believe a charge is wrong, contact us first at hello@cinemasteracademy.com. A real person reads it. Duplicate charges and charges made in error are always refunded in full, without argument, as soon as we verify them.',
       'Opening a payment dispute for a charge you knowingly authorized, instead of contacting us, may lead to suspension of your account while the dispute is open. We retain acceptance records (the date and version of the terms you agreed to at signup) and usage records, and we present them in dispute proceedings.',
     ],
   },
@@ -119,6 +122,7 @@ const SECTIONS: LegalSection[] = [
     title: 'Contact',
     blocks: [
       'Billing questions and refund requests: hello@cinemasteracademy.com. A real person reads and answers them.',
+      OPERATOR_IDENTITY,
     ],
   },
 ];
@@ -152,14 +156,14 @@ export default function RefundsPage() {
           Working draft, review by counsel before launch
         </div>
         <p className="mt-4 font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">
-          Last updated: July 2, 2026
+          Last updated: July 3, 2026
         </p>
         <p className="mt-6 text-[0.95rem] leading-[1.75] text-[#8b8f99]">
           The short version: monthly plans cancel anytime, you keep access to the end of the paid month and are
           never charged again. Yearly plans carry a 14-day money-back guarantee; after that window they are
-          non-refundable, with one exception: if the platform itself stops working for an extended period because of
-          us, we refund the unused time. Compute runs on your own fal.ai key and is billed by fal.ai directly, so it
-          is never ours to refund.
+          non-refundable, with one exception: if core functionality stops working for an extended period, for any
+          reason, we refund the unused time pro-rata. Compute runs on your own fal.ai key and is billed by fal.ai
+          directly, so it is never ours to refund.
         </p>
 
         <div className="glass glass-gold mt-10 rounded-2xl p-6 sm:p-8">
@@ -204,6 +208,7 @@ export default function RefundsPage() {
           </Link>
           .
         </p>
+        <TrademarkNotice className="mt-6 text-center" />
       </main>
     </div>
   );

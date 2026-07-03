@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { PricingView } from '@/components/pricing/PricingView';
 import { SiteHeader } from '@/components/SiteHeader';
+import { TrademarkNotice } from '@/components/TrademarkNotice';
 import { HonestNote } from '@/components/marketing/HonestNote';
 
 export const metadata: Metadata = {
@@ -65,6 +66,7 @@ export default function PricingPage() {
             </span>
           </div>
         </div>
+        <TrademarkNotice className="mx-auto mt-4 max-w-6xl text-center" />
       </footer>
     </div>
   );

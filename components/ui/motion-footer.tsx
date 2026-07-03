@@ -13,6 +13,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Clapperboard, CreditCard, ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { GetAppButton } from '@/components/PwaProvider';
+import { TrademarkNotice } from '@/components/TrademarkNotice';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -238,6 +239,7 @@ export function CinematicFooter() {
             <p className="text-muted-foreground text-xs md:text-sm max-w-md leading-relaxed">
               CMA Studio is the first tool in a growing family we are building for serious film production.
             </p>
+            <TrademarkNotice className="mt-3 max-w-md" />
           </div>
 
           <div className="relative z-20 w-full pb-8 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-6">

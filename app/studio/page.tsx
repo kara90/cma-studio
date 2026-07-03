@@ -12,6 +12,7 @@ import { getBrowserSupabase } from '@/lib/supabase/client';
 import { isAcademyEmail, hasActivePlan, DEV_AUTH_BYPASS } from '@/lib/access';
 import { StudioConsole } from '@/components/studio/StudioConsole';
 import { Logo } from '@/components/Logo';
+import { TrademarkNotice } from '@/components/TrademarkNotice';
 
 export default function StudioPage() {
   const router = useRouter();
@@ -134,6 +135,7 @@ export default function StudioPage() {
             </span>
           </div>
         </div>
+        <TrademarkNotice className="mx-auto mt-4 max-w-6xl text-center" />
       </footer>
     </div>
   );

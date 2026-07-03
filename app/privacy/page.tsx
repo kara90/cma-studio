@@ -15,6 +15,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { OPERATOR_IDENTITY } from '@/lib/legal';
+import { TrademarkNotice } from '@/components/TrademarkNotice';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | CMA Studio',
@@ -72,6 +74,7 @@ const SECTIONS: LegalSection[] = [
         'Stripe. Processes payments and holds all payment card data.',
         'fal.ai. Runs the generation compute. It receives your API key, your prompt and any frames or reference images you attach at render time, and processes them under its own terms and privacy policy.',
       ],
+      'Whether a Model Provider uses inputs or outputs to improve its models is governed by that provider’s own terms and policies.',
     ],
   },
   {
@@ -120,9 +123,16 @@ const SECTIONS: LegalSection[] = [
     ],
   },
   {
+    title: 'Security',
+    blocks: [
+      'We use reasonable technical and organizational safeguards to protect account data, including encryption in transit, access controls, and the key-handling practices described above. Staff access to your prompts, scene notes, and renders is limited to what is needed to operate the Service and support you. No method of transmission or storage is completely secure, and we cannot guarantee absolute security. If a breach affecting your personal information occurs, we will notify you as required by applicable law.',
+    ],
+  },
+  {
     title: 'Contact',
     blocks: [
       'Privacy questions and requests go to hello@cinemasteracademy.com. A real person reads and answers them.',
+      OPERATOR_IDENTITY,
     ],
   },
 ];
@@ -156,7 +166,7 @@ export default function PrivacyPage() {
           Working draft, review by counsel before launch
         </div>
         <p className="mt-4 font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">
-          Last updated: July 2, 2026
+          Last updated: July 3, 2026
         </p>
         <p className="mt-6 text-[0.95rem] leading-[1.75] text-[#8b8f99]">
           This policy covers CMA Studio, operated by CineMaster Academy. The design principle behind the product is
@@ -209,6 +219,7 @@ export default function PrivacyPage() {
           </Link>
           .
         </p>
+        <TrademarkNotice className="mt-6" />
       </main>
     </div>
   );

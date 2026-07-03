@@ -20,7 +20,7 @@ const PILLARS = [
   {
     icon: Archive,
     title: 'Your renders, kept safe',
-    body: 'fal deletes generated files after about 7 days. We cache and index them for you, with retention by tier, so nothing disappears.',
+    body: 'fal deletes generated files after about 7 days. We cache and index them for you, with retention by tier, so nothing disappears before you can save it.',
   },
 ] as const;
 

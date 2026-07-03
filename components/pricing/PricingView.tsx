@@ -20,6 +20,7 @@ import { Check, ShieldCheck, ArrowRight, Plus, Archive, Hourglass, Loader2, Aler
 import { getBrowserSupabase } from '@/lib/supabase/client';
 import { isSupabaseConfigured, IS_PROD } from '@/lib/access';
 import { TIERS, EXTENSIONS, PRICING_SCOPE_NOTE, PRICE_LOCK_NOTE, findTier, type Cycle, type Tier } from '@/lib/plans';
+import { TERMS_VERSION } from '@/lib/legal';
 
 type PlanMeta = { tier?: string; status?: string; expires?: string } | undefined;
 
@@ -39,6 +40,9 @@ export function PricingView() {
   const [preview, setPreview] = useState<'auto' | 'visitor' | 'member'>('auto');
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  // Checkout consent gate (G4.1 / G4.2): a purchase click opens this with the
+  // plan disclosures + the required consent checkbox before any checkout fires.
+  const [pending, setPending] = useState<PendingCheckout | null>(null);
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -52,6 +56,41 @@ export function PricingView() {
       active = false;
     };
   }, [supabase]);
+
+  // Intercept every pay button: derive the disclosures and open the consent
+  // gate. The real checkout only runs after the shopper confirms.
+  function requestCheckout(payload: Record<string, unknown>, id: string) {
+    setNotice(null);
+    let name = 'Plan';
+    let price = '';
+    let frequency = '';
+    if (payload.kind === 'extension') {
+      const e = EXTENSIONS.find((x) => x.id === payload.extensionId);
+      name = e?.name ?? 'Top-up';
+      price = e?.price ?? '';
+      frequency = 'per month, billed monthly';
+    } else {
+      const t = findTier(String(payload.tier));
+      const cyc: Cycle = payload.cycle === 'monthly' ? 'monthly' : 'yearly';
+      name = t?.name ?? 'Plan';
+      price = t?.price[cyc] ?? '';
+      frequency = cyc === 'yearly' ? 'per month, billed yearly' : 'per month, billed monthly';
+    }
+    setPending({ payload, id, name, price, frequency });
+  }
+
+  function confirmCheckout() {
+    if (!pending) return;
+    const withConsent = {
+      ...pending.payload,
+      consent: true,
+      consent_at: new Date().toISOString(),
+      consent_version: TERMS_VERSION,
+    };
+    const id = pending.id;
+    setPending(null);
+    void startCheckout(withConsent, id);
+  }
 
   async function startCheckout(payload: Record<string, unknown>, id: string) {
     setNotice(null);
@@ -90,9 +129,11 @@ export function PricingView() {
         </p>
       )}
 
-      {isMember ? <MemberView tier={currentTier} /> : <VisitorPlans cycle={cycle} setCycle={setCycle} busyId={busyId} onCheckout={startCheckout} />}
+      {isMember ? <MemberView tier={currentTier} /> : <VisitorPlans cycle={cycle} setCycle={setCycle} busyId={busyId} onCheckout={requestCheckout} />}
 
-      <Extensions member={isMember} busyId={busyId} onCheckout={startCheckout} />
+      <Extensions member={isMember} busyId={busyId} onCheckout={requestCheckout} />
+
+      {pending && <CheckoutConsent pending={pending} onConfirm={confirmCheckout} onCancel={() => setPending(null)} />}
 
       {!IS_PROD && (
         <div className="mx-auto mt-14 flex w-fit items-center gap-2 rounded-full border border-amber-400/25 bg-amber-400/5 px-2 py-1.5">
@@ -115,6 +156,111 @@ export function PricingView() {
 }
 
 type CheckoutFn = (payload: Record<string, unknown>, id: string) => void;
+
+interface PendingCheckout {
+  payload: Record<string, unknown>;
+  id: string;
+  name: string;
+  price: string;
+  frequency: string;
+}
+
+/* ── Checkout consent gate (G4.1 disclosures + G4.2 required consent) ──
+   Shown before any Stripe checkout fires. The checkbox text is verbatim and
+   is what the EU withdrawal mechanics in the Refund Policy depend on. */
+function CheckoutConsent({
+  pending,
+  onConfirm,
+  onCancel,
+}: {
+  pending: PendingCheckout;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const [agree, setAgree] = useState(false);
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 backdrop-blur-sm p-4 sm:items-center"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Confirm your subscription"
+      onClick={onCancel}
+    >
+      <div
+        className="glass glass-gold w-full max-w-md rounded-3xl border border-[#bc9863]/40 p-6 sm:p-7"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="font-[family-name:var(--font-sora)] text-[18px] font-semibold text-[#f4efe6]">
+          Confirm your subscription
+        </h3>
+
+        {/* G4.1 disclosures, adjacent to the pay button */}
+        <dl className="mt-4 flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/40 p-4 font-mono text-[12px]">
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-[#8b909e]">Plan</dt>
+            <dd className="text-[#f4efe6]">{pending.name}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-[#8b909e]">Price</dt>
+            <dd className="text-[#f4efe6]">
+              {pending.price} <span className="text-[#8b909e]">{pending.frequency}</span>
+            </dd>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-[#8b909e]">Renewal</dt>
+            <dd className="text-[#e7cfa3]">Renews automatically until cancelled</dd>
+          </div>
+          <div className="flex items-start justify-between gap-3">
+            <dt className="shrink-0 text-[#8b909e]">Cancel</dt>
+            <dd className="text-right text-[#cfcabf]">One click in your account, or email hello@cinemasteracademy.com</dd>
+          </div>
+        </dl>
+
+        {/* G4.2 required consent, verbatim */}
+        <label className="mt-4 flex cursor-pointer items-start gap-2.5 rounded-2xl border border-white/10 bg-black/40 px-3.5 py-3">
+          <input
+            type="checkbox"
+            checked={agree}
+            onChange={(e) => setAgree(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#bc9863]"
+          />
+          <span className="text-[12px] leading-relaxed text-[#8b8f99]">
+            I agree to the{' '}
+            <Link href="/terms" target="_blank" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
+              Terms of Service
+            </Link>
+            ,{' '}
+            <Link href="/privacy" target="_blank" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
+              Privacy Policy
+            </Link>
+            , and{' '}
+            <Link href="/refunds" target="_blank" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
+              Refund &amp; Cancellation Policy
+            </Link>
+            , including automatic renewal, and I expressly request that the Service start immediately. I understand
+            that if I withdraw within 14 days, a proportionate deduction applies for the period already supplied.
+          </span>
+        </label>
+
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row-reverse">
+          <button
+            onClick={onConfirm}
+            disabled={!agree}
+            className="inline-flex min-h-[46px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-5 py-3 text-[14px] font-semibold text-black transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Continue to secure checkout
+          </button>
+          <button
+            onClick={onCancel}
+            className="inline-flex min-h-[46px] cursor-pointer items-center justify-center rounded-xl border border-white/12 px-5 py-3 text-[14px] font-semibold text-[#cfcabf] transition hover:border-[#bc9863] hover:text-[#e7cfa3]"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ── visitor: full plans ── */
 function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; setCycle: (c: Cycle) => void; busyId: string | null; onCheckout: CheckoutFn }) {
@@ -392,7 +538,7 @@ function Extensions({ member, busyId, onCheckout }: { member: boolean; busyId: s
       </div>
       {/* the future-proof top-up promise, codified (mirrored in the Refund Policy) */}
       <p className="mx-auto mt-6 max-w-md text-center font-mono text-[11px] leading-relaxed tracking-[0.06em] text-[#8b909e]">
-        Any CMA top-up, storage or generations, never expires while your subscription is active.
+        Any CMA storage top-up never expires while your subscription is active.
       </p>
     </div>
   );

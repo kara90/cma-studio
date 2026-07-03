@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/SiteHeader';
+import { TrademarkNotice } from '@/components/TrademarkNotice';
 import { Reveal } from '@/components/Reveal';
 import { InstallGuide } from '@/components/InstallGuide';
 
@@ -58,6 +59,7 @@ export default function GetAppPage() {
             </a>
           </div>
         </div>
+        <TrademarkNotice className="mx-auto mt-4 max-w-6xl text-center" />
       </footer>
     </div>
   );

@@ -597,6 +597,14 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
               )}
             </div>
           )}
+          {/* G4.7: a failed or moderated render may still have cost compute on
+              the provider side. State it, to match the Terms. */}
+          {status === 'ERROR' && (
+            <p className="mt-2 font-mono text-[10px] leading-relaxed text-[#8b909e]">
+              If the model provider blocked or moderated this render, it may still have consumed compute on your
+              fal.ai key. That charge is between you and fal.ai.
+            </p>
+          )}
         </section>
       </aside>
 

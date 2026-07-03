@@ -34,6 +34,7 @@ export default function LoginPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [agreed, setAgreed] = useState(false);
+  const [over18, setOver18] = useState(false);
   const turnstileRef = useRef<TurnstileHandle>(null);
   const turnstileEnabled = Boolean(TURNSTILE_SITE_KEY);
 
@@ -52,7 +53,11 @@ export default function LoginPage() {
     }
 
     if (mode === 'signup' && !agreed) {
-      setError('Please agree to the Terms of Service and Privacy Policy to create your account.');
+      setError('Please agree to the Terms of Service, Privacy Policy, and Refund & Cancellation Policy to create your account.');
+      return;
+    }
+    if (mode === 'signup' && !over18) {
+      setError('You must confirm that you are 18 or older to create an account.');
       return;
     }
     if (turnstileEnabled && !captchaToken) {
@@ -69,9 +74,15 @@ export default function LoginPage() {
           password,
           options: {
             captchaToken: captcha,
-            // Clickwrap record: WHEN they agreed and to WHICH version of the
-            // documents. Stamped at account creation, kept on the account.
-            data: { terms_accepted_at: new Date().toISOString(), terms_version: TERMS_VERSION },
+            // Clickwrap record (G4.4): WHEN they agreed, to WHICH version, and
+            // the exact checkbox states. Stamped at account creation, kept on
+            // the account so we can prove acceptance in a dispute.
+            data: {
+              terms_accepted_at: new Date().toISOString(),
+              terms_version: TERMS_VERSION,
+              agreed_terms_privacy_refund: true,
+              over_18: true,
+            },
           },
         });
         if (e1) throw e1;
@@ -163,27 +174,42 @@ export default function LoginPage() {
             )}
 
             {mode === 'signup' && (
-              /* Clickwrap: unchecked by default, blocks signup until ticked.
-                 Links open in a new tab so the form state is never lost. */
-              <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-white/10 bg-black/40 px-3.5 py-3">
-                <input
-                  type="checkbox"
-                  checked={agreed}
-                  onChange={(e) => setAgreed(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#bc9863]"
-                />
-                <span className="text-xs leading-relaxed text-[#8b8f99]">
-                  I have read and agree to the{' '}
-                  <Link href="/terms" target="_blank" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link href="/privacy" target="_blank" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
-                    Privacy Policy
-                  </Link>
-                  .
-                </span>
-              </label>
+              /* Clickwrap: both boxes unchecked by default, block signup until
+                 ticked. Links open in a new tab so the form state is never lost. */
+              <div className="flex flex-col gap-2">
+                <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-white/10 bg-black/40 px-3.5 py-3">
+                  <input
+                    type="checkbox"
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#bc9863]"
+                  />
+                  <span className="text-xs leading-relaxed text-[#8b8f99]">
+                    I have read and agree to the{' '}
+                    <Link href="/terms" target="_blank" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
+                      Terms of Service
+                    </Link>
+                    ,{' '}
+                    <Link href="/privacy" target="_blank" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
+                      Privacy Policy
+                    </Link>
+                    , and{' '}
+                    <Link href="/refunds" target="_blank" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
+                      Refund &amp; Cancellation Policy
+                    </Link>
+                    .
+                  </span>
+                </label>
+                <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-white/10 bg-black/40 px-3.5 py-3">
+                  <input
+                    type="checkbox"
+                    checked={over18}
+                    onChange={(e) => setOver18(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#bc9863]"
+                  />
+                  <span className="text-xs leading-relaxed text-[#8b8f99]">I am 18 or older.</span>
+                </label>
+              </div>
             )}
 
             {turnstileEnabled && (
@@ -197,7 +223,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={busy || (turnstileEnabled && !captchaToken) || (mode === 'signup' && !agreed)}
+              disabled={busy || (turnstileEnabled && !captchaToken) || (mode === 'signup' && (!agreed || !over18))}
               className="mt-1 inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] py-3 text-sm font-semibold text-black transition hover:brightness-105 disabled:opacity-60"
             >
               {busy && <Loader2 size={15} className="animate-spin" />}
