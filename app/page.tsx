@@ -249,6 +249,50 @@ export default function Home() {
         {/* showcase: real renders from the platform */}
         <Showcase />
 
+        {/* ── STUDIO PRO — the flagship tool, high on the page, right under the
+            autoplay videos. Defaults to PRO mode so the full rig is visible at
+            a glance (the power, not the stripped-down easy view). ── */}
+        <section id="studio-pro" className="scroll-mt-6 px-4 py-16 sm:px-6">
+          <Reveal className="mx-auto mb-8 max-w-3xl text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#bc9863] bg-[#bc9863]/12 px-4 py-1.5 font-mono text-[11px] tracking-[0.24em] text-[#e7cfa3] uppercase">
+              <Clapperboard size={13} /> Studio Pro · The flagship
+            </div>
+            <h2 className="font-[family-name:var(--font-sora)] text-[clamp(2rem,4.6vw,3.2rem)] font-bold tracking-[-0.03em]">
+              This is what <span className="bg-gradient-to-r from-[#e7cfa3] to-[#bc9863] bg-clip-text text-transparent">nobody else has.</span>
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-[15.5px] leading-relaxed text-[#8b8f99]">
+              A server-side Director of Photography engine built on{' '}
+              <span className="text-[#f4efe6]">21+ years behind the camera</span>. Real bodies, real glass, real light,
+              compiled into every frame. This is the full Pro rig, live below. Touch every control.
+            </p>
+            <p className="mx-auto mt-3 max-w-xl text-[13.5px] leading-relaxed text-[#8b909e]">
+              Built by a working DP with 21+ years on set: an Absolut Vodka commercial, an Amazon Prime series, aerial
+              work for major-label productions. That experience is compiled into every frame this engine directs.
+            </p>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <div className="glass glass-gold rounded-3xl p-3 sm:p-5">
+              <StudioConsole locked />
+            </div>
+          </Reveal>
+          <Reveal delay={0.12}>
+            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                href="/studio"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-7 py-3.5 text-[15px] font-semibold text-black shadow-[0_14px_44px_rgba(188,152,99,0.36)] transition hover:-translate-y-0.5 hover:brightness-105"
+              >
+                Open Studio Pro, full screen <ArrowRight size={17} />
+              </Link>
+              <Link
+                href="/pricing"
+                className="inline-flex min-h-[40px] items-center font-mono text-[12px] tracking-[0.14em] text-[#8b8f99] uppercase transition hover:text-[#e7cfa3]"
+              >
+                See plans →
+              </Link>
+            </div>
+          </Reveal>
+        </section>
+
         {/* ── THE APP — kept right after social proof, never lost behind a dismissed banner ── */}
         <section id="get-the-app" className="mx-auto max-w-4xl scroll-mt-6 px-6 pb-24">
           <Reveal>
@@ -363,32 +407,6 @@ export default function Home() {
             <p className="mt-3 text-center font-[family-name:var(--font-sora)] text-[1.05rem] font-semibold text-[#e7cfa3]">
               Fewer wasted renders. Your fal budget goes further.
             </p>
-          </Reveal>
-        </section>
-
-        {/* ── STUDIO PRO — the flagship, right on the homepage ── */}
-        <section id="studio-pro" className="scroll-mt-6 px-4 py-20 sm:px-6">
-          <Reveal className="mx-auto mb-8 max-w-3xl text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#bc9863] bg-[#bc9863]/12 px-4 py-1.5 font-mono text-[11px] tracking-[0.24em] text-[#e7cfa3] uppercase">
-              <Clapperboard size={13} /> Studio Pro · The flagship
-            </div>
-            <h2 className="font-[family-name:var(--font-sora)] text-[clamp(2rem,4.6vw,3.2rem)] font-bold tracking-[-0.03em]">
-              This is what <span className="bg-gradient-to-r from-[#e7cfa3] to-[#bc9863] bg-clip-text text-transparent">nobody else has.</span>
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-[15.5px] leading-relaxed text-[#8b8f99]">
-              A server-side Director of Photography engine built on{' '}
-              <span className="text-[#f4efe6]">21+ years behind the camera</span>. Real bodies, real glass, real light,
-              compiled into every frame. Try every control right here.
-            </p>
-            <p className="mx-auto mt-3 max-w-xl text-[13.5px] leading-relaxed text-[#8b909e]">
-              Built by a working DP with 21+ years on set: an Absolut Vodka commercial, an Amazon Prime series, aerial
-              work for major-label productions. That experience is compiled into every frame this engine directs.
-            </p>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <div className="glass glass-gold rounded-3xl p-3 sm:p-5">
-              <StudioConsole locked />
-            </div>
           </Reveal>
         </section>
 

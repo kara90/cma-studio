@@ -226,12 +226,16 @@ function DeptSection({
   );
 }
 
-export function StudioConsole({ locked = false }: { locked?: boolean }) {
+export function StudioConsole({ locked = false, defaultPro = true }: { locked?: boolean; defaultPro?: boolean }) {
   const router = useRouter();
-  // Per-department Auto/Manual — everything starts on Auto.
-  const [deptAuto, setDeptAuto] = useState<Record<DeptKey, boolean>>({
-    camera: true, anamorphic: true, sensor: true, director: true,
-  });
+  // Per-department Auto/Manual. Default = Pro (all Manual) so the full rig is
+  // visible immediately: people see the power, not the stripped-down easy view.
+  // Pass defaultPro={false} for an Auto-first surface.
+  const [deptAuto, setDeptAuto] = useState<Record<DeptKey, boolean>>(
+    defaultPro
+      ? { camera: false, anamorphic: false, sensor: false, director: false }
+      : { camera: true, anamorphic: true, sensor: true, director: true },
+  );
   const allAuto = deptAuto.camera && deptAuto.anamorphic && deptAuto.sensor && deptAuto.director;
   const allManual = !deptAuto.camera && !deptAuto.anamorphic && !deptAuto.sensor && !deptAuto.director;
   /** any DP-side department manual → the workspace opens into the 3-column rig */
@@ -938,32 +942,40 @@ export function StudioConsole({ locked = false }: { locked?: boolean }) {
   );
 
   const masterSwitch = (
-    <div className="mb-5 flex flex-col items-center gap-1.5">
-      <div className="glass flex gap-1 rounded-full p-1">
-        <button
-          onClick={() => masterSet(true)}
-          aria-pressed={allAuto}
-          className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold transition ${
-            allAuto ? 'bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] text-black' : 'text-[#8b8f99] hover:text-[#e7cfa3]'
-          }`}
-        >
-          <Wand2 size={15} /> Auto
-          <span className={`font-mono text-[9px] tracking-[0.14em] uppercase ${allAuto ? 'opacity-70' : 'opacity-50'}`}>easy</span>
-        </button>
+    <div className="mb-5 flex flex-col items-center gap-2.5">
+      <span className="font-mono text-[9px] tracking-[0.22em] text-[#8b909e] uppercase">Choose your mode</span>
+      <div className="glass glass-gold flex gap-1 rounded-full border border-[#bc9863]/30 p-1">
         <button
           onClick={() => masterSet(false)}
           aria-pressed={allManual}
-          className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold transition ${
-            allManual ? 'bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] text-black' : 'text-[#8b8f99] hover:text-[#e7cfa3]'
+          className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-6 py-2.5 text-[13.5px] font-semibold transition ${
+            allManual ? 'bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] text-black shadow-[0_6px_20px_rgba(188,152,99,0.35)]' : 'text-[#c7c2b8] hover:text-[#e7cfa3]'
           }`}
         >
           <SlidersHorizontal size={15} /> Pro
           <span className={`font-mono text-[9px] tracking-[0.14em] uppercase ${allManual ? 'opacity-70' : 'opacity-50'}`}>full control</span>
         </button>
+        <button
+          onClick={() => masterSet(true)}
+          aria-pressed={allAuto}
+          className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-6 py-2.5 text-[13.5px] font-semibold transition ${
+            allAuto ? 'bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] text-black shadow-[0_6px_20px_rgba(188,152,99,0.35)]' : 'text-[#c7c2b8] hover:text-[#e7cfa3]'
+          }`}
+        >
+          <Wand2 size={15} /> Auto
+          <span className={`font-mono text-[9px] tracking-[0.14em] uppercase ${allAuto ? 'opacity-70' : 'opacity-50'}`}>easy</span>
+        </button>
       </div>
-      {!allAuto && !allManual && (
-        <span className="font-mono text-[9px] tracking-[0.18em] text-[#bc9863]/80 uppercase">Custom mix · per department</span>
-      )}
+      {/* one clear line so nobody wonders what the switch does */}
+      <p className="max-w-md text-center text-[12px] leading-relaxed text-[#8b8f99]">
+        {allManual ? (
+          <><span className="text-[#e7cfa3]">Pro:</span> you direct the camera, lens, film stock and light. Every control, full power.</>
+        ) : allAuto ? (
+          <><span className="text-[#e7cfa3]">Auto:</span> just describe your scene and the DP engine directs it for you. Flip to Pro for full control.</>
+        ) : (
+          <><span className="text-[#bc9863]">Custom mix:</span> some departments on Auto, some on Pro.</>
+        )}
+      </p>
     </div>
   );
 

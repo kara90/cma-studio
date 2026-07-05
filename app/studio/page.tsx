@@ -18,57 +18,59 @@ export default function StudioPage() {
   const router = useRouter();
   const supabase = useMemo(() => getBrowserSupabase(), []);
 
-  const [authReady, setAuthReady] = useState(false);
+  // 'full' = active subscriber (rendering unlocked). 'locked' = everyone else
+  // (anonymous or signed-in-no-plan) explores the real tool with rendering
+  // gated. We never bounce a visitor to /login or /pricing: they must SEE the
+  // studio, which is the whole point of the flagship.
+  const [mode, setMode] = useState<'loading' | 'locked' | 'full'>('loading');
+  const [signedIn, setSignedIn] = useState(false);
   const [activating, setActivating] = useState(false);
   useEffect(() => {
     if (DEV_AUTH_BYPASS) {
-      setAuthReady(true);
+      setMode('full');
+      setSignedIn(true);
       return;
     }
     let active = true;
-    // Post-payment grace: Stripe redirects here BEFORE the webhook has written
-    // the entitlement. On ?checkout=success we poll for the plan for ~30s
-    // instead of bouncing a paying customer back to /pricing.
+    // Post-payment grace: Stripe returns here BEFORE the webhook has written the
+    // entitlement. On ?checkout=success we poll for the plan for ~30s so a paying
+    // customer lands in the unlocked studio, not the locked one.
     const justPaid = new URLSearchParams(window.location.search).get('checkout') === 'success';
     let attempts = 0;
     const check = async () => {
-      // refreshSession pulls fresh app_metadata once the webhook lands
       if (attempts > 0) await supabase.auth.refreshSession();
       const { data } = await supabase.auth.getUser();
       if (!active) return;
-      const email = data.user?.email ?? null;
-      if (!data.user || !isAcademyEmail(email)) {
-        router.replace('/login');
+      const user = data.user;
+      setSignedIn(Boolean(user));
+      if (user && isAcademyEmail(user.email) && hasActivePlan(user.app_metadata)) {
+        setMode('full');
         return;
       }
-      if (hasActivePlan(data.user.app_metadata)) {
-        setAuthReady(true);
-        return;
-      }
-      if (justPaid && attempts < 10) {
+      if (justPaid && user && attempts < 10) {
         attempts += 1;
         setActivating(true);
         setTimeout(check, 3000);
         return;
       }
-      router.replace('/pricing'); // hard paywall
+      setMode('locked'); // explore the tool; rendering unlocks with a plan
     };
     check();
     return () => {
       active = false;
     };
-  }, [router, supabase]);
+  }, [supabase]);
 
   async function signOut() {
     await supabase.auth.signOut();
     router.replace('/login');
   }
 
-  if (!authReady) {
+  if (mode === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
         <p className="font-mono text-xs tracking-[0.2em] text-[#8b8f99] uppercase">
-          {activating ? 'Payment received. Activating your plan…' : 'Verifying access…'}
+          {activating ? 'Payment received. Activating your plan…' : 'Loading the studio…'}
         </p>
       </div>
     );
@@ -87,18 +89,35 @@ export default function StudioPage() {
             beta
           </span>
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {DEV_AUTH_BYPASS && (
             <span className="hidden items-center gap-1.5 font-mono text-[10px] text-[#bc9863]/70 sm:inline-flex">
               <AlertTriangle size={12} /> dev mode — auth bypassed locally
             </span>
           )}
-          <button
-            onClick={signOut}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 font-mono text-[11px] text-[#8b8f99] transition hover:border-[#bc9863]/40 hover:text-[#e7cfa3]"
-          >
-            <LogOut size={13} /> Exit
-          </button>
+          {mode === 'locked' && (
+            <Link
+              href="/pricing"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-3.5 py-1.5 text-[12px] font-semibold text-black transition hover:brightness-105"
+            >
+              Subscribe to render
+            </Link>
+          )}
+          {signedIn ? (
+            <button
+              onClick={signOut}
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 font-mono text-[11px] text-[#8b8f99] transition hover:border-[#bc9863]/40 hover:text-[#e7cfa3]"
+            >
+              <LogOut size={13} /> Exit
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/10 px-3 py-1.5 font-mono text-[11px] text-[#8b8f99] transition hover:border-[#bc9863]/40 hover:text-[#e7cfa3]"
+            >
+              Sign in
+            </Link>
+          )}
         </div>
       </header>
 
@@ -117,7 +136,7 @@ export default function StudioPage() {
             style words. Real cinematography.
           </p>
         </div>
-        <StudioConsole />
+        <StudioConsole locked={mode !== 'full'} />
       </main>
 
       <footer className="mt-6 border-t border-[#bc9863]/12 px-6 py-7">
