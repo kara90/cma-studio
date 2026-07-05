@@ -23,7 +23,7 @@ import { Pillars } from '@/components/marketing/Pillars';
 import { Showcase } from '@/components/marketing/Showcase';
 import { Particles } from '@/components/Particles';
 import { BlurText } from '@/components/BlurText';
-import { WistiaPlayer } from '@/components/WistiaPlayer';
+import { PresentationReel } from '@/components/PresentationReel';
 import { BorderRotate } from '@/components/ui/animated-gradient-border';
 
 /**
@@ -268,7 +268,10 @@ export default function Home() {
               className="mx-auto w-full shadow-[0_50px_140px_-40px_rgba(0,0,0,0.9)]"
             >
               <div className="overflow-hidden rounded-[16px]">
-                <WistiaPlayer mediaId="v0v7fkijyy" autoplay />
+                <PresentationReel
+                  src="/clips/presentation-reel.mp4"
+                  className="block aspect-video w-full object-cover"
+                />
               </div>
             </BorderRotate>
           </Reveal>
