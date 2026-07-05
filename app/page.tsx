@@ -87,6 +87,34 @@ export default function Home() {
       <SiteHeader />
 
       <main className="relative z-10">
+        {/* ── PRESENTATION REEL — the site opens with the film, autoplaying
+            (muted + looping, the only autoplay browsers allow). ── */}
+        <section className="mx-auto max-w-5xl px-5 pt-24 pb-8 sm:px-6 sm:pt-28">
+          <Reveal className="mb-6 text-center">
+            <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">See it in motion</div>
+            <h2 className="font-[family-name:var(--font-sora)] text-[clamp(1.8rem,4vw,2.8rem)] font-bold tracking-[-0.03em]">
+              <BlurText text="One platform. Every look." />
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-[#8b8f99]">
+              A reel cut from renders directed with the same tools you get here, on the same models the platform
+              carries.
+            </p>
+          </Reveal>
+          <Reveal delay={0.08}>
+            <BorderRotate
+              animationSpeed={7}
+              borderWidth={2}
+              borderRadius={18}
+              backgroundColor="#05060a"
+              className="mx-auto w-full shadow-[0_50px_140px_-40px_rgba(0,0,0,0.9)]"
+            >
+              <div className="overflow-hidden rounded-[16px]">
+                <WistiaPlayer mediaId="v0v7fkijyy" autoplay />
+              </div>
+            </BorderRotate>
+          </Reveal>
+        </section>
+
         {/* hero — FULL-BLEED cinematic film behind the copy, edge to edge */}
         <section className="relative flex min-h-[88vh] w-full items-center justify-center overflow-hidden">
           {/* Sebastien's render as the full-page background, feathered top and
@@ -407,33 +435,6 @@ export default function Home() {
             <p className="mt-3 text-center font-[family-name:var(--font-sora)] text-[1.05rem] font-semibold text-[#e7cfa3]">
               Fewer wasted renders. Your fal budget goes further.
             </p>
-          </Reveal>
-        </section>
-
-        {/* cinematic showreel: see the platform in motion */}
-        <section className="mx-auto max-w-4xl px-6 pt-2 pb-16">
-          <Reveal className="mb-7 text-center">
-            <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">See it in motion</div>
-            <h2 className="font-[family-name:var(--font-sora)] text-[clamp(1.8rem,4vw,2.8rem)] font-bold tracking-[-0.03em]">
-              <BlurText text="One platform. Every look." />
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-[#8b8f99]">
-              A reel cut from renders directed with the same tools you get here, on the same models the platform
-              carries.
-            </p>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <BorderRotate
-              animationSpeed={7}
-              borderWidth={2}
-              borderRadius={18}
-              backgroundColor="#05060a"
-              className="mx-auto w-full shadow-[0_50px_140px_-40px_rgba(0,0,0,0.9)]"
-            >
-              <div className="overflow-hidden rounded-[16px]">
-                <WistiaPlayer mediaId="v0v7fkijyy" />
-              </div>
-            </BorderRotate>
           </Reveal>
         </section>
 

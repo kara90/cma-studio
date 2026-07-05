@@ -23,15 +23,24 @@ export function WistiaPlayer({
   mediaId,
   aspect = '1.7777777777777777',
   className,
+  autoplay = false,
 }: {
   mediaId: string;
   aspect?: string;
   className?: string;
+  /** muted, looping autoplay (the only kind browsers allow without a click) */
+  autoplay?: boolean;
 }) {
   useEffect(() => {
     ensureScript('https://fast.wistia.com/player.js');
     ensureScript(`https://fast.wistia.com/embed/${mediaId}.js`, true);
   }, [mediaId]);
+
+  // Wistia autoplays only when muted. silentautoplay is Wistia's dedicated
+  // muted-autoplay attribute; autoplay + muted cover newer player builds.
+  const autoAttrs = autoplay
+    ? { autoplay: 'true', muted: 'true', silentautoplay: 'true', loop: 'true' }
+    : {};
 
   return (
     <>
@@ -42,6 +51,7 @@ export function WistiaPlayer({
         aspect,
         class: className,
         style: { display: 'block', width: '100%' },
+        ...autoAttrs,
       })}
     </>
   );
