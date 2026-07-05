@@ -141,7 +141,7 @@ export default function StudioPage() {
 
       <footer className="mt-6 border-t border-[#bc9863]/12 px-6 py-7">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 font-mono text-[11px] tracking-[0.04em] text-[#8b909e] sm:flex-row">
-          <span>© 2026 CineMaster Academy · CMA Studio Pro</span>
+          <span>© 2026 CineMaster Academy · CMA Studio</span>
           <div className="flex items-center gap-5">
             <a href="mailto:hello@cinemasteracademy.com?subject=CMA%20Studio%20Pro" className="transition hover:text-[#e7cfa3]">
               Contact

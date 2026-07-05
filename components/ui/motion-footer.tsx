@@ -244,7 +244,7 @@ export function CinematicFooter() {
 
           <div className="relative z-20 w-full pb-8 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-muted-foreground text-[10px] md:text-xs font-semibold tracking-widest uppercase order-2 md:order-1">
-              © 2026 CineMaster Academy · CMA Studio Pro
+              © 2026 CineMaster Academy · CMA Studio
             </div>
 
             <a

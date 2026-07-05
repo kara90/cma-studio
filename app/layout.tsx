@@ -12,8 +12,9 @@ export const metadata: Metadata = {
   title: 'CMA Studio — Virtual Camera Package | CineMaster Academy',
   description:
     'Direct it before you shoot it. A Bring-Your-Own-Key virtual camera package that renders cinematic video & photos from real film-camera and lens signatures — powered by Fal.ai.',
-  // PWA: installable from the site on every phone/tablet (manifest in app/manifest.ts).
-  icons: { apple: '/icons/apple-touch-icon.png' },
+  // Favicon + apple-touch icon come from app/icon.png and app/apple-icon.png
+  // (the real gold logo on deep black), auto-wired by Next. PWA install icons
+  // live in app/manifest.ts.
   appleWebApp: { capable: true, title: 'CMA Studio', statusBarStyle: 'black' },
 };
 
