@@ -13,7 +13,7 @@
  */
 // Bump this on any change that must reach already-installed clients: a new
 // VERSION reinstalls the worker, drops every old cache, and claims all tabs.
-const VERSION = 'cma-sw-v3';
+const VERSION = 'cma-sw-v4';
 const STATIC_CACHE = `${VERSION}-static`;
 
 const OFFLINE_HTML = `<!DOCTYPE html>
@@ -39,7 +39,9 @@ const OFFLINE_HTML = `<!DOCTYPE html>
   <button onclick="location.reload()">Retry</button>
 </div></body></html>`;
 
-const CACHEABLE = /^\/(_next\/static\/|icons\/|clips\/|logo(-full)?\.png$|favicon)/;
+// Only hash-named immutable assets are cache-first. The favicon and app icons
+// are NOT cached here so a logo change is never masked by a stale cached icon.
+const CACHEABLE = /^\/(_next\/static\/|clips\/)/;
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
