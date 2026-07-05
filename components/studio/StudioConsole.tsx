@@ -26,7 +26,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Sparkles, AlertTriangle, Wand2, SlidersHorizontal, ShieldCheck, Maximize2, Minimize2, Download,
+  Sparkles, AlertTriangle, Wand2, SlidersHorizontal, ShieldCheck, Maximize2, Minimize2, Download, Check,
   Camera as CameraIcon, Gauge, RectangleHorizontal, Clapperboard,
 } from 'lucide-react';
 import { downloadRender, renderFilename } from '@/lib/download';
@@ -182,6 +182,69 @@ function AutoToggle({ isAuto, onChange, name }: { isAuto: boolean; onChange: (au
   );
 }
 
+/** A compact per-field "Auto" check. Lets a novice hand ONE control (focal or
+ * aperture) to the DP engine without leaving Manual on the rest of the package —
+ * many people know they want a certain camera and glass but not which focal or
+ * f-stop, so those two get their own opt-in Auto. */
+function AutoCheck({ isAuto, onChange, name }: { isAuto: boolean; onChange: (auto: boolean) => void; name: string }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={isAuto}
+      aria-label={`${name}: Auto`}
+      onClick={() => onChange(!isAuto)}
+      title={
+        isAuto
+          ? `${name} is Auto — the DP engine sets it for your scene. Tap to choose it yourself.`
+          : `Not sure? Let the DP engine choose the ${name.toLowerCase()}.`
+      }
+      className={`inline-flex min-h-[34px] flex-none cursor-pointer items-center gap-1 rounded-full border px-2 font-mono text-[9px] tracking-[0.12em] uppercase transition sm:min-h-0 sm:py-1 ${
+        isAuto ? 'border-[#bc9863] bg-[#bc9863]/15 text-[#e7cfa3]' : 'border-white/12 text-[#8b8f99] hover:border-[#bc9863]/40'
+      }`}
+    >
+      <Check size={11} className={isAuto ? 'opacity-100' : 'opacity-40'} /> Auto
+    </button>
+  );
+}
+
+/** A drum field (Focal or Aperture) that can be handed to Auto. Manual → the
+ * drum wheel; Auto → a matched-height tile stating the engine sets it. The
+ * header (label + AutoCheck) is identical in both states so nothing jumps. */
+function AutoDrumField({
+  label, name, isAuto, onAuto, autoNote, children,
+}: {
+  label: string;
+  name: string;
+  isAuto: boolean;
+  onAuto: (auto: boolean) => void;
+  autoNote: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col">
+      <div className="mb-1.5 flex items-center justify-between gap-1.5">
+        <span className="font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">{label}</span>
+        <AutoCheck isAuto={isAuto} onChange={onAuto} name={name} />
+      </div>
+      {isAuto ? (
+        <div
+          className="grid flex-1 place-items-center rounded-xl border border-[#bc9863]/20 bg-black/40 px-2 py-4 text-center"
+          style={{ minHeight: 138 }}
+        >
+          <div className="flex flex-col items-center gap-1.5">
+            <Wand2 size={16} className="text-[#bc9863]" />
+            <span className="font-mono text-[11px] tracking-[0.14em] text-[#e7cfa3] uppercase">Auto</span>
+            <span className="text-[10px] leading-snug text-[#8b909e]">{autoNote}</span>
+          </div>
+        </div>
+      ) : (
+        children
+      )}
+    </div>
+  );
+}
+
 /** A cinematography department card: collapsed single Auto line, the full
  * controls when flipped to Manual, or a greyed "unavailable" state when the
  * current selections make the department logically impossible (e.g. anamorphic
@@ -263,6 +326,11 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
   const [lensKey, setLensKey] = useState(LENS_OPTIONS[0].id);
   const [focalLength, setFocalLength] = useState(LENS_OPTIONS[0].focalLengths[0]);
   const [aperture, setAperture] = useState(LENS_OPTIONS[0].maxAperture);
+  // Per-field Auto inside a MANUAL Camera Package: hand focal and/or aperture to
+  // the DP engine (many people don't know how to set those two). Off by default
+  // so Pro users still see the full drums; flip either on to let the engine pick.
+  const [focalAuto, setFocalAuto] = useState(false);
+  const [apertureAuto, setApertureAuto] = useState(false);
   const [iso, setIso] = useState(800);
   const [grain, setGrain] = useState(40); // discrete 20-by-20 stops
   const [shutter, setShutter] = useState(180);
@@ -290,6 +358,8 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
       setLensKey(LENS_OPTIONS[0].id);
       setFocalLength(LENS_OPTIONS[0].focalLengths[0]);
       setAperture(LENS_OPTIONS[0].maxAperture);
+      setFocalAuto(false); // back to the drums the next time Camera is Manual
+      setApertureAuto(false);
     } else if (k === 'anamorphic') {
       const g = findLens(lensKey)?.geometry;
       setAnamorphic(g === 'anamorphic' ? '2' : 'none');
@@ -501,7 +571,11 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt, model, auto: allAuto, variant: variantRef.current,
-          cameraKey, lensKey, focalLength, aperture,
+          cameraKey, lensKey,
+          // Per-field Auto: omit focal/aperture so the server picks them for the
+          // scene (clamped to the chosen glass). Manual sends the dialled value.
+          focalLength: focalAuto ? undefined : focalLength,
+          aperture: apertureAuto ? undefined : aperture,
           isoValue: iso, cineNoise: grain, shutterAngle: shutter,
           // Director's frame on Auto → omit, so the server-side compiler chooses.
           genreStyle: deptAuto.director ? undefined : genre,
@@ -795,12 +869,17 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
       <div className="grid grid-cols-2 gap-4">
         <DrumSelector label="Body" items={cameraItems} value={cameraKey} onChange={setCameraKey} itemHeight={90} />
         <DrumSelector label="Glass" items={lensItems} value={lensKey} onChange={handleLensChange} itemHeight={90} />
-        <DrumSelector label="Focal" items={focalItems} value={String(focalLength)} onChange={(v) => setFocalLength(Number(v))} itemHeight={46} />
-        <DrumSelector label="Aperture" items={apertureItems} value={String(aperture)} onChange={(v) => setAperture(Number(v))} itemHeight={46} />
+        <AutoDrumField label="Focal" name="Focal length" isAuto={focalAuto} onAuto={setFocalAuto} autoNote="Framing set for you">
+          <DrumSelector label="Focal" hideLabel items={focalItems} value={String(focalLength)} onChange={(v) => setFocalLength(Number(v))} itemHeight={46} />
+        </AutoDrumField>
+        <AutoDrumField label="Aperture" name="Aperture" isAuto={apertureAuto} onAuto={setApertureAuto} autoNote="Blur set for you">
+          <DrumSelector label="Aperture" hideLabel items={apertureItems} value={String(aperture)} onChange={(v) => setAperture(Number(v))} itemHeight={46} />
+        </AutoDrumField>
       </div>
       <p className="leading-relaxed text-[11px] text-[#8b909e]">
         <span className="text-[#c7c2b8]">Focal</span> — lower is wider, higher is tighter.{' '}
-        <span className="text-[#c7c2b8]">Aperture</span> (T-stop) — lower means more background blur.
+        <span className="text-[#c7c2b8]">Aperture</span> (T-stop) — lower means more background blur.{' '}
+        Not sure about either? Tap <span className="text-[#bc9863]">Auto</span> and the DP engine sets it for your scene.
       </p>
     </DeptSection>
   );
@@ -1047,6 +1126,8 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
                 lensLabel={lens.label}
                 focalLength={focalLength}
                 aperture={aperture}
+                focalAuto={focalAuto}
+                apertureAuto={apertureAuto}
                 isoValue={iso}
                 cineNoise={grain}
                 shutterAngle={shutter}
@@ -1077,7 +1158,7 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
                   ['Glass', deptAuto.camera ? 'Auto' : lens.label],
                   ['Anamorphic', !deptAuto.camera && !lensIsAnamorphic ? 'None · spherical glass' : deptAuto.anamorphic ? 'Auto' : ana.label],
                   ...(!deptAuto.anamorphic && ana.id !== 'none' ? [['Flares', flare === 'gold' ? 'Golden' : 'Blue']] : []),
-                  ['Optics', deptAuto.camera ? 'Auto' : `${focalLength}mm · T${aperture.toFixed(1)}`],
+                  ['Optics', deptAuto.camera ? 'Auto' : `${focalAuto ? 'Auto' : `${focalLength}mm`} · ${apertureAuto ? 'Auto' : `T${aperture.toFixed(1)}`}`],
                   ['Sensor', deptAuto.sensor ? 'Auto' : camera.isCelluloid ? `Celluloid · ${grain}% grain` : `Digital · ISO ${iso}`],
                   ['Style', deptAuto.director ? 'Auto' : findStyle(style).label],
                   ['Shot', deptAuto.director ? 'Auto' : findShot(shotSize).label],

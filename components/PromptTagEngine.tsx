@@ -18,6 +18,10 @@ export interface TagState {
   lensLabel: string;
   focalLength: number;
   aperture: number;
+  /** focal handed to the DP engine — show "Auto" instead of a fixed mm */
+  focalAuto?: boolean;
+  /** aperture handed to the DP engine — show "Auto" instead of a fixed T-stop */
+  apertureAuto?: boolean;
   isoValue: number;
   cineNoise: number;
   shutterAngle: number;
@@ -49,10 +53,13 @@ function buildTags(s: TagState): Tag[] {
       ? `ISO ${s.isoValue} shadow gain`
       : `ISO ${s.isoValue} clean`;
 
+  const focalTxt = s.focalAuto ? 'Auto' : `${s.focalLength}mm`;
+  const apertureTxt = s.apertureAuto ? 'Auto' : `T${s.aperture.toFixed(1)}`;
+
   return [
     { kind: 'CAMERA', text: s.cameraLabel, color: goldBright },
     { kind: 'LENS', text: s.lensLabel, color: cool },
-    { kind: 'OPTICS', text: `${s.focalLength}mm · T${s.aperture.toFixed(1)}`, color: goldBase },
+    { kind: 'OPTICS', text: `${focalTxt} · ${apertureTxt}`, color: goldBase },
     { kind: 'TEXTURE', text: texture, color: goldMid },
     { kind: 'SHUTTER', text: `${s.shutterAngle}°`, color: neutral },
     { kind: 'STYLE', text: s.styleLabel, color: goldBright },
@@ -99,8 +106,10 @@ function PromptTagEngineImpl(props: TagState) {
           <span className="text-[#e7cfa3]">{props.prompt || 'Your scene…'}</span>
           <span className="text-[#8b909e]">
             {' '}
-            — shot on the {props.cameraLabel} through the {props.lensLabel}, {props.focalLength}mm at T
-            {props.aperture.toFixed(1)}. The lens, lighting and grain recipe are assembled server-side at render.
+            — shot on the {props.cameraLabel} through the {props.lensLabel},{' '}
+            {props.focalAuto ? 'auto focal length' : `${props.focalLength}mm`} at{' '}
+            {props.apertureAuto ? 'an auto aperture' : `T${props.aperture.toFixed(1)}`}. The lens, lighting and grain
+            recipe are assembled server-side at render.
           </span>
         </p>
       </div>

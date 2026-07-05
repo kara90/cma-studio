@@ -22,6 +22,7 @@ function DrumSelectorImpl({
   onChange,
   itemHeight = 36,
   accent = '#bc9863',
+  hideLabel = false,
 }: {
   label: string;
   items: DrumItem[];
@@ -29,6 +30,8 @@ function DrumSelectorImpl({
   onChange: (id: string) => void;
   itemHeight?: number;
   accent?: string;
+  /** hide the visible label (a wrapper supplies its own header) — aria-label stays */
+  hideLabel?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const settle = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -92,7 +95,9 @@ function DrumSelectorImpl({
 
   return (
     <div>
-      <div className="mb-1.5 font-mono text-[10px] tracking-[0.2em] uppercase text-[#8b8f99]">{label}</div>
+      {!hideLabel && (
+        <div className="mb-1.5 font-mono text-[10px] tracking-[0.2em] uppercase text-[#8b8f99]">{label}</div>
+      )}
       <div className="relative rounded-xl border border-[#bc9863]/15 bg-black/40">
         <div className="drum-marker" style={{ borderColor: accent, height: itemHeight }} />
         <div className="drum-barrel" />

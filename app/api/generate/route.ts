@@ -210,13 +210,33 @@ export async function POST(request: Request) {
 
   // Choose the camera package: Auto-Director, or the user's own selection.
   const auto = Boolean(body.auto);
+
+  // PER-FIELD AUTO (Manual mode): the user may hand FOCAL and/or APERTURE to the
+  // DP engine while keeping the rest of the package by hand — those fields arrive
+  // omitted. Fill each omitted field with a scene-appropriate value the way the
+  // Auto-Director would, then clamp it to what the chosen glass can physically do
+  // (never wider than the lens's max aperture; focal snapped to the lens's real
+  // focal lengths) so the compiled prompt never contradicts the selected lens.
+  let manualFocal = body.focalLength;
+  let manualAperture = body.aperture;
+  if (!auto && (manualFocal === undefined || manualAperture === undefined)) {
+    const scene = autoDirect(body.prompt, body.variant ?? 0);
+    const lens = getLens(body.lensKey ?? '');
+    if (manualFocal === undefined) {
+      manualFocal = lens && lens.focalLengths.length ? nearest(lens.focalLengths, scene.focalLength) : scene.focalLength;
+    }
+    if (manualAperture === undefined) {
+      manualAperture = lens ? Math.max(lens.maxAperture, scene.aperture) : scene.aperture;
+    }
+  }
+
   const hw = auto
     ? { ...autoDirect(body.prompt, body.variant ?? 0), autoAngle: '' as string }
     : {
         cameraKey: body.cameraKey ?? '',
         lensKey: body.lensKey ?? '',
-        focalLength: body.focalLength ?? 50,
-        aperture: body.aperture ?? 2.8,
+        focalLength: manualFocal ?? 50,
+        aperture: manualAperture ?? 2.8,
         isoValue: body.isoValue ?? 800,
         cineNoise: body.cineNoise ?? 0,
         shutterAngle: body.shutterAngle ?? 180,
@@ -385,4 +405,10 @@ export async function POST(request: Request) {
 
 function clamp(n: number, lo: number, hi: number) {
   return Math.min(hi, Math.max(lo, n));
+}
+
+/** the value in `list` closest to `want` — used to snap an auto-picked focal
+ * length onto the real focal lengths the chosen lens actually offers. */
+function nearest(list: readonly number[], want: number): number {
+  return list.reduce((a, b) => (Math.abs(b - want) < Math.abs(a - want) ? b : a));
 }
