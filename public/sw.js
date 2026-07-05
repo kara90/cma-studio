@@ -11,7 +11,9 @@
  *     /clips, fonts, images) are cached, cache-first — they can never go stale
  *     because their filenames change on every build.
  */
-const VERSION = 'cma-sw-v1';
+// Bump this on any change that must reach already-installed clients: a new
+// VERSION reinstalls the worker, drops every old cache, and claims all tabs.
+const VERSION = 'cma-sw-v3';
 const STATIC_CACHE = `${VERSION}-static`;
 
 const OFFLINE_HTML = `<!DOCTYPE html>
@@ -61,10 +63,14 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return; // never touch cross-origin (fal, supabase, stripe…)
   if (url.pathname.startsWith('/api/')) return; // hard rule: APIs are never intercepted
 
-  // Navigations: network first, branded offline screen as the fallback.
+  // Navigations: ALWAYS fresh. cache:'reload' bypasses the browser HTTP cache
+  // so a new deploy is never masked by a stale cached page. Branded offline
+  // screen only when the network is truly unreachable.
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).catch(() => new Response(OFFLINE_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })),
+      fetch(req, { cache: 'reload' }).catch(() =>
+        fetch(req).catch(() => new Response(OFFLINE_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } })),
+      ),
     );
     return;
   }
