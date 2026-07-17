@@ -5,7 +5,7 @@ import { TrademarkNotice } from '@/components/TrademarkNotice';
 import { HonestNote } from '@/components/marketing/HonestNote';
 
 export const metadata: Metadata = {
-  title: 'Pricing | CMA Studio Pro | CineMaster Academy',
+  title: 'Pricing | CMA Studio | CineMaster Academy',
   description: 'A low flat fee for the software. Renders run on your own Fal.ai key at fal\'s own rate, with no markup and no expiring credits.',
 };
 
@@ -40,7 +40,7 @@ export default function PricingPage() {
         <div className="mx-auto mt-8 max-w-3xl rounded-2xl border border-[#bc9863]/18 bg-[#bc9863]/[0.04] px-6 py-7 text-center">
           <div className="mb-2 font-mono text-[10px] tracking-[0.24em] text-[#bc9863] uppercase">More tools are coming</div>
           <p className="text-[15px] leading-relaxed text-[#c7c2b8]">
-            CMA Studio Pro is the first of a growing family of tools we are building for serious film production.{' '}
+            CMA Director Studio is the first of a growing family of tools we are building for serious film production.{' '}
             <span className="text-[#f4efe6]">Plans cover today&apos;s toolset and may evolve as new tools join, always announced before your next billing cycle.</span>
           </p>
         </div>
@@ -50,12 +50,12 @@ export default function PricingPage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 font-mono text-[12px] tracking-[0.04em] text-[#8b909e] sm:flex-row">
           <span>© 2026 CineMaster Academy · CMA Studio</span>
           <div className="flex items-center gap-5">
-            <a href="/studio" className="font-semibold text-[#bc9863] transition hover:text-[#e7cfa3]">Studio Pro ★</a>
+            <a href="/studio" className="font-semibold text-[#bc9863] transition hover:text-[#e7cfa3]">Director Studio ★</a>
             <a href="/faq" className="transition hover:text-[#e7cfa3]">FAQ</a>
             <a href="/privacy" className="transition hover:text-[#e7cfa3]">Privacy</a>
             <a href="/terms" className="transition hover:text-[#e7cfa3]">Terms</a>
             <a href="/refunds" className="transition hover:text-[#e7cfa3]">Refunds</a>
-            <a href="mailto:hello@cinemasteracademy.com?subject=CMA%20Studio%20Pro" className="transition hover:text-[#e7cfa3]">
+            <a href="mailto:hello@cinemasteracademy.com?subject=CMA%20Studio" className="transition hover:text-[#e7cfa3]">
               Any questions? Contact us
             </a>
             <span>

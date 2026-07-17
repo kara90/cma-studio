@@ -31,7 +31,7 @@ const DEFAULT_LINKS: NavLink[] = [
   { href: '/video', label: 'Video' },
   { href: '/image', label: 'Image' },
   { href: '/audio', label: 'Audio' },
-  { href: '/studio', label: 'Studio Pro' },
+  { href: '/studio', label: 'Director Studio' },
   { href: '/files', label: 'Library' },
   { href: '/pricing', label: 'Pricing' },
 ];

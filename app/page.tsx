@@ -74,7 +74,7 @@ const TOOLS = [
   {
     href: '/studio',
     icon: Clapperboard,
-    title: 'Studio Pro',
+    title: 'CMA Director Studio',
     body: 'A server-side DP engine built on 21+ years behind the camera as a working Director of Photography. Real camera, lens and lighting choices become the shot.',
     flagship: true,
   },
@@ -286,7 +286,7 @@ export default function Home() {
         <section id="studio-pro" className="scroll-mt-6 px-4 py-16 sm:px-6">
           <Reveal className="mx-auto mb-8 max-w-3xl text-center">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#bc9863] bg-[#bc9863]/12 px-4 py-1.5 font-mono text-[11px] tracking-[0.24em] text-[#e7cfa3] uppercase">
-              <Clapperboard size={13} /> Studio Pro · The flagship
+              <Clapperboard size={13} /> CMA Director Studio · The flagship
             </div>
             <h2 className="font-[family-name:var(--font-sora)] text-[clamp(2rem,4.6vw,3.2rem)] font-bold tracking-[-0.03em]">
               This is what <span className="bg-gradient-to-r from-[#e7cfa3] to-[#bc9863] bg-clip-text text-transparent">nobody else has.</span>
@@ -312,7 +312,7 @@ export default function Home() {
                 href="/studio"
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-7 py-3.5 text-[15px] font-semibold text-black shadow-[0_14px_44px_rgba(188,152,99,0.36)] transition hover:-translate-y-0.5 hover:brightness-105"
               >
-                Open Studio Pro, full screen <ArrowRight size={17} />
+                Open CMA Director Studio, full screen <ArrowRight size={17} />
               </Link>
               <Link
                 href="/pricing"

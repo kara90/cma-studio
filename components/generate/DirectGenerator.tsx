@@ -452,7 +452,7 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
 
         {/* 4 · prompt — RAW by contract: what you type is the exact string the
             model receives on your fal account. The CMA DP engine only ever
-            runs in Studio Pro. */}
+            runs in CMA Director Studio. */}
         <section className="border-t border-white/8 pt-5">
           <div className="mb-2 flex items-center justify-between gap-2">
             <label htmlFor={promptId} className="block font-mono text-[10px] tracking-[0.2em] text-[#8b8f99] uppercase">
@@ -477,7 +477,7 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
             This page sends your prompt to the model <span className="text-[#cfcabf]">exactly as written</span> — no
             structure, no optimization, no studio recipe. Want a shot engineered like a DP would?{' '}
             <Link href="/studio" className="font-semibold text-[#bc9863] underline-offset-2 transition hover:text-[#e7cfa3] hover:underline">
-              That&apos;s Studio Pro
+              That&apos;s CMA Director Studio
             </Link>
             .
           </p>

@@ -204,7 +204,7 @@ export function CinematicFooter() {
                     boxShadow: '0 14px 44px rgba(188,152,99,0.36)',
                   }}
                 >
-                  <Clapperboard className="w-5 h-5" /> Launch Studio Pro · The flagship
+                  <Clapperboard className="w-5 h-5" /> Launch CMA Director Studio
                 </MagneticButton>
                 <MagneticButton as="a" href="/pricing" className="footer-glass-pill px-10 py-5 rounded-full text-foreground font-bold text-sm md:text-base flex items-center gap-3">
                   <CreditCard className="w-5 h-5 text-muted-foreground" /> See pricing

@@ -131,7 +131,7 @@ export default function StudioPage() {
             Direct like you&apos;ve been <span className="bg-gradient-to-r from-[#e7cfa3] to-[#bc9863] bg-clip-text text-transparent">on set for 21 years.</span>
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-[15px] leading-relaxed text-[#8b8f99]">
-            Because this engine has. Every camera body, lens and lighting recipe in Studio Pro is compiled server side
+            Because this engine has. Every camera body, lens and lighting recipe in CMA Director Studio is compiled server side
             from <span className="text-[#f4efe6]">21+ years of working Director of Photography experience</span>. Not
             style words. Real cinematography.
           </p>

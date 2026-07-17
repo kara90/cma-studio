@@ -34,7 +34,7 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       { name: 'Generate video', url: '/video', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
-      { name: 'Studio Pro', url: '/studio', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+      { name: 'Director Studio', url: '/studio', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
       { name: 'My files', url: '/files', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
     ],
   };
