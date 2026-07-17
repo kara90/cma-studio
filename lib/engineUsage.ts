@@ -18,7 +18,36 @@
  *     the allowance. Acceptable: this is an inclusion, not a billing meter.
  */
 import { getCloudflareContext } from '@opennextjs/cloudflare';
-import { allowanceForTier, usageKey, refreshDate, type EngineAllowance } from './allowances';
+import { usageKey, refreshDate, type EngineAllowance, type PublicAllowance } from './allowances';
+
+/**
+ * Included engine generations per tier — SERVER-ONLY numbers.
+ *   Starter (id 'student')  →    0  (no DP-engine access; raw generators only)
+ *   Filmmaker (id 'pro')    →  500  (public number, mirrored in lib/plans.ts)
+ *   Pro (id 'studio')       → 3000  (⚠ HIDDEN fair-use hard cap. Publicly this
+ *                                    tier is "unlimited within fair use" — the
+ *                                    number is never returned to a client and
+ *                                    never appears in copy. Anti-abuse only.)
+ * Unknown/missing tiers get 0 (engine access is an explicit entitlement; the
+ * raw generators stay open to every paid tier regardless).
+ */
+const ENGINE_CAPS: Record<string, number> = { student: 0, pro: 500, studio: 3000 };
+/** Tiers whose allowance is presented as "unlimited within fair use". */
+const UNLIMITED_DISPLAY = new Set(['studio']);
+
+function capForTier(tier: string | null | undefined): number {
+  return ENGINE_CAPS[tier ?? ''] ?? 0;
+}
+
+/** Redact the hidden cap before anything leaves the server. */
+export function publicAllowance(a: EngineAllowance): PublicAllowance {
+  return {
+    used: a.used,
+    included: a.unlimited ? null : a.included,
+    refreshesOn: a.refreshesOn,
+    unlimited: a.unlimited,
+  };
+}
 
 // Counters for a finished month stay readable for a while, then self-clean.
 const COUNTER_TTL_SECONDS = 62 * 24 * 60 * 60;
@@ -32,8 +61,13 @@ function kv() {
 }
 
 export async function readEngineUsage(userId: string, tier: string | null): Promise<EngineAllowance> {
-  const included = allowanceForTier(tier);
-  const base: EngineAllowance = { used: 0, included, refreshesOn: refreshDate() };
+  const included = capForTier(tier);
+  const base: EngineAllowance = {
+    used: 0,
+    included,
+    refreshesOn: refreshDate(),
+    unlimited: UNLIMITED_DISPLAY.has(tier ?? '') || undefined,
+  };
   const store = kv();
   if (!store) return base;
   try {

@@ -1,31 +1,20 @@
 /**
- * lib/allowances.ts — DP-engine generation allowances (client-safe).
+ * lib/allowances.ts — engine-allowance helpers + wire types (client-safe).
  *
- * Sebastien's product rule: every paid tier includes a monthly number of
- * DP-ENGINE generations (each time the engine composes or recomposes a prompt
- * = one generation). Raw/direct renders on the user's own key are NEVER
- * counted — those cost us nothing and are unlimited on every tier.
+ * NAMING RULE (Sebastien): the allowance is always called
+ * "included engine generations" — never "credits".
  *
- * Numbers must stay in sync with the tier copy in lib/plans.ts and the FAQ:
- *   Starter (id 'student')  →   5 / month  ("taste the difference")
- *   Filmmaker (id 'pro')    → 150 / month
- *   Pro (id 'studio')       → 300 / month
+ * ⚠ The per-tier NUMBERS deliberately do NOT live in this file. They are
+ * server-only, in lib/engineUsage.ts, because the Pro tier displays as
+ * "unlimited within fair use" while a HIDDEN hard cap is enforced server
+ * side — a number in a client-safe module would ship in the JS bundle and
+ * stop being hidden. Public copy numbers live in lib/plans.ts (Filmmaker
+ * only); keep those in sync with lib/engineUsage.ts.
  *
  * Counters live in Cloudflare KV (binding ENGINE_USAGE), key
  * u/{userId}/{YYYY-MM}, refreshed by the calendar month (UTC). The check is
  * FAIL-OPEN: if KV is unreachable a paying user is never blocked.
  */
-
-export const ENGINE_ALLOWANCE: Record<string, number> = {
-  student: 5,
-  pro: 150,
-  studio: 300,
-};
-
-/** Allowance for a tier id; unknown/missing tiers get the smallest tier's. */
-export function allowanceForTier(tier: string | null | undefined): number {
-  return ENGINE_ALLOWANCE[tier ?? ''] ?? ENGINE_ALLOWANCE.student;
-}
 
 /** UTC calendar-month bucket, e.g. "2026-07" — the refresh boundary. */
 export function monthKey(now = new Date()): string {
@@ -42,8 +31,20 @@ export function refreshDate(now = new Date()): string {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)).toISOString().slice(0, 10);
 }
 
+/** SERVER-INTERNAL allowance state. `included` may be the hidden hard cap. */
 export interface EngineAllowance {
   used: number;
   included: number;
   refreshesOn: string; // YYYY-MM-DD (UTC)
+  /** tier displays as "unlimited within fair use"; `included` is the hidden cap */
+  unlimited?: boolean;
+}
+
+/** What clients are allowed to see. On unlimited tiers the numeric cap is
+ * REDACTED (`included: null`) so the hidden number never reaches a browser. */
+export interface PublicAllowance {
+  used: number;
+  included: number | null;
+  refreshesOn: string;
+  unlimited?: boolean;
 }

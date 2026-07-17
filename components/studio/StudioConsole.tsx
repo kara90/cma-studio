@@ -472,8 +472,10 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
 
   /* ── DP-engine allowance — shown near the render button so the included
      monthly generations are never a surprise. Loaded once for members,
-     refreshed from every successful render response. ── */
-  const [allowance, setAllowance] = useState<{ used: number; included: number; refreshesOn: string } | null>(null);
+     refreshed from every successful render response. `included: null` +
+     unlimited means "unlimited within fair use" (the cap number is never
+     sent to the browser); included 0 means the tier has no engine access. ── */
+  const [allowance, setAllowance] = useState<{ used: number; included: number | null; refreshesOn: string; unlimited?: boolean } | null>(null);
   useEffect(() => {
     if (locked) return; // visitors exploring the locked console have no account yet
     let live = true;
@@ -599,7 +601,7 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
           userApiKey: apiKey,
         }),
       });
-      const data: (GenerateAccepted & { engineAllowance?: { used: number; included: number; refreshesOn: string } }) | GenerateError = await res.json();
+      const data: (GenerateAccepted & { engineAllowance?: { used: number; included: number | null; refreshesOn: string; unlimited?: boolean } }) | GenerateError = await res.json();
       if (!data.ok) { setError(data.error); setStatus('ERROR'); return; }
       setOutputKind(data.output);
       setLastSummary(data.summary);
@@ -725,9 +727,23 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
       {/* DP-engine inclusion meter — visible before the decision, never a surprise */}
       {!locked && !isAudio && allowance && (
         <p className="mt-3 flex items-center justify-center gap-2 font-mono text-[10.5px] tracking-[0.08em] text-[#8b909e]">
-          <span className={`h-1.5 w-1.5 rounded-full ${allowance.included - allowance.used > 0 ? 'bg-[#bc9863]' : 'bg-red-400'}`} />
-          DP engine: {Math.max(0, allowance.included - allowance.used)} of {allowance.included} generations left this
-          month · refreshes {allowance.refreshesOn}
+          {allowance.unlimited || allowance.included === null ? (
+            <>
+              <span className="h-1.5 w-1.5 rounded-full bg-[#bc9863]" />
+              DP engine: unlimited engine generations within fair use
+            </>
+          ) : allowance.included === 0 ? (
+            <>
+              <span className="h-1.5 w-1.5 rounded-full bg-white/30" />
+              The DP engine starts at Filmmaker · raw renders stay open on your key
+            </>
+          ) : (
+            <>
+              <span className={`h-1.5 w-1.5 rounded-full ${allowance.included - allowance.used > 0 ? 'bg-[#bc9863]' : 'bg-red-400'}`} />
+              DP engine: {Math.max(0, allowance.included - allowance.used)} of {allowance.included} included engine
+              generations left · refreshes {allowance.refreshesOn}
+            </>
+          )}
         </p>
       )}
       <button

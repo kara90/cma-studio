@@ -17,7 +17,7 @@ import { getModelEndpoint } from '@/lib/modelEndpoints';
 import { getModelCaps } from '@/lib/modelCaps';
 import { getCamera, getLens } from '@/lib/vcpMatrix';
 import { findAnamorphic, resolveLighting } from '@/lib/vcpManifest';
-import { readEngineUsage, incrementEngineUsage } from '@/lib/engineUsage';
+import { readEngineUsage, incrementEngineUsage, publicAllowance } from '@/lib/engineUsage';
 
 // Runs in the Cloudflare Workers node-compat runtime via OpenNext (no 'edge' export).
 export const dynamic = 'force-dynamic';
@@ -202,9 +202,24 @@ export async function POST(request: Request) {
   // renders took the raw path above and are never counted.
   const engineUsage = await readEngineUsage(access.userId, access.tier);
   if (access.userId !== 'dev-user' && engineUsage.used >= engineUsage.included) {
+    // Starter (0 included): the DP engine is a Filmmaker/Pro feature, stated
+    // plainly. Unlimited-display tiers hit the HIDDEN fair-use cap: the number
+    // is never disclosed. Everyone keeps raw renders on their own key.
+    if (engineUsage.included === 0) {
+      return bad(
+        402,
+        'The CMA DP engine is part of Filmmaker and Pro. On Starter, every raw generator stays open on your own key on the Video, Image and Audio pages; upgrade to render through the engine.',
+      );
+    }
+    if (engineUsage.unlimited) {
+      return bad(
+        402,
+        `You have reached this month's fair-use ceiling for engine generations. Raw renders on your own key stay open, and the ceiling resets on ${engineUsage.refreshesOn}.`,
+      );
+    }
     return bad(
       402,
-      `You have used all ${engineUsage.included} DP-engine generations included this month. Raw renders on your own key stay open on the Video, Image and Audio pages, or upgrade your plan for more. Your allowance refreshes on ${engineUsage.refreshesOn}.`,
+      `You have used all ${engineUsage.included} included engine generations this month. Raw renders on your own key stay open on the Video, Image and Audio pages, or upgrade your plan for more. Your allowance refreshes on ${engineUsage.refreshesOn}.`,
     );
   }
 
@@ -382,7 +397,8 @@ export async function POST(request: Request) {
         status: queued.status ?? 'IN_QUEUE',
         model: body.model,
         output: endpoint.output,
-        engineAllowance: { used: engineUsed, included: engineUsage.included, refreshesOn: engineUsage.refreshesOn },
+        // publicAllowance REDACTS the hidden fair-use cap on unlimited tiers.
+        engineAllowance: publicAllowance({ ...engineUsage, used: engineUsed }),
         summary: {
           model: body.model,
           camera: compiled.camera.label,

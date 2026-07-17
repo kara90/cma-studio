@@ -79,13 +79,16 @@ export const TIERS: Tier[] = [
     price: { yearly: '$2.99', monthly: '$3.99' }, // PLACEHOLDER
     yearlySave: 'About $12 saved per year', // PLACEHOLDER
     retention: 'Renders kept about 30 days · fair use', // PLACEHOLDER
-    blurb: 'Start rendering without a credit trap. One small fee for the software, compute on your own key.',
+    // STARTER IS THE CONVENIENCE LAYER: one clean interface over fal, key
+    // saved once, renders kept far longer than fal's ~7-day cleanup. It has
+    // NO DP-engine access — the engine starts at Filmmaker (mirrored server
+    // side in lib/engineUsage.ts, where Starter's included generations are 0).
+    blurb: 'The convenience layer over fal: one clean interface, your key saved once, and your renders kept about 30 days instead of fal’s roughly 7. Compute on your own key.',
     features: [
       'All generators in one clean interface: video, image, audio',
-      'Renders run on your own fal.ai key',
+      'Save your fal.ai key once, render everywhere',
       'fal rates only, no markup from us',
-      'No expiring credits',
-      '5 engine generations included monthly, taste the difference',
+      'Renders kept about 30 days, instead of fal’s roughly 7-day cleanup',
       'Your prompts, sent as written. The full DP engine lives in Filmmaker and Pro.',
     ],
     cta: 'Start rendering',
@@ -105,7 +108,7 @@ export const TIERS: Tier[] = [
     features: [
       'Everything in Starter: all generators, video, image, audio',
       'Full CMA Studio DP engine: camera, lens, film stock, lighting',
-      '150 engine generations included every month, shared across all CMA tools',
+      '500 included engine generations every month, shared across all CMA tools',
       'Prompt engineering handled server side',
       'Tuned to land the shot in fewer tries',
     ],
@@ -125,7 +128,7 @@ export const TIERS: Tier[] = [
     blurb: 'Everything in Filmmaker, plus the longest retention and first looks at new tools as they join.',
     features: [
       'Everything in Filmmaker: all generators plus the DP engine',
-      '300 engine generations included every month, shared across all CMA tools',
+      'Unlimited engine generations within fair use, shared across all CMA tools',
       'Longest retention, about 1 year, fair use',
       'Priority render queue',
       'Early access to new CMA tools as they roll out',
@@ -157,14 +160,14 @@ export const EXTENSIONS: Extension[] = [
     name: 'Storage Top-up',
     price: '$5.99', // PLACEHOLDER
     blurb: 'Extend your storage window. A monthly top-up that keeps your renders stored longer than your plan alone.',
-    detail: '+ extended storage window · exact window TBD',
+    detail: '+60 extra days of render storage on top of your plan window',
   },
   {
     id: 'ext-plus',
     name: 'Storage Top-up+',
     price: '$14.99', // PLACEHOLDER
     blurb: 'The bigger top-up for heavy months, with the most storage headroom.',
-    detail: '+ the biggest storage window bump · exact window TBD',
+    detail: '+180 extra days of render storage on top of your plan window',
   },
 ];
 

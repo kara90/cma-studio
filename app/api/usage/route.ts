@@ -4,7 +4,7 @@
  * next to the render button so nobody is ever surprised by the allowance.
  */
 import { verifyAccess } from '@/lib/authGuard';
-import { readEngineUsage } from '@/lib/engineUsage';
+import { readEngineUsage, publicAllowance } from '@/lib/engineUsage';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,5 +14,6 @@ export async function GET() {
     return Response.json({ ok: false, error: access.error }, { status: access.status, headers: { 'Cache-Control': 'no-store' } });
   }
   const allowance = await readEngineUsage(access.userId, access.tier);
-  return Response.json({ ok: true, allowance }, { headers: { 'Cache-Control': 'no-store' } });
+  // publicAllowance REDACTS the hidden fair-use cap on unlimited-display tiers.
+  return Response.json({ ok: true, allowance: publicAllowance(allowance) }, { headers: { 'Cache-Control': 'no-store' } });
 }
