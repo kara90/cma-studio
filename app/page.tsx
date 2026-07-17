@@ -21,6 +21,7 @@ import { CinematicFooter } from '@/components/ui/motion-footer';
 import { SiteHeader } from '@/components/SiteHeader';
 import { Pillars } from '@/components/marketing/Pillars';
 import { Showcase } from '@/components/marketing/Showcase';
+import { CommunityGallery } from '@/components/gallery/CommunityGallery';
 import { Particles } from '@/components/Particles';
 import { BlurText } from '@/components/BlurText';
 import { PresentationReel } from '@/components/PresentationReel';
@@ -279,6 +280,9 @@ export default function Home() {
 
         {/* showcase: real renders from the platform */}
         <Showcase />
+
+        {/* community wall — owner-approved submissions only (submit-then-approve) */}
+        <CommunityGallery />
 
         {/* ── STUDIO PRO — the flagship tool, high on the page, right under the
             autoplay videos. Defaults to PRO mode so the full rig is visible at
