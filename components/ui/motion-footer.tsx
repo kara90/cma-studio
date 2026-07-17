@@ -227,6 +227,9 @@ export function CinematicFooter() {
                 <MagneticButton as="a" href="/refunds" className="footer-glass-pill px-5 md:px-6 py-2.5 md:py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
                   Refunds
                 </MagneticButton>
+                <MagneticButton as="a" href="/acceptable-use" className="footer-glass-pill px-5 md:px-6 py-2.5 md:py-3 rounded-full text-muted-foreground font-medium text-xs md:text-sm hover:text-foreground">
+                  Acceptable Use
+                </MagneticButton>
                 <GetAppButton className="footer-glass-pill px-5 md:px-6 py-2.5 md:py-3 rounded-full font-medium text-xs md:text-sm text-[#e7cfa3] hover:text-[#f4efe6] cursor-pointer">
                   Get the app
                 </GetAppButton>

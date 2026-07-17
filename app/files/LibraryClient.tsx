@@ -21,6 +21,7 @@ import {
   Image as ImageIcon,
   LockKeyhole,
   RefreshCw,
+  Search,
   TriangleAlert,
 } from 'lucide-react';
 import type { FilesResult, OutputKind, StoredFile } from '@/lib/vcpTypes';
@@ -89,6 +90,19 @@ function FileTile({ file, index, reduce }: { file: StoredFile; index: number; re
         <p className="mt-1.5 font-mono text-[9px] tracking-[0.08em] text-[#8b909e] uppercase">
           {file.model} · {new Date(file.createdAt).toLocaleDateString()}
         </p>
+        {/* full camera recipe, once render-time capture starts populating it */}
+        {file.recipe && (file.recipe.camera || file.recipe.lens) && (
+          <p className="mt-1 line-clamp-1 font-mono text-[9px] tracking-[0.04em] text-[#bc9863]/80">
+            {[
+              file.recipe.camera,
+              file.recipe.lens,
+              file.recipe.focalLength ? `${file.recipe.focalLength}mm` : null,
+              file.recipe.aperture ? `T${file.recipe.aperture}` : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </p>
+        )}
       </div>
     </motion.div>
   );
@@ -97,6 +111,11 @@ function FileTile({ file, index, reduce }: { file: StoredFile; index: number; re
 export function LibraryClient() {
   const [state, setState] = useState<ViewState>({ phase: 'loading' });
   const [filter, setFilter] = useState<Filter>('all');
+  // Vault search + facet filters (project/model facets appear only when the
+  // library actually contains those values — no dead dropdowns).
+  const [query, setQuery] = useState('');
+  const [modelFilter, setModelFilter] = useState('all');
+  const [projectFilter, setProjectFilter] = useState('all');
   const prefersReduced = useReducedMotion();
   const reduce = prefersReduced ?? false;
 
@@ -245,16 +264,79 @@ export function LibraryClient() {
     );
   }
 
-  const visible = filter === 'all' ? files : files.filter((f) => f.output === filter);
+  // Vault filtering: output kind → project facet → model facet → free search
+  // (search matches the scene note, the model name and any recipe fields).
+  const models = Array.from(new Set(files.map((f) => f.model))).sort();
+  const projects = Array.from(new Set(files.map((f) => f.project).filter((p): p is string => Boolean(p)))).sort();
+  const q = query.trim().toLowerCase();
+  const visible = files.filter((f) => {
+    if (filter !== 'all' && f.output !== filter) return false;
+    if (modelFilter !== 'all' && f.model !== modelFilter) return false;
+    if (projectFilter !== 'all' && f.project !== projectFilter) return false;
+    if (!q) return true;
+    const recipeText = f.recipe ? Object.values(f.recipe).filter(Boolean).join(' ') : '';
+    return `${f.note} ${f.model} ${f.project ?? ''} ${recipeText}`.toLowerCase().includes(q);
+  });
   const countFor = (key: Filter) => (key === 'all' ? files.length : files.filter((f) => f.output === key).length);
 
   return (
     <div>
-      {/* summary + filter chips */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      {/* summary + the Vault policy line */}
+      <div className="mb-4">
         <p className="font-mono text-[12px] tracking-[0.04em] text-[#8b909e]">
           {files.length} {files.length === 1 ? 'render' : 'renders'} stored · kept about {retentionDays} days on your plan · fair use
         </p>
+        <p className="mt-1 text-[11.5px] leading-relaxed text-[#8b909e]">
+          The Vault keeps your renders with their full camera recipe. Never deleted while you are subscribed, within
+          your plan&apos;s window and a fair-use storage cap.
+        </p>
+      </div>
+
+      {/* search + facets + kind chips */}
+      <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-1 flex-wrap items-center gap-2">
+          <div className="relative min-w-0 flex-1 sm:max-w-xs">
+            <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8b909e]" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search prompts, models, recipes…"
+              aria-label="Search your library"
+              className="w-full rounded-lg border border-white/10 bg-black/40 py-2 pl-8 pr-3 text-[12.5px] text-[#f4efe6] outline-none transition focus:border-[#bc9863] placeholder:text-[#8b909e]"
+            />
+          </div>
+          {models.length > 1 && (
+            <select
+              value={modelFilter}
+              onChange={(e) => setModelFilter(e.target.value)}
+              aria-label="Filter by model"
+              className="cursor-pointer rounded-lg border border-white/10 bg-black/40 px-2.5 py-2 font-mono text-[11px] text-[#c7c2b8] outline-none transition focus:border-[#bc9863]"
+            >
+              <option value="all">Every model</option>
+              {models.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          )}
+          {projects.length > 0 && (
+            <select
+              value={projectFilter}
+              onChange={(e) => setProjectFilter(e.target.value)}
+              aria-label="Filter by project"
+              className="cursor-pointer rounded-lg border border-white/10 bg-black/40 px-2.5 py-2 font-mono text-[11px] text-[#c7c2b8] outline-none transition focus:border-[#bc9863]"
+            >
+              <option value="all">Every project</option>
+              {projects.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
         <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by output type">
           {FILTERS.map(({ key, label }) => {
             const active = filter === key;
@@ -279,7 +361,9 @@ export function LibraryClient() {
 
       {visible.length === 0 ? (
         <p className="rounded-xl border border-white/6 bg-black/30 px-4 py-10 text-center font-mono text-[12px] text-[#8b909e]">
-          No {filter} renders in your library yet.
+          {q || modelFilter !== 'all' || projectFilter !== 'all'
+            ? 'Nothing matches those filters.'
+            : `No ${filter} renders in your library yet.`}
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">

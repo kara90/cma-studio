@@ -71,6 +71,10 @@ import { ModelBrowser } from '@/components/studio/ModelBrowser';
 import { LookTileRow } from '@/components/studio/LookTileRow';
 import { STYLE_PREVIEWS, LIGHTING_PREVIEWS } from '@/lib/lookPreviews';
 import { HonestNote } from '@/components/marketing/HonestNote';
+import { HowItWorksNote } from '@/components/studio/HowItWorksNote';
+import { RecipePanel } from '@/components/studio/RecipePanel';
+import { decodeRecipeId, type RecipeSettings } from '@/lib/recipes';
+import { track } from '@/lib/track';
 import { LensThumb, CameraThumb } from '@/components/studio/HardwareThumb';
 import { GenerationStrip } from '@/components/studio/GenerationStrip';
 import { PromptTagEngine } from '@/components/PromptTagEngine';
@@ -345,6 +349,9 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
   const [anamorphic, setAnamorphic] = useState('2'); // default squeeze for anamorphic glass
   const [flare, setFlare] = useState<FlareColor>('blue'); // anamorphic streak-flare colour
   const [promptBig, setPromptBig] = useState(false);
+  /** "Shot on CMA Studio" end-card preference (SEAM: applied at export once
+   * the export pipeline lands; Starter always keeps it on). */
+  const [endCard, setEndCard] = useState(true);
 
   const camera = findCamera(cameraKey)!;
   const lens = findLens(lensKey)!;
@@ -396,6 +403,48 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
     setDeptAuto({ camera: autoAll, anamorphic: autoAll, sensor: autoAll, director: autoAll });
     if (autoAll) (['camera', 'anamorphic', 'sensor', 'director'] as DeptKey[]).forEach(resetDept);
   }, [resetDept]);
+
+  /* ── CAMERA RECIPES — the current rig as a saveable/shareable payload, and
+     the applier that loads one back (flips every department to Manual so what
+     you see is exactly what the recipe says). ── */
+  const currentRecipe: RecipeSettings = {
+    cameraKey, lensKey, focalLength, aperture,
+    iso, grain, shutter,
+    genre, style, shotSize, cameraMove, grade, speed,
+    anamorphic, flare,
+  };
+
+  const applyRecipe = useCallback((s: RecipeSettings) => {
+    const lensRec = findLens(s.lensKey);
+    const lensIsAna = lensRec?.geometry === 'anamorphic';
+    setCameraKey(s.cameraKey);
+    setLensKey(s.lensKey);
+    setFocalLength(s.focalLength);
+    setAperture(s.aperture);
+    setFocalAuto(false);
+    setApertureAuto(false);
+    setIso(s.iso);
+    setGrain(s.grain);
+    setShutter(s.shutter);
+    setGenre(s.genre);
+    setStyle(s.style);
+    setShotSize(s.shotSize);
+    setCameraMove(s.cameraMove);
+    setGrade(s.grade);
+    setSpeed(s.speed);
+    // Spherical glass can never carry anamorphic settings (the standing rule).
+    setAnamorphic(lensIsAna ? s.anamorphic : 'none');
+    setFlare(s.flare);
+    setDeptAuto({ camera: false, anamorphic: !lensIsAna, sensor: false, director: false });
+  }, []);
+
+  // A share link (/r/[id] → /studio?recipe=<id>) loads its recipe on arrival.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('recipe');
+    if (!id) return;
+    const settings = decodeRecipeId(id);
+    if (settings) applyRecipe(settings);
+  }, [applyRecipe]);
 
   const cameraItems = useMemo(
     () =>
@@ -538,6 +587,15 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
             const out = data.output ?? 'video';
             if (typeof data.seed === 'number') setLastSeed(data.seed); // capture for "reuse seed"
             setMediaUrl(url);
+            // first_render analytics beacon — once per browser, name only
+            try {
+              if (!window.localStorage.getItem('cma_evt_first_render')) {
+                window.localStorage.setItem('cma_evt_first_render', '1');
+                track('first_render');
+              }
+            } catch {
+              /* analytics never blocks the render flow */
+            }
             // Build a tiny self-contained preview, then save it. If the thumb
             // can't be made (CORS/decode), it's undefined and the strip falls
             // back to the raw Fal URL — never blocks saving the generation.
@@ -802,15 +860,40 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
   );
 
   // A prominent Download appears right under the scope the moment a render finishes.
+  // Starter tier (allowance.included === 0) always carries the end-card; higher
+  // tiers can switch it off.
+  const endCardForced = allowance?.included === 0;
   const downloadBar =
     status === 'COMPLETED' && mediaUrl ? (
-      <div className="flex justify-center">
+      <div className="flex flex-col items-center gap-2.5">
         <button
           onClick={() => downloadRender(mediaUrl, renderFilename(prompt.trim() || 'render', outputKind, modelInfo.label))}
           className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-5 py-2.5 text-[13px] font-semibold text-black shadow-[0_8px_24px_rgba(188,152,99,0.3)] transition hover:brightness-105"
         >
           <Download size={15} /> Download this render
         </button>
+        {/* ⚠ SEAM (export pipeline): the toggle records intent; the end-card is
+            stamped onto exports once the video export pipeline lands. */}
+        {outputKind === 'video' && (
+          <label
+            className={`flex items-center gap-2 font-mono text-[10.5px] tracking-[0.04em] text-[#8b909e] ${endCardForced ? 'opacity-80' : 'cursor-pointer'}`}
+            title={
+              endCardForced
+                ? 'The end-card is included on Starter. Filmmaker and Pro can remove it.'
+                : 'Applies at export once the export pipeline lands.'
+            }
+          >
+            <input
+              type="checkbox"
+              checked={endCardForced ? true : endCard}
+              disabled={endCardForced}
+              onChange={(e) => setEndCard(e.target.checked)}
+              className="h-3.5 w-3.5 cursor-pointer accent-[#bc9863] disabled:cursor-not-allowed"
+            />
+            &ldquo;Shot on CMA Studio&rdquo; end-card
+            {endCardForced && <span className="text-[#bc9863]">· included on Starter</span>}
+          </label>
+        )}
       </div>
     ) : null;
 
@@ -1076,6 +1159,8 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
 
   return (
     <div>
+      {/* skippable orientation: get a key, or just stay on Auto (dismiss sticks) */}
+      <HowItWorksNote />
       {/* audio models have no camera departments — the switch only shows for visuals */}
       {!isAudio && masterSwitch}
 
@@ -1105,6 +1190,7 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
                 </div>
               </div>
             )}
+            {!isAudio && <RecipePanel current={currentRecipe} onApply={applyRecipe} />}
             <GenerationStrip onPick={pickGeneration} />
           </div>
         </div>
@@ -1189,6 +1275,7 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
                 ))}
               </dl>
             </div>
+            <RecipePanel current={currentRecipe} onApply={applyRecipe} />
           </section>
         </div>
       )}

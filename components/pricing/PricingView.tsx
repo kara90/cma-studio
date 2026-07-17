@@ -21,6 +21,7 @@ import { getBrowserSupabase } from '@/lib/supabase/client';
 import { isSupabaseConfigured, IS_PROD } from '@/lib/access';
 import { TIERS, EXTENSIONS, PRICING_SCOPE_NOTE, PRICE_LOCK_NOTE, findTier, type Cycle, type Tier } from '@/lib/plans';
 import { TERMS_VERSION } from '@/lib/legal';
+import { track } from '@/lib/track';
 
 type PlanMeta = { tier?: string; status?: string; expires?: string } | undefined;
 
@@ -60,6 +61,7 @@ export function PricingView() {
   // Intercept every pay button: derive the disclosures and open the consent
   // gate. The real checkout only runs after the shopper confirms.
   function requestCheckout(payload: Record<string, unknown>, id: string) {
+    track('subscribe_intent'); // first-party beacon, event name only
     setNotice(null);
     let name = 'Plan';
     let price = '';

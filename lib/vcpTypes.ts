@@ -97,6 +97,23 @@ export interface StatusResult {
   error?: string;
 }
 
+/** The full camera recipe captured with a stored render.
+ * ⚠ SEAM (accounts/storage pass): today's stored files carry no recipe yet;
+ * render-time capture starts populating this when per-user persistence lands.
+ * The Library UI already searches/filters on it when present. */
+export interface StoredRecipe {
+  camera?: string;
+  lens?: string;
+  focalLength?: number;
+  aperture?: number;
+  stock?: string;
+  grain?: number;
+  shutterAngle?: number;
+  lighting?: string;
+  grade?: string;
+  style?: string;
+}
+
 /** One file in the user's CMA storage library (GET /api/files). */
 export interface StoredFile {
   /** basename inside the user's prefix, e.g. "abc123.mp4" — the id for /api/files/[id] */
@@ -110,6 +127,10 @@ export interface StoredFile {
   bytes: number;
   /** whole days of plan retention remaining before this file expires */
   daysLeft: number;
+  /** optional project label (SEAM: set once per-user persistence lands) */
+  project?: string;
+  /** optional full camera recipe (SEAM: captured at render time later) */
+  recipe?: StoredRecipe;
 }
 
 export interface FilesResult {
