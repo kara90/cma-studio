@@ -26,7 +26,13 @@
   // queue submit. Raw/direct renders are NEVER counted. Fails OPEN: if KV
   // is unreachable a paying user is never blocked.
   "kv_namespaces": [
-    { "binding": "ENGINE_USAGE", "id": "f231230184d140e296268feb21a465a4" }
+    { "binding": "ENGINE_USAGE", "id": "f231230184d140e296268feb21a465a4" },
+    // CMA_PLATFORM — small platform records, key-prefixed:
+    //   nl/{source}/{ts}-{rand}  → launch-notify email captures
+    //   gal/pending/{id}         → community-gallery submissions awaiting review
+    //   gal/approved/{id}        → owner-approved gallery entries (public)
+    // Write volume is user-triggered and tiny (KV free tier budget is safe).
+    { "binding": "CMA_PLATFORM", "id": "7aa3d07a446341329be16fbb3fd20f5c" }
   ],
   // R2 — CMA render storage. Finished renders are copied here at completion so
   // users keep access for their plan's retention window (fal deletes its copies

@@ -34,10 +34,16 @@ interface R2Bucket {
   }>;
 }
 
-/** Minimal KV surface used by the allowance metering. */
+/** Minimal KV surface used by the allowance metering + platform records. */
 interface KVNamespace {
   get(key: string): Promise<string | null>;
   put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
+  delete(key: string): Promise<void>;
+  list(options?: { prefix?: string; limit?: number; cursor?: string }): Promise<{
+    keys: { name: string }[];
+    list_complete: boolean;
+    cursor?: string;
+  }>;
 }
 
 declare global {
@@ -48,6 +54,8 @@ declare global {
     RENDERS?: R2Bucket;
     // KV — DP-engine allowance counters, one per user per calendar month.
     ENGINE_USAGE?: KVNamespace;
+    // KV — platform records (launch-notify emails, community-gallery entries).
+    CMA_PLATFORM?: KVNamespace;
   }
 }
 
