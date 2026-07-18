@@ -164,6 +164,11 @@ export function UploadTile({ label, note }: { label: string; note?: string }) {
         aria-label={label}
       />
       {note && <p className="mt-1.5 text-[11px] leading-relaxed text-[#8b909e]">{note}</p>}
+      {/* rights notice — standard on every upload tile, in plain words */}
+      <p className="mt-1.5 text-[10.5px] leading-relaxed text-[#6b6f78]">
+        Reference images guide style and direction only. Do not upload copyrighted material to reproduce it. You are
+        responsible for the rights to anything you upload.
+      </p>
     </div>
   );
 }

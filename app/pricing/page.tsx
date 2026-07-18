@@ -19,10 +19,11 @@ export default function PricingPage() {
         <div className="mx-auto mb-14 max-w-2xl text-center">
           <div className="mb-4 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">Pricing</div>
           <h1 className="font-[family-name:var(--font-sora)] text-[clamp(2.2rem,5vw,3.6rem)] font-bold tracking-[-0.035em]">
-            No credits. <span className="bg-gradient-to-r from-[#e7cfa3] to-[#bc9863] bg-clip-text text-transparent">No expiring budget.</span>
+            Unlimited studio. <span className="bg-gradient-to-r from-[#e7cfa3] to-[#bc9863] bg-clip-text text-transparent">One flat fee.</span>
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-[1.05rem] leading-relaxed text-[#8b8f99]">
-            A low flat fee for the software. Your unused budget never evaporates at the end of the month.
+            Unlimited use of the interface and every generator, for one low flat fee. No credits, no expiring budget:
+            your unused money never evaporates at the end of the month.
           </p>
           <p className="mx-auto mt-3 max-w-lg font-mono text-[12px] tracking-[0.04em] text-[#8b909e]">
             Compute always runs on your own fal.ai key at fal&apos;s rate. We never mark it up.

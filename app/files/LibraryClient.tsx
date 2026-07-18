@@ -287,8 +287,9 @@ export function LibraryClient() {
           {files.length} {files.length === 1 ? 'render' : 'renders'} stored · kept about {retentionDays} days on your plan · fair use
         </p>
         <p className="mt-1 text-[11.5px] leading-relaxed text-[#8b909e]">
-          The Vault keeps your renders with their full camera recipe. Never deleted while you are subscribed, within
-          your plan&apos;s window and a fair-use storage cap.
+          The Vault keeps your renders with their full camera recipe: kept while you are subscribed, for your
+          plan&apos;s retention window, within a fair-use storage cap. A convenience cache on top of fal&apos;s ~7-day
+          cleanup, not a permanent archive — download anything you want to keep forever.
         </p>
       </div>
 

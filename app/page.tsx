@@ -22,6 +22,7 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { Pillars } from '@/components/marketing/Pillars';
 import { Showcase } from '@/components/marketing/Showcase';
 import { CommunityGallery } from '@/components/gallery/CommunityGallery';
+import { COMPARISON, COMPARISON_READY } from '@/lib/proofMedia';
 import { Particles } from '@/components/Particles';
 import { BlurText } from '@/components/BlurText';
 import { PresentationReel } from '@/components/PresentationReel';
@@ -123,7 +124,7 @@ export default function Home() {
             <div className="mb-7 flex flex-wrap items-center justify-center gap-2.5">
               {[
                 { icon: KeyRound, t: 'No credits, ever' },
-                { icon: Archive, t: 'Your renders, never deleted' },
+                { icon: Archive, t: 'Your renders, kept safe' },
                 { icon: Boxes, t: 'All the top models' },
               ].map((b) => (
                 <span
@@ -403,37 +404,58 @@ export default function Home() {
               Same model. <span className="text-[#bc9863]">Different director.</span>
             </h2>
           </Reveal>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {/* TODO — DO NOT FABRICATE, USE REAL RENDERS: two comparison clips
-                generated from the SAME base idea on the SAME model. Left = the
-                raw prompt as a beginner would type it. Right = the same idea
-                after the DP engine composed the shot. Drop the video srcs in
-                and delete the placeholder divs. */}
+          {/* Clips live in lib/proofMedia.ts — drop two real renders there and
+              this section flips from "coming soon" to the live comparison.
+              DO NOT FABRICATE: real renders only. */}
+          {COMPARISON_READY ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Reveal>
+                <figure className="glass overflow-hidden rounded-2xl">
+                  <video
+                    src={COMPARISON.raw.src}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    className="block aspect-video w-full object-cover"
+                  />
+                  <figcaption className="px-4 py-3 font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">
+                    {COMPARISON.raw.caption}
+                  </figcaption>
+                </figure>
+              </Reveal>
+              <Reveal delay={0.08}>
+                <figure className="glass glass-gold overflow-hidden rounded-2xl border border-[#bc9863]/35">
+                  <video
+                    src={COMPARISON.directed.src}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    className="block aspect-video w-full object-cover"
+                  />
+                  <figcaption className="px-4 py-3 font-mono text-[11px] tracking-[0.14em] text-[#e7cfa3] uppercase">
+                    {COMPARISON.directed.caption}
+                  </figcaption>
+                </figure>
+              </Reveal>
+            </div>
+          ) : (
+            /* clean pre-release state — no raw TODO text in front of visitors */
             <Reveal>
-              <figure className="glass overflow-hidden rounded-2xl">
-                <div className="grid aspect-video w-full place-items-center bg-black/50">
-                  <span className="px-6 text-center font-mono text-[11px] leading-relaxed tracking-[0.1em] text-[#575b64] uppercase">
-                    TODO · real render · raw prompt
-                  </span>
-                </div>
-                <figcaption className="px-4 py-3 font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">
-                  Raw prompt, straight to the model
-                </figcaption>
-              </figure>
+              <div className="glass glass-gold mx-auto max-w-2xl rounded-2xl border border-[#bc9863]/25 px-8 py-10 text-center">
+                <p className="font-[family-name:var(--font-sora)] text-[17px] font-semibold text-[#e7cfa3]">
+                  The side-by-side is being rendered now.
+                </p>
+                <p className="mx-auto mt-2 max-w-md text-[13.5px] leading-relaxed text-[#8b909e]">
+                  Same idea, same model, twice: once as a raw prompt, once directed by the DP engine. Both clips land
+                  here uncut.
+                </p>
+              </div>
             </Reveal>
-            <Reveal delay={0.08}>
-              <figure className="glass glass-gold overflow-hidden rounded-2xl border border-[#bc9863]/35">
-                <div className="grid aspect-video w-full place-items-center bg-black/50">
-                  <span className="px-6 text-center font-mono text-[11px] leading-relaxed tracking-[0.1em] text-[#575b64] uppercase">
-                    TODO · real render · DP engine
-                  </span>
-                </div>
-                <figcaption className="px-4 py-3 font-mono text-[11px] tracking-[0.14em] text-[#e7cfa3] uppercase">
-                  Same idea, directed by the DP engine
-                </figcaption>
-              </figure>
-            </Reveal>
-          </div>
+          )}
           <Reveal delay={0.14}>
             <p className="mx-auto mt-6 max-w-2xl text-center text-[14px] leading-relaxed text-[#8b8f99]">
               The model is identical. The difference is the direction: real camera, lens, film stock, and lighting

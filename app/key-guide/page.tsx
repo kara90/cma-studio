@@ -23,28 +23,28 @@ const STEPS = [
     title: 'Create a free fal.ai account',
     body: 'Go to fal.ai and sign up with your email or Google account. fal is the render infrastructure CMA Studio runs on: a serious, developer-grade platform that hosts the models. The account is free and takes about two minutes.',
     link: { href: 'https://fal.ai', label: 'Open fal.ai in a new tab' },
-    shot: 'TODO screenshot: fal.ai signup page',
+    shot: 'The fal.ai signup page', // TODO(Sebastien): supply the real capture
   },
   {
     icon: CreditCard,
     title: 'Add a payment method to fal',
     body: 'In your fal dashboard, open Billing and add a card. This is how fal bills your renders directly, at their published rates. CMA Studio never sees this card and never touches your compute money. You only pay for what you render, and you can set spending limits in your fal dashboard.',
     link: { href: 'https://fal.ai/dashboard/billing', label: 'Open fal billing' },
-    shot: 'TODO screenshot: fal billing page with the add-card button circled',
+    shot: 'The fal billing page, add-card button circled', // TODO(Sebastien): supply the real capture
   },
   {
     icon: Copy,
     title: 'Generate your API key',
     body: 'In the fal dashboard, open Keys and click Add key. Give it any name, for example "CMA Studio". fal shows you the key once: copy it. If you ever lose it, just delete it there and make a new one.',
     link: { href: 'https://fal.ai/dashboard/keys', label: 'Open fal keys' },
-    shot: 'TODO screenshot: fal keys page with the copy button circled',
+    shot: 'The fal keys page, copy button circled', // TODO(Sebastien): supply the real capture
   },
   {
     icon: ClipboardPaste,
     title: 'Paste it into CMA Studio',
-    body: 'Back in CMA Studio, every generator page has a key vault at the top. Paste your key and press Connect. Done: the key lives in your browser, is used only at render time, and is never stored on our servers. You will not need to touch this again.',
+    body: 'Back in CMA Studio, every generator page has a key vault at the top. Paste your key and press Connect. Done: the key is saved in your own browser for convenience, passes through our render pipeline only at the moment you render, and is never stored or logged on our servers. You will not need to touch this again.',
     link: { href: '/video', label: 'Open the video generator' },
-    shot: 'TODO screenshot: the CMA key vault with the paste field highlighted',
+    shot: 'The CMA key vault, paste field highlighted', // TODO(Sebastien): supply the real capture
   },
 ] as const;
 
@@ -89,9 +89,13 @@ export default function KeyGuidePage() {
                 >
                   {s.link.label} <ExternalLink size={12} />
                 </a>
-                {/* TODO screenshot slot — replace with a real capture */}
+                {/* Screenshot slot — clean coming-soon state until the real
+                    capture is supplied (see the shot strings above). */}
                 <div className="mt-5 grid aspect-[2/1] w-full place-items-center rounded-2xl border border-white/8 bg-black/40">
-                  <span className="px-6 text-center font-mono text-[10px] tracking-[0.12em] text-[#575b64] uppercase">{s.shot}</span>
+                  <span className="px-6 text-center font-mono text-[10px] leading-relaxed tracking-[0.12em] text-[#575b64] uppercase">
+                    Screenshot coming soon
+                    <span className="mt-1 block normal-case tracking-normal text-[#4a4e57]">{s.shot}</span>
+                  </span>
                 </div>
               </li>
             ))}
@@ -102,9 +106,9 @@ export default function KeyGuidePage() {
           <div className="glass glass-gold mt-8 flex items-start gap-3 rounded-2xl border border-[#bc9863]/25 p-5">
             <ShieldCheck size={18} className="mt-0.5 shrink-0 text-[#bc9863]" />
             <p className="text-[13.5px] leading-relaxed text-[#8b8f99]">
-              How your key is handled: it stays in your browser, it is sent only at the moment you render, and it is
-              never stored on CMA servers. Revoke it anytime from your fal dashboard and nothing on our side holds a
-              copy.
+              How your key is handled: it is saved in your own browser, it is transmitted through our render pipeline
+              only at the moment you render, it is used solely to execute that render, and it is never stored or logged
+              on CMA servers. Revoke it anytime from your fal dashboard and nothing on our side holds a copy.
             </p>
           </div>
         </Reveal>

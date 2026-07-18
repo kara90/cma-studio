@@ -442,9 +442,17 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
                 <AlertTriangle size={11} className="shrink-0" /> {frameError}
               </p>
             )}
+            {/* rights notice — always visible at the upload point, in plain words.
+                Protection here is the Terms, this notice and the DMCA process —
+                deliberately NO fake "copyright detection" claim. */}
+            <p className="mt-2.5 text-[11px] leading-relaxed text-[#8b909e]">
+              Reference images guide style and direction only. Do not upload copyrighted material to reproduce it.
+              You are responsible for the rights to anything you upload.
+            </p>
             {(startFrame || endFrame) && (
               <p className="mt-2 font-mono text-[9px] leading-relaxed tracking-[0.04em] text-[#8b909e]">
-                Uploads go straight to fal on your key. Never through our servers.
+                Uploads go straight to fal on your key, downscaled to 1080p max on your device first. Never through
+                our servers.
               </p>
             )}
           </section>

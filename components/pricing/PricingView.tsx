@@ -22,6 +22,7 @@ import { isSupabaseConfigured, IS_PROD } from '@/lib/access';
 import { TIERS, EXTENSIONS, PRICING_SCOPE_NOTE, PRICE_LOCK_NOTE, findTier, type Cycle, type Tier } from '@/lib/plans';
 import { TERMS_VERSION } from '@/lib/legal';
 import { track } from '@/lib/track';
+import { FalCostTable } from '@/components/pricing/FalCostTable';
 
 type PlanMeta = { tier?: string; status?: string; expires?: string } | undefined;
 
@@ -212,6 +213,15 @@ function CheckoutConsent({
             <dt className="text-[#8b909e]">Renewal</dt>
             <dd className="text-[#e7cfa3]">Renews automatically until cancelled</dd>
           </div>
+          {/* yearly is a commitment, said plainly BEFORE money moves */}
+          <div className="flex items-start justify-between gap-3">
+            <dt className="shrink-0 text-[#8b909e]">Term</dt>
+            <dd className="text-right text-[#cfcabf]">
+              {pending.payload.cycle === 'yearly'
+                ? 'One-year commitment · 14-day money-back guarantee'
+                : 'Month to month · cancel anytime'}
+            </dd>
+          </div>
           <div className="flex items-start justify-between gap-3">
             <dt className="shrink-0 text-[#8b909e]">Cancel</dt>
             <dd className="text-right text-[#cfcabf]">One click in your account, or email hello@cinemasteracademy.com</dd>
@@ -269,10 +279,19 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
   const reduce = useReducedMotion();
   return (
     <div>
-      {/* Category positioning: flat software fee vs expiring-credit subscriptions. */}
+      {/* LEAD: the UNLIMITED convenience layer. The metered DP engine reads as
+          a generous allowance on top, never as the headline limit. */}
       <div className="mx-auto mb-8 max-w-xl text-center">
-        <p className="text-[15px] leading-relaxed text-[#8b8f99]">
-          A low flat fee for the software. Compute runs on your own fal.ai key at fal&apos;s own rate, with no markup from us. No expiring credits, no wasted budget.
+        <p className="text-[15px] leading-relaxed text-[#c7c2b8]">
+          One flat fee, <span className="font-semibold text-[#e7cfa3]">unlimited use of the studio</span>: every
+          generator, your key saved once, your library — all on your own fal.ai key at fal&apos;s own rate, with no
+          markup from us.
+        </p>
+        <p className="mx-auto mt-3 max-w-lg text-[13px] leading-relaxed text-[#8b8f99]">
+          Filmmaker and Pro add the <span className="text-[#e7cfa3]">DP engine</span> — DP as in{' '}
+          <span className="text-[#e7cfa3]">Director of Photography</span>: it composes real camera, lens, film-stock
+          and lighting decisions into your prompt before a single unit of compute is spent. A generous monthly
+          allowance of directed generations sits on top of the unlimited layer.
         </p>
       </div>
 
@@ -342,10 +361,15 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
                 transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 32 }}
               />
             )}
-            <span className="relative">{c === 'yearly' ? 'Yearly · up to $10/mo off' : 'Monthly'}</span>
+            <span className="relative">{c === 'yearly' ? 'Yearly · two months free' : 'Monthly'}</span>
           </button>
         ))}
       </div>
+
+      {/* billing terms, stated where the toggle is: matches the Refund Policy */}
+      <p className="mx-auto mb-3 max-w-md text-center font-mono text-[10.5px] leading-relaxed tracking-[0.06em] text-[#8b909e]">
+        Monthly: cancel anytime. Yearly: a one-year commitment with a 14-day money-back guarantee.
+      </p>
 
       {/* legal-safety scope line: prices cover today's toolset, never a forever promise */}
       <p className="mx-auto mb-12 max-w-md text-center font-mono text-[10px] leading-relaxed tracking-[0.08em] text-[#8b909e]">
@@ -357,6 +381,15 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
           <TierCard key={t.id} tier={t} cycle={cycle} busyId={busyId} onCheckout={onCheckout} />
         ))}
       </div>
+
+      {/* "fair use", defined once in plain language where it appears on the cards */}
+      <p className="mx-auto mt-5 max-w-xl text-center text-[11.5px] leading-relaxed text-[#8b909e]">
+        <span className="text-[#c7c2b8]">&ldquo;Fair use&rdquo;</span> means normal use by one person: your own
+        projects, at human pace. Not shared seats, bots, scripted bulk rendering, or reselling access.
+      </p>
+
+      {/* what compute actually costs on the user's own key — separate, indicative, disclaimed */}
+      <FalCostTable />
 
       {/* ── objection-killer strip: the 3 questions cold traffic actually has,
           answered where the buying decision happens ── */}
@@ -414,7 +447,7 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
         </Link>
         . Plans renew automatically until you cancel, and cancelling takes one click or one email. Your rate is
         locked while you stay subscribed; price changes apply to new subscribers only. Monthly plans cancel anytime.
-        Yearly plans carry a 14-day money-back guarantee.
+        Yearly plans are a one-year commitment with a 14-day money-back guarantee on the first payment.
       </p>
     </div>
   );
@@ -473,7 +506,15 @@ function TierCard({ tier, cycle, busyId, onCheckout }: { tier: Tier; cycle: Cycl
           <Hourglass size={15} /> {tier.cta}
         </button>
       )}
-      <p className="mt-3 text-center font-mono text-[10px] text-[#8b909e]">{tier.note}</p>
+      {/* cycle-aware billing terms: monthly cancels anytime; yearly is a
+          one-year commitment with the 14-day money-back guarantee (matches
+          the Refund Policy — never "cancel anytime" on yearly). */}
+      <p className="mt-3 text-center font-mono text-[10px] leading-relaxed text-[#8b909e]">
+        {tier.note}{' '}
+        {cycle === 'yearly'
+          ? 'One-year commitment, 14-day money-back guarantee.'
+          : 'Cancel anytime.'}
+      </p>
     </div>
   );
 }

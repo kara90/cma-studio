@@ -22,7 +22,16 @@ export default function StudioPage() {
   // (anonymous or signed-in-no-plan) explores the real tool with rendering
   // gated. We never bounce a visitor to /login or /pricing: they must SEE the
   // studio, which is the whole point of the flagship.
-  const [mode, setMode] = useState<'loading' | 'locked' | 'full'>('loading');
+  //
+  // PERFORMANCE FIX (fix-and-upgrade pass): the page used to render a blank
+  // full-screen "Loading the studio…" until supabase.auth.getUser() resolved,
+  // with NO timeout — a cold/paused Supabase could hang that call for up to a
+  // minute of black screen. Now the page paints IMMEDIATELY ('checking' renders
+  // the full console in locked mode with a small "checking your plan" chip) and
+  // the auth check upgrades it in the background. A hard timeout guarantees the
+  // check can never keep the page in limbo. Members see the unlock flip in
+  // typically <1s; visitors see the studio instantly either way.
+  const [mode, setMode] = useState<'checking' | 'locked' | 'full'>('checking');
   const [signedIn, setSignedIn] = useState(false);
   const [activating, setActivating] = useState(false);
   useEffect(() => {
@@ -37,14 +46,18 @@ export default function StudioPage() {
     // customer lands in the unlocked studio, not the locked one.
     const justPaid = new URLSearchParams(window.location.search).get('checkout') === 'success';
     let attempts = 0;
+    /** Never let a hung auth call keep the page in 'checking' forever. */
+    const withTimeout = <T,>(p: Promise<T>, ms: number): Promise<T | null> =>
+      Promise.race([p, new Promise<null>((resolve) => setTimeout(() => resolve(null), ms))]);
     const check = async () => {
-      if (attempts > 0) await supabase.auth.refreshSession();
-      const { data } = await supabase.auth.getUser();
+      if (attempts > 0) await withTimeout(supabase.auth.refreshSession(), 8000);
+      const res = await withTimeout(supabase.auth.getUser(), 8000);
       if (!active) return;
-      const user = data.user;
+      const user = res?.data.user ?? null;
       setSignedIn(Boolean(user));
       if (user && isAcademyEmail(user.email) && hasActivePlan(user.app_metadata)) {
         setMode('full');
+        setActivating(false);
         return;
       }
       if (justPaid && user && attempts < 10) {
@@ -54,6 +67,7 @@ export default function StudioPage() {
         return;
       }
       setMode('locked'); // explore the tool; rendering unlocks with a plan
+      setActivating(false);
     };
     check();
     return () => {
@@ -66,23 +80,14 @@ export default function StudioPage() {
     router.replace('/login');
   }
 
-  if (mode === 'loading') {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
-        <p className="font-mono text-xs tracking-[0.2em] text-[#8b8f99] uppercase">
-          {activating ? 'Payment received. Activating your plan…' : 'Loading the studio…'}
-        </p>
-      </div>
-    );
-  }
-
+  // No blocking screen: the studio paints instantly; auth status rides along.
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-[#bc9863]/18 bg-[#07080b]/95 px-6 py-3.5 backdrop-blur-xl shadow-[0_16px_44px_-30px_rgba(0,0,0,0.95)]">
         <Link href="/" className="flex items-center gap-3">
           <Logo size={44} />
           <span className="font-[family-name:var(--font-sora)] text-[17px] font-semibold tracking-[-0.01em]">
-            CMA Studio <span className="text-[#bc9863]">Pro</span>
+            CMA <span className="text-[#bc9863]">Director Studio</span>
             <span className="ml-2 font-mono text-[9px] tracking-[0.24em] text-[#bc9863]/70">VCP</span>
           </span>
           <span className="rounded-full border border-[#bc9863]/30 bg-[#bc9863]/8 px-2 py-0.5 font-mono text-[8px] tracking-[0.16em] text-[#bc9863] uppercase">
@@ -93,6 +98,13 @@ export default function StudioPage() {
           {DEV_AUTH_BYPASS && (
             <span className="hidden items-center gap-1.5 font-mono text-[10px] text-[#bc9863]/70 sm:inline-flex">
               <AlertTriangle size={12} /> dev mode — auth bypassed locally
+            </span>
+          )}
+          {/* background plan check — the page is already fully interactive */}
+          {(mode === 'checking' || activating) && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/30 px-2.5 py-1 font-mono text-[9px] tracking-[0.14em] text-[#8b909e] uppercase">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#bc9863]" />
+              {activating ? 'Payment received · activating your plan…' : 'Checking your plan…'}
             </span>
           )}
           {mode === 'locked' && (

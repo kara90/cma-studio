@@ -30,11 +30,13 @@ export function PricingSection({ className = '' }: PricingSectionProps) {
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">Pricing</div>
           <h2 className="font-[family-name:var(--font-sora)] text-[clamp(1.9rem,4vw,2.7rem)] font-bold tracking-[-0.03em]">
-            No expiring credits.{' '}
-            <span className="bg-gradient-to-r from-[#e7cfa3] to-[#bc9863] bg-clip-text text-transparent">No wasted budget.</span>
+            Unlimited studio.{' '}
+            <span className="bg-gradient-to-r from-[#e7cfa3] to-[#bc9863] bg-clip-text text-transparent">One flat fee.</span>
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-[15px] leading-relaxed text-[#8b8f99]">
-            A low flat fee for the software. Compute runs on your own fal.ai key at fal&apos;s own rate, with no markup from us.
+            Unlimited use of every generator on your own fal.ai key, at fal&apos;s own rate, with no markup from us. No
+            expiring credits, no wasted budget. The Director of Photography engine adds a generous directed allowance
+            on top.
           </p>
           <span className="mt-4 inline-block rounded border border-white/10 px-2 py-0.5 font-mono text-[9px] tracking-[0.16em] text-[#8b909e] uppercase">
             Placeholder pricing
@@ -58,7 +60,7 @@ export function PricingSection({ className = '' }: PricingSectionProps) {
                   transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 32 }}
                 />
               )}
-              <span className="relative">{c === 'yearly' ? 'Yearly · up to $10/mo off' : 'Monthly'}</span>
+              <span className="relative">{c === 'yearly' ? 'Yearly · two months free' : 'Monthly'}</span>
             </button>
           ))}
         </div>

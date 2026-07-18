@@ -58,7 +58,7 @@ const GROUPS: readonly FaqGroup[] = [
     items: [
       {
         q: 'What does the subscription cover, and what does fal bill me?',
-        a: 'The subscription covers the software: the interface, your Library, your retention window, and your included engine generations (500 a month on Filmmaker; unlimited within fair use on Pro; Starter is the clean interface over fal and sends your prompts as written, without the engine). Compute is separate. fal bills your own account for each render at fal’s rate, and we never touch or mark up that charge.',
+        a: 'The subscription covers the software: unlimited use of the interface, your Library, your retention window, and your included engine generations (500 a month on Filmmaker, 750 a month on Pro; Starter is the clean interface over fal and sends your prompts as written, without the engine). Compute is separate. fal bills your own account for each render at fal’s rate, and we never touch or mark up that charge.',
       },
       {
         q: 'How much does a render cost?',

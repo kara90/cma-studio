@@ -21,19 +21,21 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { usageKey, refreshDate, type EngineAllowance, type PublicAllowance } from './allowances';
 
 /**
- * Included engine generations per tier — SERVER-ONLY numbers.
+ * Included engine generations per tier — SERVER-ONLY enforcement numbers.
  *   Starter (id 'student')  →    0  (no DP-engine access; raw generators only)
  *   Filmmaker (id 'pro')    →  500  (public number, mirrored in lib/plans.ts)
- *   Pro (id 'studio')       → 3000  (⚠ HIDDEN fair-use hard cap. Publicly this
- *                                    tier is "unlimited within fair use" — the
- *                                    number is never returned to a client and
- *                                    never appears in copy. Anti-abuse only.)
+ *   Pro (id 'studio')       →  750  (public number, mirrored in lib/plans.ts;
+ *                                    also the server-side hard cap that stops
+ *                                    abuse — the metered engine is never
+ *                                    marketed as "unlimited")
  * Unknown/missing tiers get 0 (engine access is an explicit entitlement; the
  * raw generators stay open to every paid tier regardless).
  */
-const ENGINE_CAPS: Record<string, number> = { student: 0, pro: 500, studio: 3000 };
-/** Tiers whose allowance is presented as "unlimited within fair use". */
-const UNLIMITED_DISPLAY = new Set(['studio']);
+const ENGINE_CAPS: Record<string, number> = { student: 0, pro: 500, studio: 750 };
+/** Tiers whose allowance would display without a number. None today: every
+ * metered tier states its number publicly (fix-and-upgrade pass, Section D).
+ * The redaction machinery below stays for any future unlimited-display tier. */
+const UNLIMITED_DISPLAY = new Set<string>();
 
 function capForTier(tier: string | null | undefined): number {
   return ENGINE_CAPS[tier ?? ''] ?? 0;

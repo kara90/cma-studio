@@ -76,23 +76,25 @@ export const TIERS: Tier[] = [
     name: 'Starter',
     academy: false,
     featured: false,
-    price: { yearly: '$2.99', monthly: '$3.99' }, // PLACEHOLDER
-    yearlySave: 'About $12 saved per year', // PLACEHOLDER
+    // ANNUAL = TWO MONTHS FREE: yearly per-month display = monthly × 10 / 12.
+    price: { yearly: '$3.33', monthly: '$3.99' }, // PLACEHOLDER
+    yearlySave: 'Two months free — save $7.98 a year vs monthly', // PLACEHOLDER (tracks 2 × monthly)
     retention: 'Renders kept about 30 days · fair use', // PLACEHOLDER
-    // STARTER IS THE CONVENIENCE LAYER: one clean interface over fal, key
+    // STARTER IS THE CONVENIENCE LAYER: unlimited use of the interface, key
     // saved once, renders kept far longer than fal's ~7-day cleanup. It has
     // NO DP-engine access — the engine starts at Filmmaker (mirrored server
     // side in lib/engineUsage.ts, where Starter's included generations are 0).
-    blurb: 'The convenience layer over fal: one clean interface, your key saved once, and your renders kept about 30 days instead of fal’s roughly 7. Compute on your own key.',
+    // The feature list deliberately ENDS ON A BENEFIT, not on what it lacks.
+    blurb: 'Unlimited use of the studio interface on your own key: every generator, one clean cockpit, no expiring credits. Compute on your own key at fal’s rate.',
     features: [
-      'All generators in one clean interface: video, image, audio',
-      'Save your fal.ai key once, render everywhere',
-      'fal rates only, no markup from us',
-      'Renders kept about 30 days, instead of fal’s roughly 7-day cleanup',
+      'Unlimited use of every generator: video, image, audio',
       'Your prompts, sent as written. The full DP engine lives in Filmmaker and Pro.',
+      'fal rates only, no markup from us',
+      'Save your fal.ai key once, render everywhere',
+      'Renders kept about 30 days, instead of fal’s roughly 7-day cleanup',
     ],
     cta: 'Start rendering',
-    note: 'Cancel anytime. Compute billed by fal at fal rates.',
+    note: 'Compute billed by fal at fal rates.',
     checkout: true,
   },
   {
@@ -101,19 +103,20 @@ export const TIERS: Tier[] = [
     name: 'Filmmaker',
     academy: false,
     featured: true,
-    price: { yearly: '$14.99', monthly: '$24.99' }, // PLACEHOLDER
-    yearlySave: 'About $10 per month saved', // PLACEHOLDER
+    // ANNUAL = TWO MONTHS FREE: yearly per-month display = monthly × 10 / 12.
+    price: { yearly: '$20.83', monthly: '$24.99' }, // PLACEHOLDER
+    yearlySave: 'Two months free — save $49.98 a year vs monthly', // PLACEHOLDER (tracks 2 × monthly)
     retention: 'Renders kept about 90 days · fair use', // PLACEHOLDER
-    blurb: 'Everything in Starter, plus the full CMA Studio DP engine. Real camera, lens, film stock and lighting control, engineered server side.',
+    blurb: 'Everything in Starter, plus the full Director of Photography (DP) engine: real camera, lens, film stock and lighting decisions composed into your prompt, server side.',
     features: [
-      'Everything in Starter: all generators, video, image, audio',
-      'Full CMA Studio DP engine: camera, lens, film stock, lighting',
-      '500 included engine generations every month, shared across all CMA tools',
+      'Everything in Starter: unlimited use of every generator',
+      'Full DP engine: camera, lens, film stock, lighting — composed like a working Director of Photography would',
+      '500 engine generations a month — enough to direct dozens of scenes, with room to spare',
       'Prompt engineering handled server side',
       'Tuned to land the shot in fewer tries',
     ],
     cta: 'Get Filmmaker',
-    note: 'No verification needed. Cancel anytime.',
+    note: 'No verification needed.',
     checkout: true,
   },
   {
@@ -122,13 +125,14 @@ export const TIERS: Tier[] = [
     name: 'Pro',
     academy: false,
     featured: false,
-    price: { yearly: '$29.99', monthly: '$39.99' }, // PLACEHOLDER
-    yearlySave: 'About $10 per month saved', // PLACEHOLDER
+    // ANNUAL = TWO MONTHS FREE: yearly per-month display = monthly × 10 / 12.
+    price: { yearly: '$33.33', monthly: '$39.99' }, // PLACEHOLDER
+    yearlySave: 'Two months free — save $79.98 a year vs monthly', // PLACEHOLDER (tracks 2 × monthly)
     retention: 'Renders kept about 1 year · fair use', // PLACEHOLDER
-    blurb: 'Everything in Filmmaker, plus the longest retention and first looks at new tools as they join.',
+    blurb: 'Everything in Filmmaker, plus the deepest engine allowance, the longest retention, and first looks at new tools as they join.',
     features: [
-      'Everything in Filmmaker: all generators plus the DP engine',
-      'Unlimited engine generations within fair use, shared across all CMA tools',
+      'Everything in Filmmaker: unlimited generators plus the DP engine',
+      '750 engine generations a month — headroom most working creators never touch',
       'Longest retention, about 1 year, fair use',
       'Priority render queue',
       'Early access to new CMA tools as they roll out',
