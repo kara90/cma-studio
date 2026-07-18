@@ -43,14 +43,13 @@
   ],
   // R2 — CMA render storage. Finished renders are copied here at completion so
   // users keep access for their plan's retention window (fal deletes its copies
-  // after ~7 days). ⚠ TEMPORARILY DISABLED (2026-07-02): R2 is not yet ENABLED
-  // on the Cloudflare account (API error 10042 — Sebastien must enable R2 in the
-  // dashboard once, then create the `cma-renders` bucket). Every storage code
-  // path fails soft without the binding (library shows "storage offline",
-  // renders still work). UNCOMMENT at the go-live session after enabling R2:
-  // "r2_buckets": [
-  //   { "binding": "RENDERS", "bucket_name": "cma-renders" }
-  // ],
+  // after ~7 days). ENABLED 2026-07-18: R2 is active on the account and the
+  // `cma-renders` bucket exists, so the Library persists renders (no longer the
+  // "storage offline" soft-fail). Every storage path still fails soft if the
+  // binding is ever missing (e.g. plain `next dev`).
+  "r2_buckets": [
+    { "binding": "RENDERS", "bucket_name": "cma-renders" }
+  ],
   // Non-secret runtime config (safe to commit). The Supabase anon/URL are PUBLIC
   // (the anon key ships in the browser); real secrets (service_role, Stripe) are
   // NEVER here — those go in the dashboard as encrypted secrets. Build-time copies
