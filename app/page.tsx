@@ -33,7 +33,7 @@ import { BorderRotate } from '@/components/ui/animated-gradient-border';
  * vignette, drifting leaks) is provided globally by <Atmosphere/> in the layout.
  *
  * Positioning: a professional layer for AI production. Every frontier model in
- * one place, plain generators at /video /image /audio, the DP Studio at /studio
+ * one place, plain generators at /video /image /audio, the Director Studio at /studio
  * as the flagship, storage included. One low flat software fee; compute runs on
  * the user's own fal.ai key at fal's own rate with zero markup. We attack the
  * category of expiring credit subscriptions, never a competitor.
@@ -77,7 +77,7 @@ const TOOLS = [
     href: '/studio',
     icon: Clapperboard,
     title: 'CMA Director Studio',
-    body: 'A server-side DP engine built on 21+ years behind the camera as a working Director of Photography. Real camera, lens and lighting choices become the shot.',
+    body: 'A server-side Cinematographer engine built on 21+ years behind the camera as a working Director of Photography. Real camera, lens and lighting choices become the shot.',
     flagship: true,
   },
 ] as const;
@@ -302,7 +302,7 @@ export default function Home() {
               compiled into every frame. This is the full Pro rig, live below. Touch every control.
             </p>
             <p className="mx-auto mt-3 max-w-xl text-[13.5px] leading-relaxed text-[#8b909e]">
-              Built by a working DP with 21+ years on set: an Absolut Vodka commercial, an Amazon Prime series, aerial
+              Built by a working Director of Photography with 21+ years on set: an Absolut Vodka commercial, an Amazon Prime series, aerial
               work for major-label productions. That experience is compiled into every frame this engine directs.
             </p>
           </Reveal>
@@ -338,7 +338,7 @@ export default function Home() {
               <div>
                 <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">In your pocket</div>
                 <h2 className="font-[family-name:var(--font-sora)] text-[clamp(1.7rem,4vw,2.6rem)] font-bold tracking-[-0.03em]">
-                  Your DP tools. <span className="text-[#bc9863]">Everywhere.</span>
+                  Your cinematographer&apos;s tools. <span className="text-[#bc9863]">Everywhere.</span>
                 </h2>
                 <p className="mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-[#8b8f99]">
                   Install CMA Studio on your phone or tablet: same account, same key, same library. Direct a shot
@@ -450,7 +450,7 @@ export default function Home() {
                   The side-by-side is being rendered now.
                 </p>
                 <p className="mx-auto mt-2 max-w-md text-[13.5px] leading-relaxed text-[#8b909e]">
-                  Same idea, same model, twice: once as a raw prompt, once directed by the DP engine. Both clips land
+                  Same idea, same model, twice: once as a raw prompt, once directed by the Cinematographer engine. Both clips land
                   here uncut.
                 </p>
               </div>
@@ -494,7 +494,7 @@ export default function Home() {
             </h2>
             <p className="mx-auto mt-5 max-w-xl text-[1.05rem] leading-relaxed text-[#8b8f99]">
               CMA Studio is in active beta, a growing platform for serious AI production. Plain generators for
-              everyday work, a full DP engine when the shot matters, and your library underneath it all. Everything
+              everyday work, a full Cinematographer engine when the shot matters, and your library underneath it all. Everything
               is engineered toward one goal: help you make magnificent work without wasting a dollar of compute.
               More is coming, fast.
             </p>

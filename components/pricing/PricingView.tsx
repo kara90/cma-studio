@@ -188,8 +188,8 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
   const reduce = useReducedMotion();
   return (
     <div>
-      {/* LEAD: the UNLIMITED convenience layer. The metered DP engine reads as
-          a generous allowance on top, never as the headline limit. */}
+      {/* LEAD: the UNLIMITED convenience layer. The metered Cinematographer
+          engine reads as a generous allowance on top, never the headline limit. */}
       <div className="mx-auto mb-8 max-w-xl text-center">
         <p className="text-[15px] leading-relaxed text-[#c7c2b8]">
           One flat fee, <span className="font-semibold text-[#e7cfa3]">unlimited use of the studio</span>: every
@@ -197,10 +197,11 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
           markup from us.
         </p>
         <p className="mx-auto mt-3 max-w-lg text-[13px] leading-relaxed text-[#8b8f99]">
-          Filmmaker and Pro add the <span className="text-[#e7cfa3]">DP engine</span> — DP as in{' '}
-          <span className="text-[#e7cfa3]">Director of Photography</span>: it composes real camera, lens, film-stock
-          and lighting decisions into your prompt before a single unit of compute is spent. A generous monthly
-          allowance of directed generations sits on top of the unlimited layer.
+          Filmmaker and Pro unlock the <span className="text-[#e7cfa3]">complete studio</span>, built around the{' '}
+          <span className="text-[#e7cfa3]">Cinematographer engine</span>: it composes real camera, lens, film-stock
+          and lighting decisions into your prompt before a single unit of compute is spent, directed like a working
+          Director of Photography would. A generous monthly allowance of directed generations sits on top of the
+          unlimited layer.
         </p>
       </div>
 
@@ -291,11 +292,19 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
         ))}
       </div>
 
-      {/* "fair use", defined once in plain language where it appears on the cards */}
-      <p className="mx-auto mt-5 max-w-xl text-center text-[11.5px] leading-relaxed text-[#8b909e]">
-        <span className="text-[#c7c2b8]">&ldquo;Fair use&rdquo;</span> means normal use by one person: your own
-        projects, at human pace. Not shared seats, bots, scripted bulk rendering, or reselling access.
-      </p>
+      {/* "fair use", defined once in plain, friendly language (FIX 5) — its own
+          clearly separated block so it always reads complete, never clipped. */}
+      <div className="mx-auto mt-8 max-w-xl rounded-2xl border border-white/10 bg-black/20 px-6 py-5 text-center">
+        <div className="mb-1.5 font-mono text-[10px] tracking-[0.18em] text-[#bc9863] uppercase">
+          What &ldquo;fair use&rdquo; means
+        </div>
+        <p className="text-[13px] leading-relaxed text-[#9a9ea8]">
+          Your monthly Cinematographer allowance is for normal creative work by one person: your own projects, at a
+          human pace. It is not for sharing one seat between multiple people, running bots or scripts, bulk rendering
+          at machine speed, or reselling access. Use it the way a working creative would and you will never bump into
+          it.
+        </p>
+      </div>
 
       {/* what compute actually costs on the user's own key — separate, indicative, disclaimed */}
       <FalCostTable />
@@ -309,12 +318,12 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
         <div className="flex flex-col gap-3">
           {[
             {
-              q: 'What counts as a DP-engine generation?',
-              a: 'One engine call. Each time the DP engine composes or recomposes a prompt for you, that is one generation. Raw renders on your own key are never counted.',
+              q: 'What counts as a Cinematographer generation?',
+              a: 'One engine call. Each time the Cinematographer engine composes or recomposes a prompt for you, that is one generation. Raw renders on your own key are never counted.',
             },
             {
               q: 'Why is this cheaper than credit platforms?',
-              a: 'Because we do not resell compute. You pay fal directly at their published rates. Our fee covers the studio, the DP engine, and your render library. Our margin does not depend on marking up your renders.',
+              a: 'Because we do not resell compute. You pay fal directly at their published rates. Our fee covers the studio, the Cinematographer engine, and your render library. Our margin does not depend on marking up your renders.',
             },
             {
               q: 'What is a fal key and is it hard to set up?',
@@ -405,26 +414,95 @@ function TierCard({ tier, cycle, busyId, onCheckout }: { tier: Tier; cycle: Cycl
           {!busy && <ArrowRight size={15} />}
         </button>
       ) : (
-        /* Not checkout-able yet (no Stripe price in lib/billing.ts) - a real
-           checkout call would 400, so this stays a quiet disabled button. */
-        <button
-          disabled
-          aria-disabled="true"
-          className="inline-flex min-h-[44px] cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-white/10 px-5 py-3 text-sm font-semibold text-[#8b909e]"
-        >
-          <Hourglass size={15} /> {tier.cta}
-        </button>
+        /* Not checkout-able yet (no Stripe price in lib/billing.ts). Instead of
+           a dead "Coming at launch" button, capture interested visitors on a
+           waitlist so the top tier's demand isn't lost (FIX 6). */
+        <ProWaitlist />
       )}
       {/* cycle-aware billing terms: monthly cancels anytime; yearly is a
           one-year commitment with the 14-day money-back guarantee (matches
-          the Refund Policy — never "cancel anytime" on yearly). */}
-      <p className="mt-3 text-center font-mono text-[10px] leading-relaxed text-[#8b909e]">
-        {tier.note}{' '}
-        {cycle === 'yearly'
-          ? 'One-year commitment, 14-day money-back guarantee.'
-          : 'Cancel anytime.'}
-      </p>
+          the Refund Policy — never "cancel anytime" on yearly). Hidden on the
+          waitlist tier, which has its own copy. */}
+      {tier.checkout && (
+        <p className="mt-3 text-center font-mono text-[10px] leading-relaxed text-[#8b909e]">
+          {tier.note}{' '}
+          {cycle === 'yearly'
+            ? 'One-year commitment, 14-day money-back guarantee.'
+            : 'Cancel anytime.'}
+        </p>
+      )}
     </div>
+  );
+}
+
+/* ── Pro-tier waitlist: compact email capture for the not-yet-purchasable top
+   tier. Posts to /api/notify (source 'pro-waitlist'); reuses the same beacon
+   as the studio launch-notify forms. No account needed. ── */
+function ProWaitlist() {
+  const [email, setEmail] = useState('');
+  const [state, setState] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
+  const [error, setError] = useState('');
+
+  async function join(e: React.FormEvent) {
+    e.preventDefault();
+    if (state === 'busy' || state === 'done') return;
+    setState('busy');
+    setError('');
+    try {
+      const res = await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, source: 'pro-waitlist' }),
+      });
+      const data = (await res.json()) as { ok: boolean; error?: string };
+      if (data.ok) {
+        setState('done');
+        track('subscribe_intent');
+      } else {
+        setState('error');
+        setError(data.error ?? 'Could not join. Try again.');
+      }
+    } catch {
+      setState('error');
+      setError('Could not reach the server. Try again.');
+    }
+  }
+
+  if (state === 'done') {
+    return (
+      <div className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/8 px-4 py-3 text-[13px] font-semibold text-emerald-300">
+        <Check size={15} /> You&apos;re on the waitlist
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={join} className="flex flex-col gap-2">
+      <div className="flex gap-2">
+        <label htmlFor="pro-waitlist" className="sr-only">
+          Email for the Pro waitlist
+        </label>
+        <input
+          id="pro-waitlist"
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@studio.com"
+          className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-[13px] text-[#f4efe6] outline-none transition focus:border-[#bc9863] placeholder:text-[#8b909e]"
+        />
+        <button
+          type="submit"
+          disabled={state === 'busy'}
+          className="inline-flex flex-none min-h-[44px] cursor-pointer items-center gap-1.5 rounded-xl border border-[#bc9863]/45 bg-[#bc9863]/10 px-4 text-[13px] font-semibold text-[#e7cfa3] transition hover:border-[#bc9863] hover:bg-[#bc9863]/16 disabled:opacity-50"
+        >
+          <Hourglass size={14} /> {state === 'busy' ? 'Joining…' : 'Join the waitlist'}
+        </button>
+      </div>
+      <p className="text-center font-mono text-[10px] leading-relaxed text-[#8b909e]">
+        {error || 'Pro opens at launch. Get first access the day it does.'}
+      </p>
+    </form>
   );
 }
 

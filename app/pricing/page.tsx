@@ -47,7 +47,10 @@ export default function PricingPage() {
         </div>
       </main>
 
-      <footer className="relative z-10 border-t border-white/6 px-6 py-10">
+      {/* pb-32: clears the fixed "Get the app" install banner (PwaProvider,
+          fixed bottom-4 z-[70]) so the footer + fair-use text below it are never
+          hidden behind the banner at the bottom of the page (FIX 4). */}
+      <footer className="relative z-10 border-t border-white/6 px-6 pt-10 pb-32">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 font-mono text-[12px] tracking-[0.04em] text-[#8b909e] sm:flex-row">
           <span>© 2026 CineMaster Academy · CMA Studio</span>
           <div className="flex items-center gap-5">

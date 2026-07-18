@@ -15,7 +15,7 @@ const NO_STORE = { 'Cache-Control': 'no-store' } as const;
 
 const BodySchema = z.object({
   email: z.string().trim().toLowerCase().email('Enter a valid email.').max(200),
-  source: z.enum(['marketing', 'real-estate', 'general']),
+  source: z.enum(['marketing', 'real-estate', 'general', 'pro-waitlist']),
 });
 
 export async function POST(request: Request) {

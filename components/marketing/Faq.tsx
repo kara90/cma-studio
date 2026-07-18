@@ -78,11 +78,11 @@ const GROUPS: readonly FaqGroup[] = [
       },
       {
         q: 'Why is this cheaper than credit platforms?',
-        a: 'Because we do not resell compute. You pay fal directly at their published rates. Our fee covers the studio, the DP engine, and your render library. Our margin does not depend on marking up your renders.',
+        a: 'Because we do not resell compute. You pay fal directly at their published rates. Our fee covers the studio, the Cinematographer engine, and your render library. Our margin does not depend on marking up your renders.',
       },
       {
-        q: 'What counts as a DP-engine generation?',
-        a: 'One engine call. Each time the DP engine composes or recomposes a prompt for you, that is one generation. Raw renders on your own key are never counted.',
+        q: 'What counts as a Cinematographer generation?',
+        a: 'One engine call. Each time the Cinematographer engine composes or recomposes a prompt for you, that is one generation. Raw renders on your own key are never counted.',
       },
       {
         q: 'What happens if I use all my engine generations?',
@@ -107,7 +107,7 @@ const GROUPS: readonly FaqGroup[] = [
       },
       {
         q: 'Will every render match what I imagined?',
-        a: 'Not every one, on any platform. AI still misses sometimes. The Studio’s DP engine narrows that gap with real cinematography language, which is why it tends to land the shot in fewer tries.',
+        a: 'Not every one, on any platform. AI still misses sometimes. The Studio’s Cinematographer engine narrows that gap with real cinematography language, which is why it tends to land the shot in fewer tries.',
       },
       {
         q: 'What is the difference between the plain generators and the Studio?',

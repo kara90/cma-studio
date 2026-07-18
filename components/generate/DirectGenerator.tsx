@@ -459,7 +459,7 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
         )}
 
         {/* 4 · prompt — RAW by contract: what you type is the exact string the
-            model receives on your fal account. The CMA DP engine only ever
+            model receives on your fal account. The CMA Cinematographer engine only ever
             runs in CMA Director Studio. */}
         <section className="border-t border-white/8 pt-5">
           <div className="mb-2 flex items-center justify-between gap-2">
@@ -483,7 +483,7 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
           />
           <p className="mt-1.5 text-[11.5px] leading-relaxed text-[#8b909e]">
             This page sends your prompt to the model <span className="text-[#cfcabf]">exactly as written</span> — no
-            structure, no optimization, no studio recipe. Want a shot engineered like a DP would?{' '}
+            structure, no optimization, no studio recipe. Want a shot engineered like a Director of Photography would?{' '}
             <Link href="/studio" className="font-semibold text-[#bc9863] underline-offset-2 transition hover:text-[#e7cfa3] hover:underline">
               That&apos;s CMA Director Studio
             </Link>

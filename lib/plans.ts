@@ -10,7 +10,7 @@
  * The scheme: a low flat fee for the software. Compute runs on the member's
  * own fal.ai key at fal's rate, no markup from us. Every tier gets ALL
  * generators (video, image, audio) through the clean interface; Filmmaker
- * and Pro add the full CMA Studio DP engine. Tiers are differentiated by
+ * and Pro add the full CMA Studio Cinematographer engine. Tiers are differentiated by
  * RETENTION and perks, never by removing the core value.
  *
  * Legal wording rules:
@@ -82,16 +82,16 @@ export const TIERS: Tier[] = [
     retention: 'Renders kept about 30 days · fair use', // PLACEHOLDER
     // STARTER IS THE CONVENIENCE LAYER: unlimited use of the interface, key
     // saved once, renders kept far longer than fal's ~7-day cleanup. It has
-    // NO DP-engine access — the engine starts at Filmmaker (mirrored server
+    // NO Cinematographer-engine access — the engine starts at Filmmaker (mirrored server
     // side in lib/engineUsage.ts, where Starter's included generations are 0).
     // The feature list deliberately ENDS ON A BENEFIT, not on what it lacks.
     blurb: 'Unlimited use of the studio interface on your own key: every generator, one clean cockpit, no expiring credits. Compute on your own key at fal’s rate.',
     features: [
       'Unlimited use of every generator: video, image, audio',
-      'Your prompts, sent as written. The full DP engine lives in Filmmaker and Pro.',
+      'One clean cockpit for every top model, on your own key',
       'fal rates only, no markup from us',
       'Save your fal.ai key once, render everywhere',
-      'Renders kept about 30 days, instead of fal’s roughly 7-day cleanup',
+      'Your renders kept about 30 days, well past fal’s roughly 7-day cleanup',
     ],
     cta: 'Start rendering',
     note: 'Compute billed by fal at fal rates.',
@@ -107,11 +107,11 @@ export const TIERS: Tier[] = [
     price: { yearly: '$20.83', monthly: '$24.99' }, // PLACEHOLDER
     yearlySave: 'Two months free — save $49.98 a year vs monthly', // PLACEHOLDER (tracks 2 × monthly)
     retention: 'Renders kept about 90 days · fair use', // PLACEHOLDER
-    blurb: 'Everything in Starter, plus the full Director of Photography (DP) engine: real camera, lens, film stock and lighting decisions composed into your prompt, server side.',
+    blurb: 'The complete studio. Everything in Starter, plus the full professional toolkit built around the Cinematographer engine: real camera, lens, film stock and lighting composed into every shot, server side.',
     features: [
-      'Everything in Starter: unlimited use of every generator',
-      'Full DP engine: camera, lens, film stock, lighting — composed like a working Director of Photography would',
-      '500 engine generations a month — enough to direct dozens of scenes, with room to spare',
+      'The complete studio: every generator, camera recipes and your Vault library',
+      'The Cinematographer engine at its center: camera, lens, film stock and lighting, directed like a working Director of Photography would',
+      '500 Cinematographer generations a month — enough to direct dozens of scenes, with room to spare',
       'Prompt engineering handled server side',
       'Tuned to land the shot in fewer tries',
     ],
@@ -129,13 +129,13 @@ export const TIERS: Tier[] = [
     price: { yearly: '$33.33', monthly: '$39.99' }, // PLACEHOLDER
     yearlySave: 'Two months free — save $79.98 a year vs monthly', // PLACEHOLDER (tracks 2 × monthly)
     retention: 'Renders kept about 1 year · fair use', // PLACEHOLDER
-    blurb: 'Everything in Filmmaker, plus the deepest engine allowance, the longest retention, and first looks at new tools as they join.',
+    blurb: 'Everything in Filmmaker at its fullest: the complete studio, the deepest Cinematographer allowance, the longest retention, and first looks at every new studio as it joins the family.',
     features: [
-      'Everything in Filmmaker: unlimited generators plus the DP engine',
-      '750 engine generations a month — headroom most working creators never touch',
+      'Everything in Filmmaker: the complete studio plus the Cinematographer engine',
+      '750 Cinematographer generations a month — headroom most working creators never touch',
       'Longest retention, about 1 year, fair use',
       'Priority render queue',
-      'Early access to new CMA tools as they roll out',
+      'Early access to every new CMA studio and tool as it rolls out',
     ],
     cta: 'Coming at launch',
     note: 'Self-serve checkout for this tier opens at launch.',

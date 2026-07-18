@@ -14,7 +14,7 @@ const PILLARS = [
   },
   {
     icon: Aperture,
-    title: 'Real DP precision, fewer wasted renders',
+    title: 'Real cinematographer precision, fewer wasted renders',
     body: 'Real camera, lens, film stock and lighting controls, engineered server side, so you get the shot in fewer tries and burn less compute than firing raw prompts at a model.',
   },
   {
