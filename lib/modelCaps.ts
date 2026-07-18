@@ -95,7 +95,9 @@ const SEEDANCE_FULL: ModelCaps = {
   resolutionParam: 'resolution', resolutions: ['480p', '720p', '1080p', '4k'], resolutionDefault: '720p',
   durationParam: 'duration', durations: ['4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'], durationDefault: '5',
   aspectParam: 'aspect_ratio', aspects: CORE_ASPECTS, aspectDefault: '16:9',
-  supportsSeed: true, supportsNegativePrompt: false,
+  // ⚠ Seedance 2.0's LIVE schema has NO seed param (global wiring audit
+  // 2026-07-18) — sending one 422s the render. Seedance 1.5 Pro keeps seed.
+  supportsSeed: false, supportsNegativePrompt: false,
   audioParam: 'generate_audio', audioDefault: true, // audio included in seedance pricing
   frames: 'start-end',
 };
@@ -103,7 +105,8 @@ const SEEDANCE_FAST: ModelCaps = {
   resolutionParam: 'resolution', resolutions: ['480p', '720p'], resolutionDefault: '720p',
   durationParam: 'duration', durations: ['4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'], durationDefault: '5',
   aspectParam: 'aspect_ratio', aspects: CORE_ASPECTS, aspectDefault: '16:9',
-  supportsSeed: true, supportsNegativePrompt: false,
+  // ⚠ same as SEEDANCE_FULL: the fast line's schema has no seed param either.
+  supportsSeed: false, supportsNegativePrompt: false,
   audioParam: 'generate_audio', audioDefault: true,
   frames: 'start-end',
 };
