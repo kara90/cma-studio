@@ -10,7 +10,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ShieldCheck, Check, X, RefreshCw, AlertTriangle } from 'lucide-react';
 import type { GalleryEntry } from '@/lib/platformStore';
-import { TOOL_LABELS } from '@/components/gallery/CommunityGallery';
+import { GALLERY_CATEGORIES, entryCategory, type GalleryCategoryId } from '@/lib/galleryCategories';
 
 const KEY_STORAGE = 'cma_owner_review_key';
 
@@ -21,6 +21,8 @@ export function ReviewQueue() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  /** per-entry category override (owner assigns/confirms before approving) */
+  const [catPick, setCatPick] = useState<Record<string, GalleryCategoryId>>({});
 
   const load = useCallback(async (key: string) => {
     setLoading(true);
@@ -52,14 +54,14 @@ export function ReviewQueue() {
     }
   }, [load]);
 
-  async function review(id: string, action: 'approve' | 'reject') {
+  async function review(id: string, action: 'approve' | 'reject', category?: GalleryCategoryId) {
     setBusyId(id);
     setError('');
     try {
       const res = await fetch('/api/gallery/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-owner-key': ownerKey },
-        body: JSON.stringify({ id, action }),
+        body: JSON.stringify({ id, action, category }),
       });
       const data = (await res.json()) as { ok: boolean; error?: string };
       if (data.ok) setEntries((prev) => prev.filter((e) => e.id !== id));
@@ -141,17 +143,34 @@ export function ReviewQueue() {
             <div className="p-3.5">
               <p className="truncate text-[13.5px] font-medium text-[#f4efe6]">{e.title}</p>
               <p className="mt-0.5 truncate font-mono text-[10.5px] text-[#8b909e]">
-                {e.name} · {TOOL_LABELS[e.tool] ?? e.tool} · {new Date(e.submittedAt).toLocaleString()}
+                {e.name} · {new Date(e.submittedAt).toLocaleString()}
               </p>
               {e.url && (
                 <a href={e.url} target="_blank" rel="noopener nofollow" className="mt-1 block truncate font-mono text-[10.5px] text-[#bc9863] hover:text-[#e7cfa3]">
                   {e.url}
                 </a>
               )}
+              {/* assign/confirm the model category — the pick travels with Approve */}
+              <label className="mt-2.5 block">
+                <span className="mb-1 block font-mono text-[9px] tracking-[0.16em] text-[#8b909e] uppercase">
+                  Model category
+                </span>
+                <select
+                  value={catPick[e.id] ?? entryCategory(e)}
+                  onChange={(ev) => setCatPick((prev) => ({ ...prev, [e.id]: ev.target.value as GalleryCategoryId }))}
+                  className="w-full cursor-pointer rounded-lg border border-white/10 bg-black/40 px-2.5 py-2 font-mono text-[11px] text-[#e7cfa3] outline-none transition focus:border-[#bc9863]"
+                >
+                  {GALLERY_CATEGORIES.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <div className="mt-3 flex gap-2">
                 <button
                   type="button"
-                  onClick={() => void review(e.id, 'approve')}
+                  onClick={() => void review(e.id, 'approve', catPick[e.id] ?? entryCategory(e))}
                   disabled={busyId === e.id}
                   className="inline-flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-3 py-2 text-[12.5px] font-semibold text-black transition hover:brightness-105 disabled:opacity-50"
                 >

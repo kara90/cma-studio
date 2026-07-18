@@ -7,7 +7,21 @@
  * WHICH text a user agreed to. Courts enforce clickwrap (an affirmative
  * checkbox), not browsewrap (a footer link nobody clicked).
  */
-export const TERMS_VERSION = '2026-07-03';
+export const TERMS_VERSION = '2026-07-18';
+
+/**
+ * Per-document versions (the "Last updated" date on each page). The enrollment
+ * consent gate logs exactly WHICH version of every document the user scrolled
+ * and accepted, so consent proof survives future edits.
+ */
+export const LEGAL_DOCS = [
+  { id: 'terms', label: 'Terms of Service', href: '/terms', version: '2026-07-18' },
+  { id: 'privacy', label: 'Privacy Policy', href: '/privacy', version: '2026-07-18' },
+  { id: 'refunds', label: 'Refund & Cancellation Policy', href: '/refunds', version: '2026-07-03' },
+  { id: 'aup', label: 'Acceptable Use Policy', href: '/acceptable-use', version: '2026-07-18' },
+] as const;
+
+export type LegalDocId = (typeof LEGAL_DOCS)[number]['id'];
 
 /**
  * Operator identity. One source of truth, rendered verbatim in Terms Section 1

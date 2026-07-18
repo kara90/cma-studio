@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import { softRateLimit } from '@/lib/rateLimit';
 import { platformKV, putGalleryEntry, newId, type GalleryEntry } from '@/lib/platformStore';
+import { CATEGORY_IDS } from '@/lib/galleryCategories';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,8 @@ const BodySchema = z.object({
   name: z.string().trim().min(1, 'Add your name or handle.').max(80),
   title: z.string().trim().min(1, 'Give the piece a title.').max(140),
   tool: z.enum(['director-studio', 'video', 'image', 'audio']),
+  /** the model category the creator files this under (owner can reassign) */
+  category: z.enum(CATEGORY_IDS),
   /** small client-made JPEG/WebP data URI — the durable visual */
   thumb: z.string().regex(/^data:image\/(jpeg|webp|png);base64,/, 'Invalid thumbnail.').max(400_000),
   /** optional link to the full render (may expire; thumb is what we keep) */
@@ -48,6 +51,7 @@ export async function POST(request: Request) {
     name: body.name,
     title: body.title,
     tool: body.tool,
+    category: body.category,
     thumb: body.thumb,
     url: body.url,
     submittedAt: new Date().toISOString(),

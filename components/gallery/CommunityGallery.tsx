@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { Users, ArrowRight, ExternalLink } from 'lucide-react';
 import { Reveal } from '@/components/Reveal';
 import type { GalleryEntry } from '@/lib/platformStore';
+import { GALLERY_CATEGORIES, entryCategory, categoryLabel } from '@/lib/galleryCategories';
 
 export const TOOL_LABELS: Record<string, string> = {
   'director-studio': 'CMA Director Studio',
@@ -75,42 +76,63 @@ export function CommunityGallery() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {entries.map((e, i) => (
-            <Reveal key={e.id} delay={Math.min(i * 0.04, 0.3)}>
-              <figure className="group overflow-hidden rounded-xl border border-white/8 bg-black/40 transition hover:border-[#bc9863]/40">
-                <div className="relative aspect-video overflow-hidden">
-                  {/* data-URI thumb — self-contained, survives expired render URLs */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={e.thumb}
-                    alt={e.title}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-                  />
-                </div>
-                <figcaption className="flex items-start justify-between gap-2 px-3 py-2.5">
-                  <span className="min-w-0">
-                    <span className="block truncate text-[12.5px] font-medium text-[#f4efe6]">{e.title}</span>
-                    <span className="block truncate font-mono text-[10px] text-[#8b909e]">
-                      {e.name} · {TOOL_LABELS[e.tool] ?? e.tool}
-                    </span>
+        /* PER-MODEL CATEGORIES: approved work displays grouped by the model it
+           was made with (lib/galleryCategories.ts) — never mixed together. Only
+           categories that actually have approved work render a section. */
+        <div className="flex flex-col gap-10">
+          {GALLERY_CATEGORIES.map((cat) => {
+            const catEntries = entries.filter((e) => entryCategory(e) === cat.id);
+            if (catEntries.length === 0) return null;
+            return (
+              <div key={cat.id}>
+                <div className="mb-3 flex items-baseline gap-3">
+                  <h3 className="font-[family-name:var(--font-sora)] text-[17px] font-semibold text-[#e7cfa3]">
+                    {cat.label}
+                  </h3>
+                  <span className="font-mono text-[10px] tracking-[0.14em] text-[#8b909e] uppercase">
+                    {catEntries.length} {catEntries.length === 1 ? 'piece' : 'pieces'}
                   </span>
-                  {e.url && (
-                    <a
-                      href={e.url}
-                      target="_blank"
-                      rel="noopener nofollow"
-                      aria-label={`Open ${e.title}`}
-                      className="mt-0.5 flex-none cursor-pointer text-[#8b8f99] transition hover:text-[#e7cfa3]"
-                    >
-                      <ExternalLink size={13} />
-                    </a>
-                  )}
-                </figcaption>
-              </figure>
-            </Reveal>
-          ))}
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                  {catEntries.map((e, i) => (
+                    <Reveal key={e.id} delay={Math.min(i * 0.04, 0.3)}>
+                      <figure className="group overflow-hidden rounded-xl border border-white/8 bg-black/40 transition hover:border-[#bc9863]/40">
+                        <div className="relative aspect-video overflow-hidden">
+                          {/* data-URI thumb — self-contained, survives expired render URLs */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={e.thumb}
+                            alt={e.title}
+                            loading="lazy"
+                            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                          />
+                        </div>
+                        <figcaption className="flex items-start justify-between gap-2 px-3 py-2.5">
+                          <span className="min-w-0">
+                            <span className="block truncate text-[12.5px] font-medium text-[#f4efe6]">{e.title}</span>
+                            <span className="block truncate font-mono text-[10px] text-[#8b909e]">
+                              {e.name} · {categoryLabel(entryCategory(e))}
+                            </span>
+                          </span>
+                          {e.url && (
+                            <a
+                              href={e.url}
+                              target="_blank"
+                              rel="noopener nofollow"
+                              aria-label={`Open ${e.title}`}
+                              className="mt-0.5 flex-none cursor-pointer text-[#8b8f99] transition hover:text-[#e7cfa3]"
+                            >
+                              <ExternalLink size={13} />
+                            </a>
+                          )}
+                        </figcaption>
+                      </figure>
+                    </Reveal>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </section>

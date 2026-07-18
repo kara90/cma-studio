@@ -34,6 +34,9 @@ export async function POST(request: Request) {
     consent?: boolean;
     consent_at?: string;
     consent_version?: string;
+    /** enrollment-gate proof: KV consent-record id + doc versions read */
+    consent_log_id?: string;
+    consent_docs?: string;
   };
   try {
     body = await request.json();
@@ -52,6 +55,10 @@ export async function POST(request: Request) {
     metadata.consent = 'true';
     if (typeof body.consent_at === 'string') metadata.consent_at = body.consent_at.slice(0, 40);
     if (typeof body.consent_version === 'string') metadata.consent_version = body.consent_version.slice(0, 40);
+    // Enrollment-gate proof (Section H): ties this purchase to the logged
+    // consent record + the exact document versions the buyer scrolled.
+    if (typeof body.consent_log_id === 'string') metadata.consent_log_id = body.consent_log_id.slice(0, 64);
+    if (typeof body.consent_docs === 'string') metadata.consent_docs = body.consent_docs.slice(0, 200);
   }
 
   if (body.kind === 'extension') {

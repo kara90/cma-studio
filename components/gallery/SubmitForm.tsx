@@ -9,13 +9,12 @@
  */
 import { useRef, useState } from 'react';
 import { ImagePlus, Check, AlertTriangle } from 'lucide-react';
+import { GALLERY_CATEGORIES, type GalleryCategoryId } from '@/lib/galleryCategories';
 
-const TOOLS = [
-  { id: 'director-studio', label: 'CMA Director Studio' },
-  { id: 'video', label: 'Video generator' },
-  { id: 'image', label: 'Image generator' },
-  { id: 'audio', label: 'Audio generator' },
-] as const;
+/** Legacy `tool` value kept on records for back-compat with older entries. */
+function legacyToolFor(category: GalleryCategoryId): string {
+  return category === 'cma-director-studio' ? 'director-studio' : 'video';
+}
 
 /** Downscale an image file to a ≤640px JPEG data URI (~<200KB). */
 async function makeSubmissionThumb(file: File): Promise<string> {
@@ -43,7 +42,7 @@ async function makeSubmissionThumb(file: File): Promise<string> {
 export function SubmitForm() {
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
-  const [tool, setTool] = useState<string>('director-studio');
+  const [category, setCategory] = useState<GalleryCategoryId>('cma-director-studio');
   const [link, setLink] = useState('');
   const [thumb, setThumb] = useState('');
   const [state, setState] = useState<'idle' | 'busy' | 'done' | 'error'>('idle');
@@ -73,7 +72,14 @@ export function SubmitForm() {
       const res = await fetch('/api/gallery/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, title, tool, thumb, url: link.trim() || undefined }),
+        body: JSON.stringify({
+          name,
+          title,
+          category,
+          tool: legacyToolFor(category),
+          thumb,
+          url: link.trim() || undefined,
+        }),
       });
       const data = (await res.json()) as { ok: boolean; error?: string };
       if (data.ok) setState('done');
@@ -171,22 +177,27 @@ export function SubmitForm() {
       </div>
 
       <div>
-        <div className="mb-1.5 font-mono text-[9px] tracking-[0.18em] text-[#8b909e] uppercase">Made with</div>
+        <div className="mb-1.5 font-mono text-[9px] tracking-[0.18em] text-[#8b909e] uppercase">
+          Model category · file it where it was made
+        </div>
         <div className="flex flex-wrap gap-1.5">
-          {TOOLS.map((t) => (
+          {GALLERY_CATEGORIES.map((c) => (
             <button
-              key={t.id}
+              key={c.id}
               type="button"
-              onClick={() => setTool(t.id)}
-              aria-pressed={tool === t.id}
+              onClick={() => setCategory(c.id)}
+              aria-pressed={category === c.id}
               className={`inline-flex min-h-[40px] cursor-pointer items-center rounded-lg border px-3 py-1.5 font-mono text-[11px] transition sm:min-h-0 ${
-                tool === t.id ? 'border-[#bc9863] bg-[#bc9863]/12 text-[#e7cfa3]' : 'border-white/8 text-[#8b8f99] hover:border-[#bc9863]/40'
+                category === c.id ? 'border-[#bc9863] bg-[#bc9863]/12 text-[#e7cfa3]' : 'border-white/8 text-[#8b8f99] hover:border-[#bc9863]/40'
               }`}
             >
-              {t.label}
+              {c.label}
             </button>
           ))}
         </div>
+        <p className="mt-1.5 text-[11px] leading-relaxed text-[#8b909e]">
+          The wall is organized by model. Your piece appears in this category once approved.
+        </p>
       </div>
 
       <div>

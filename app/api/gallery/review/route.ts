@@ -11,6 +11,7 @@
 import { z } from 'zod';
 import { isOwner } from '@/lib/ownerGate';
 import { getGalleryEntry, putGalleryEntry, deleteGalleryEntry } from '@/lib/platformStore';
+import { CATEGORY_IDS } from '@/lib/galleryCategories';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +20,8 @@ const NO_STORE = { 'Cache-Control': 'no-store' } as const;
 const BodySchema = z.object({
   id: z.string().min(1).max(64),
   action: z.enum(['approve', 'reject']),
+  /** owner assigns/confirms the model category at approval time */
+  category: z.enum(CATEGORY_IDS).optional(),
 });
 
 export async function POST(request: Request) {
@@ -38,7 +41,12 @@ export async function POST(request: Request) {
   if (!entry) return Response.json({ ok: false, error: 'Entry not found (already reviewed?).' }, { status: 404, headers: NO_STORE });
 
   if (body.action === 'approve') {
-    const ok = await putGalleryEntry('approved', { ...entry, approvedAt: new Date().toISOString() });
+    const ok = await putGalleryEntry('approved', {
+      ...entry,
+      // the owner's category call wins over the submitter's filing
+      category: body.category ?? entry.category,
+      approvedAt: new Date().toISOString(),
+    });
     if (!ok) return Response.json({ ok: false, error: 'Could not approve. Try again.' }, { status: 500, headers: NO_STORE });
   }
   await deleteGalleryEntry('pending', body.id);

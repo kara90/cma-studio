@@ -23,6 +23,8 @@ import { TIERS, EXTENSIONS, PRICING_SCOPE_NOTE, PRICE_LOCK_NOTE, findTier, type 
 import { TERMS_VERSION } from '@/lib/legal';
 import { track } from '@/lib/track';
 import { FalCostTable } from '@/components/pricing/FalCostTable';
+import { EnrollmentGate } from '@/components/pricing/EnrollmentGate';
+import { LEGAL_DOCS } from '@/lib/legal';
 
 type PlanMeta = { tier?: string; status?: string; expires?: string } | undefined;
 
@@ -82,13 +84,16 @@ export function PricingView() {
     setPending({ payload, id, name, price, frequency });
   }
 
-  function confirmCheckout() {
+  function confirmCheckout(consentLogId: string | null) {
     if (!pending) return;
     const withConsent = {
       ...pending.payload,
       consent: true,
       consent_at: new Date().toISOString(),
       consent_version: TERMS_VERSION,
+      // enrollment-gate proof: the KV consent record + the exact doc versions read
+      consent_log_id: consentLogId ?? undefined,
+      consent_docs: LEGAL_DOCS.map((d) => `${d.id}@${d.version}`).join(','),
     };
     const id = pending.id;
     setPending(null);
@@ -136,7 +141,11 @@ export function PricingView() {
 
       <Extensions member={isMember} busyId={busyId} onCheckout={requestCheckout} />
 
-      {pending && <CheckoutConsent pending={pending} onConfirm={confirmCheckout} onCancel={() => setPending(null)} />}
+      {/* Enrollment consent gate (Section H): scroll-through of all four legal
+          documents + explicit clause checkboxes + consent logging. Supersedes
+          the earlier single-checkbox modal; its G4 disclosures and verbatim
+          consent text are preserved inside the gate. */}
+      {pending && <EnrollmentGate pending={pending} onConfirm={confirmCheckout} onCancel={() => setPending(null)} />}
 
       {!IS_PROD && (
         <div className="mx-auto mt-14 flex w-fit items-center gap-2 rounded-full border border-amber-400/25 bg-amber-400/5 px-2 py-1.5">
@@ -168,111 +177,11 @@ interface PendingCheckout {
   frequency: string;
 }
 
-/* ── Checkout consent gate (G4.1 disclosures + G4.2 required consent) ──
-   Shown before any Stripe checkout fires. The checkbox text is verbatim and
-   is what the EU withdrawal mechanics in the Refund Policy depend on. */
-function CheckoutConsent({
-  pending,
-  onConfirm,
-  onCancel,
-}: {
-  pending: PendingCheckout;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  const [agree, setAgree] = useState(false);
-  return (
-    <div
-      className="fixed inset-0 z-[80] flex items-end justify-center bg-black/70 backdrop-blur-sm p-4 sm:items-center"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Confirm your subscription"
-      onClick={onCancel}
-    >
-      <div
-        className="glass glass-gold w-full max-w-md rounded-3xl border border-[#bc9863]/40 p-6 sm:p-7"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="font-[family-name:var(--font-sora)] text-[18px] font-semibold text-[#f4efe6]">
-          Confirm your subscription
-        </h3>
-
-        {/* G4.1 disclosures, adjacent to the pay button */}
-        <dl className="mt-4 flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/40 p-4 font-mono text-[12px]">
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-[#8b909e]">Plan</dt>
-            <dd className="text-[#f4efe6]">{pending.name}</dd>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-[#8b909e]">Price</dt>
-            <dd className="text-[#f4efe6]">
-              {pending.price} <span className="text-[#8b909e]">{pending.frequency}</span>
-            </dd>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-[#8b909e]">Renewal</dt>
-            <dd className="text-[#e7cfa3]">Renews automatically until cancelled</dd>
-          </div>
-          {/* yearly is a commitment, said plainly BEFORE money moves */}
-          <div className="flex items-start justify-between gap-3">
-            <dt className="shrink-0 text-[#8b909e]">Term</dt>
-            <dd className="text-right text-[#cfcabf]">
-              {pending.payload.cycle === 'yearly'
-                ? 'One-year commitment · 14-day money-back guarantee'
-                : 'Month to month · cancel anytime'}
-            </dd>
-          </div>
-          <div className="flex items-start justify-between gap-3">
-            <dt className="shrink-0 text-[#8b909e]">Cancel</dt>
-            <dd className="text-right text-[#cfcabf]">One click in your account, or email hello@cinemasteracademy.com</dd>
-          </div>
-        </dl>
-
-        {/* G4.2 required consent, verbatim */}
-        <label className="mt-4 flex cursor-pointer items-start gap-2.5 rounded-2xl border border-white/10 bg-black/40 px-3.5 py-3">
-          <input
-            type="checkbox"
-            checked={agree}
-            onChange={(e) => setAgree(e.target.checked)}
-            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#bc9863]"
-          />
-          <span className="text-[12px] leading-relaxed text-[#8b8f99]">
-            I agree to the{' '}
-            <Link href="/terms" target="_blank" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
-              Terms of Service
-            </Link>
-            ,{' '}
-            <Link href="/privacy" target="_blank" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
-              Privacy Policy
-            </Link>
-            , and{' '}
-            <Link href="/refunds" target="_blank" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
-              Refund &amp; Cancellation Policy
-            </Link>
-            , including automatic renewal, and I expressly request that the Service start immediately. I understand
-            that if I withdraw within 14 days, a proportionate deduction applies for the period already supplied.
-          </span>
-        </label>
-
-        <div className="mt-5 flex flex-col gap-2 sm:flex-row-reverse">
-          <button
-            onClick={onConfirm}
-            disabled={!agree}
-            className="inline-flex min-h-[46px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-5 py-3 text-[14px] font-semibold text-black transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Continue to secure checkout
-          </button>
-          <button
-            onClick={onCancel}
-            className="inline-flex min-h-[46px] cursor-pointer items-center justify-center rounded-xl border border-white/12 px-5 py-3 text-[14px] font-semibold text-[#cfcabf] transition hover:border-[#bc9863] hover:text-[#e7cfa3]"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+/* The single-checkbox CheckoutConsent modal was SUPERSEDED by the Section-H
+ * EnrollmentGate (components/pricing/EnrollmentGate.tsx): scroll-through of all
+ * four legal documents + explicit clause checkboxes + consent logging. Its G4.1
+ * disclosures and the verbatim G4.2 consent text are preserved inside the gate,
+ * so nothing from the original flow was lost. */
 
 /* ── visitor: full plans ── */
 function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; setCycle: (c: Cycle) => void; busyId: string | null; onCheckout: CheckoutFn }) {

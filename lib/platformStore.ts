@@ -34,8 +34,11 @@ export interface GalleryEntry {
   name: string;
   /** short title/scene note */
   title: string;
-  /** which CMA tool made it */
+  /** which CMA tool made it (legacy field, kept for old records) */
   tool: string;
+  /** MODEL CATEGORY (lib/galleryCategories.ts) — how the public wall groups
+   * work. Optional on old records; entryCategory() resolves those. */
+  category?: string;
   /** small self-contained data-URI thumbnail (client-generated, size-capped) */
   thumb: string;
   /** optional link to the full render (may expire — thumb is the durable part) */

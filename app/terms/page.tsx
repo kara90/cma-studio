@@ -58,12 +58,13 @@ const SECTIONS: LegalSection[] = [
     blocks: [
       'You must be at least 18 years old, or the age of majority in your jurisdiction if that is higher, to use the Service. The Service is built for professional and creative work and is not directed to minors.',
       'You agree to provide accurate, current and complete information when you register and to keep it up to date. You are responsible for all activity under your account and for keeping your login credentials confidential. Notify us promptly at hello@cinemasteracademy.com if you suspect unauthorized access to your account. We may suspend or close accounts that violate these Terms or that we reasonably believe are compromised or being used fraudulently.',
+      'One subscription is one seat for one person. You may not share your login credentials with anyone, and a single subscription may not be used by, or rotated between, multiple people, whether inside or outside your organization. Each person who uses the Service needs their own subscription. We reserve the right to enforce per-seat and session limits by technical means, including limiting the number of active sessions or devices on an account, and to suspend or terminate accounts that we reasonably believe are shared, resold or otherwise used across multiple people, in addition to any other remedy in these Terms.',
     ],
   },
   {
     title: 'Your fal.ai Key',
     blocks: [
-      'The Service operates on a bring-your-own-key basis. To render, you connect your own fal.ai API key. Your key stays in your browser and is transmitted through our render pipeline to fal.ai only when you start a render. We do not store your key on our servers, and revoking the key in your fal.ai dashboard stops it from working in CMA Studio.',
+      'The Service operates on a bring-your-own-key basis. To render, you connect your own fal.ai API key. The key is saved in your own browser for convenience. When you start a render, the key is transmitted through our render pipeline, which runs server side, solely to execute that render against fal.ai, and it is used for no other purpose. We do not store the key on our servers and we do not write it to our logs. Revoking the key in your fal.ai dashboard stops it from working in CMA Studio, and nothing on our side holds a copy.',
       [
         'Your fal.ai account is yours. You are responsible for the agreement you accept with fal.ai, for the security of your key and for all activity and charges on that account.',
         'All compute is billed by fal.ai directly to you, at fal.ai’s own rates and under fal.ai’s own terms. We add no markup and we do not process compute payments.',
@@ -277,7 +278,7 @@ export default function TermsPage() {
           Working draft, review by counsel before launch
         </div>
         <p className="mt-4 font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">
-          Last updated: July 3, 2026
+          Last updated: July 18, 2026
         </p>
         <p className="mt-6 text-[0.95rem] leading-[1.75] text-[#8b8f99]">
           The short version: CMA Studio is software. You pay us a flat subscription for the interface and the prompt

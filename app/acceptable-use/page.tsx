@@ -34,6 +34,28 @@ const SECTIONS: { title: string; body: string[] }[] = [
     ],
   },
   {
+    title: 'Uploads and reference media',
+    body: [
+      'Reference images and frames you upload guide style and direction only. Do not upload copyrighted material in order to reproduce it, and do not upload images of real people without the rights or consents you need. You are responsible for the rights to everything you upload, exactly as the Terms of Service state.',
+      'Uploads travel from your browser to fal.ai storage on your own key, or through our render pipeline only in transit to fal.ai; we do not store them on our servers. What fal.ai and the model providers do with material at render time is governed by their terms.',
+      'We do not run an automated copyright filter, and we do not claim to. Protection here works the way it does in a real studio: these rules, your responsibility for your uploads, and the intellectual-property complaint process below.',
+    ],
+  },
+  {
+    title: 'Outputs',
+    body: [
+      'AI outputs are not guaranteed. A generation can miss, be declined by a model provider, or differ from what you pictured, and compute spent on it is billed by fal.ai either way, as the Terms and the Refund Policy explain.',
+      'You are responsible for how you use outputs, including checking that your use complies with law, the model providers’ terms, and any rights of third parties shown or referenced in them.',
+    ],
+  },
+  {
+    title: 'Copyright and IP complaints',
+    body: [
+      'If you believe work on CMA Studio, including anything on the community gallery, infringes your rights, email hello@cinemasteracademy.com with the location of the material, a description of the work you say is infringed, and your contact details. We review complaints promptly and remove material where appropriate, as described in the Terms of Service.',
+      'A formal DMCA designated-agent registration is being completed as part of launch; until then the email above is the complaint channel.',
+    ],
+  },
+  {
     title: 'Community gallery standards',
     body: [
       'Submit only work you created with CMA Studio and have the right to share. Every submission is reviewed before it appears, and we may decline or remove any submission at any time, at our discretion, without notice.',
@@ -73,7 +95,7 @@ export default function AcceptableUsePage() {
         <div className="mt-4 inline-flex items-center rounded-lg border border-white/8 px-3 py-1.5 font-mono text-[11px] tracking-[0.14em] text-[#8b8f99] uppercase">
           Working draft, review by counsel before launch
         </div>
-        <p className="mt-4 font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">Last updated: July 17, 2026</p>
+        <p className="mt-4 font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">Last updated: July 18, 2026</p>
 
         {SECTIONS.map((s, i) => (
           <section key={s.title} className="mt-10">

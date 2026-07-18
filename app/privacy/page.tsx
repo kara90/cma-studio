@@ -51,7 +51,7 @@ const SECTIONS: LegalSection[] = [
       'Just as important is what never reaches our servers:',
       [
         'No card numbers. All payment card data is held by Stripe and never touches our servers.',
-        'No stored fal.ai key. Your fal.ai API key is never stored on our servers. It stays in your browser and is transmitted only to perform the render you request. Remove it from the app or revoke it in your fal.ai dashboard at any time.',
+        'No stored fal.ai key. Your fal.ai API key is never stored or logged on our servers. It is saved in your own browser, and at render time it is transmitted through our render pipeline, which runs server side, solely to perform the render you request. Remove it from the app or revoke it in your fal.ai dashboard at any time.',
         'No stored uploads. Start frames, end frames and other reference images you attach to a render are uploaded from your browser directly to fal.ai storage on your own key. If that direct upload is unavailable, the image passes through our render pipeline only in transit to fal.ai. Either way, we do not store your uploads on our servers.',
         'No ad tracking. We run no advertising trackers and no cross-site tracking.',
         'No data sales. We do not sell your personal information, and we do not train AI models on your work.',
@@ -166,12 +166,12 @@ export default function PrivacyPage() {
           Working draft, review by counsel before launch
         </div>
         <p className="mt-4 font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">
-          Last updated: July 3, 2026
+          Last updated: July 18, 2026
         </p>
         <p className="mt-6 text-[0.95rem] leading-[1.75] text-[#8b8f99]">
           This policy covers CMA Studio, operated by CineMaster Academy. The design principle behind the product is
-          also our privacy principle: hold as little as possible. Card numbers live with Stripe, your fal.ai key lives
-          in your browser, and we keep only what your account needs to work.
+          also our privacy principle: hold as little as possible. Card numbers live with Stripe, your fal.ai key is
+          never stored on our servers, and we keep only what your account needs to work.
         </p>
 
         <div className="glass glass-gold mt-10 rounded-2xl p-6 sm:p-8">
