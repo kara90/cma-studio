@@ -21,6 +21,7 @@ export const REAL_ESTATE_SKILL_STATUS = 'placeholder-not-wired' as const;
 /** Seam: replaced by Sebastien's real listing-film skill in a later pass. */
 export function compileRealEstatePrompt(): never {
   throw new Error(
-    'CMA Real Estate Studio skill is not wired yet. This studio is an inert preview; no renders run through it.',
+    // LANGUAGE RULE: user-visible strings never say "skill" or expose engine internals.
+    'CMA Real Estate Studio is not wired for rendering yet. This studio is an inert preview; no renders run through it.',
   );
 }

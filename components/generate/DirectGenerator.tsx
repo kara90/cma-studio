@@ -30,6 +30,7 @@ import { DurationDial } from '@/components/studio/DurationDial';
 import { uploadToFal } from '@/lib/falUpload';
 import { ModelPicker } from '@/components/studio/ModelPicker';
 import { ApiKeyVault } from '@/components/studio/ApiKeyVault';
+import { CostEstimateChip } from '@/components/CostEstimateChip';
 import { ScopeViewer } from '@/components/studio/ScopeViewer';
 import { GenerationStrip } from '@/components/studio/GenerationStrip';
 import { HonestNote } from '@/components/marketing/HonestNote';
@@ -568,10 +569,17 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
 
         {/* 6 · cost + honesty + generate */}
         <section className="border-t border-white/8 pt-5">
-          {/* cost transparency, right where the decision is made */}
+          {/* cost transparency, right where the decision is made: LIVE estimate
+              from fal's pricing API on the user's own key when available,
+              static approximate hint otherwise. Always an estimate, never a quote. */}
           <div className="flex justify-center">
             <span className="inline-flex items-center rounded-lg border border-white/8 px-2.5 py-1 text-center font-mono text-[10px] leading-relaxed tracking-[0.04em] text-[#8b909e]">
-              {costLine}
+              <CostEstimateChip
+                modelId={model}
+                falKey={apiKey}
+                durationSeconds={/^\d+$/.test(duration) ? Number(duration) : undefined}
+                fallback={<span>{costLine}</span>}
+              />
             </span>
           </div>
 

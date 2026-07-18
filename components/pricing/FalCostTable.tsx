@@ -65,7 +65,9 @@ export function FalCostTable() {
               <span className="font-semibold text-[#c7c2b8]">Indicative pricing, for information only.</span> These
               figures are approximate, set entirely by fal.ai, and may change at any time without notice to us. They
               are not a quote or a guarantee. Compute is billed by fal.ai directly to your own fal account at
-              fal&apos;s current rate, with no markup from CMA, and is separate from the CMA software fee.
+              fal&apos;s current rate, with no markup from CMA, and is separate from the CMA software fee. Inside the
+              generators, the current estimated cost for your selected model and settings is shown live before you
+              generate, based on fal&apos;s current rate for your own account — also an estimate, never a quote.
             </p>
             <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[10.5px] text-[#8b909e]">
               <span>Rates as of {RATES_AS_OF}</span>

@@ -20,8 +20,9 @@ export interface Generation {
   createdAt: number;
   /**
    * A tiny self-contained JPEG data-URL preview (~a few KB) generated at render
-   * time. This is what the strip shows — it survives the full 24h even after the
-   * Fal URL expires, and keeps our storage footprint light (no full files kept).
+   * time. This is what the strip shows — it survives the full 7-day TTL below
+   * even after the Fal URL expires, and keeps our storage footprint light (no
+   * full files kept).
    */
   thumb?: string;
 }
@@ -79,10 +80,6 @@ function newId(): string {
 export function addGeneration(g: Omit<Generation, 'id' | 'createdAt'>) {
   const entry: Generation = { ...g, id: newId(), createdAt: Date.now() };
   persist([entry, ...read()]);
-}
-
-export function clearGenerations() {
-  persist([]);
 }
 
 /** Subscribe a component to the history. */

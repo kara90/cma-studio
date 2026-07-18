@@ -1,24 +1,23 @@
 'use client';
 
 /**
- * ModelBrowser — the studio's model mega-menu.
- * One glass rail with three kind triggers (Video / Image / Audio). Clicking a
- * trigger expands a single shared panel BELOW the rail, in-flow with animated
- * height (same technique as the old ModelPicker), so it pushes content down
- * and never overlaps. Esc and click-outside close it.
- *
- * Audio is LIVE: the five text-to-audio models are wired end to end. Only the
- * two models that require a media file input (MiniMax Music, MMAudio V2) stay
- * disabled until the upload flow lands — they self-disable via wired:false.
+ * ModelBrowser — the STUDIO's model mega-menu (curated).
+ * One glass rail with two kind triggers (Video / Image). The Studio is a
+ * visual workflow: audio lives on the general /audio generator page, never
+ * here. Each kind offers exactly the two verified flagships from
+ * STUDIO_*_MODELS (lib/modelRegistry), with the top pick marked, and a quiet
+ * "more models coming soon" note — deliberately naming nothing unverified.
+ * Clicking a trigger expands a single shared panel BELOW the rail, in-flow
+ * with animated height, so it pushes content down and never overlaps.
+ * Esc and click-outside close it.
  */
 import { memo, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { AudioLines, Check, ChevronDown, Image as ImageIcon, Star, Tag, Video } from 'lucide-react';
+import { Check, ChevronDown, Image as ImageIcon, Star, Video } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import {
-  AUDIO_MODELS,
-  IMAGE_MODELS,
-  VIDEO_MODELS,
+  STUDIO_IMAGE_MODELS,
+  STUDIO_VIDEO_MODELS,
   findModel,
   type ModelKind,
   type ModelOption,
@@ -33,9 +32,8 @@ const STATUS_STYLE: Record<ModelStatus, string> = {
 const STATUS_LABEL: Record<ModelStatus, string> = { live: 'live', beta: 'beta', preview: 'soon' };
 
 const KINDS: { kind: ModelKind; label: string; icon: LucideIcon; pool: ModelOption[] }[] = [
-  { kind: 'video', label: 'Video', icon: Video, pool: VIDEO_MODELS },
-  { kind: 'image', label: 'Image', icon: ImageIcon, pool: IMAGE_MODELS },
-  { kind: 'audio', label: 'Audio', icon: AudioLines, pool: AUDIO_MODELS },
+  { kind: 'video', label: 'Video', icon: Video, pool: STUDIO_VIDEO_MODELS },
+  { kind: 'image', label: 'Image', icon: ImageIcon, pool: STUDIO_IMAGE_MODELS },
 ];
 
 function Row({ m, active, locked, onPick }: { m: ModelOption; active: boolean; locked: boolean; onPick: () => void }) {
@@ -62,6 +60,11 @@ function Row({ m, active, locked, onPick }: { m: ModelOption; active: boolean; l
         >
           {m.label}
         </span>
+        {m.top && (
+          <span className="inline-flex flex-none items-center gap-1 rounded border border-[#bc9863]/40 bg-[#bc9863]/10 px-1.5 py-0.5 font-mono text-[8px] tracking-[0.1em] text-[#e7cfa3] uppercase">
+            <Star size={8} /> Top pick
+          </span>
+        )}
         {active && !soon && <Check size={13} className="flex-none text-[#bc9863]" />}
         <span className={`flex-none rounded border px-1.5 py-0.5 font-mono text-[8px] tracking-[0.1em] uppercase ${STATUS_STYLE[m.status]}`}>
           {STATUS_LABEL[m.status]}
@@ -125,14 +128,8 @@ function ModelBrowserImpl({ value, onChange }: { value: string; onChange: (id: s
 
   const openEntry = openKind !== null ? KINDS.find((k) => k.kind === openKind) : undefined;
   const pool = openEntry ? openEntry.pool : [];
-  const best = pool.filter((m) => m.top);
-  const val = pool.filter((m) => m.value);
-  const more = pool.filter((m) => !m.top && !m.value);
-  const groupCount = [best, val, more].filter((g) => g.length > 0).length;
-  const gridCols = groupCount >= 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : groupCount === 2 ? 'sm:grid-cols-2' : '';
   // No blanket tab lock — rows self-disable via status:'preview' / wired:false.
   const locked = false;
-  const audioNote = openEntry?.kind === 'audio';
 
   const pick = (id: string) => {
     onChange(id);
@@ -141,9 +138,9 @@ function ModelBrowserImpl({ value, onChange }: { value: string; onChange: (id: s
 
   return (
     <div ref={ref}>
-      {/* The rail: three kind triggers side by side */}
+      {/* The rail: two kind triggers side by side (the Studio is visual only) */}
       <div className="glass glass-gold rounded-2xl p-1.5">
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-2 gap-1.5">
           {KINDS.map(({ kind, label, icon: Icon, pool: kindPool }) => {
             const selectedHere = current?.type === kind;
             const isOpen = openKind === kind;
@@ -206,20 +203,21 @@ function ModelBrowserImpl({ value, onChange }: { value: string; onChange: (id: s
             className="overflow-hidden"
           >
             <div className="mt-2 max-h-[420px] overflow-y-auto rounded-xl border border-[#bc9863]/25 bg-[#0b0d12]/95 p-2.5 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.9)]">
-              {audioNote && (
-                <div className="mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-lg border border-white/8 bg-white/[0.03] px-3 py-2">
-                  <AudioLines size={12} className="flex-none text-[#bc9863]" />
-                  <span className="text-[11.5px] leading-snug text-[#8b8f99]">
-                    Music, voice and sound design, rendered on your key. Models marked soon need a reference file and
-                    arrive with the upload flow.
-                  </span>
-                </div>
+              {openEntry && (
+                <Group
+                  icon={<openEntry.icon size={11} className="text-[#bc9863]" />}
+                  label={`Studio ${openEntry.label.toLowerCase()} models`}
+                  models={pool}
+                  value={value}
+                  locked={locked}
+                  onPick={pick}
+                />
               )}
-              <div className={`grid grid-cols-1 gap-x-3 gap-y-2 ${gridCols}`}>
-                <Group icon={<Star size={11} className="text-[#bc9863]" />} label="Best" models={best} value={value} locked={locked} onPick={pick} />
-                <Group icon={<Tag size={11} className="text-emerald-400/70" />} label="Best for price" models={val} value={value} locked={locked} onPick={pick} />
-                {openEntry && <Group icon={<openEntry.icon size={11} />} label="More" models={more} value={value} locked={locked} onPick={pick} />}
-              </div>
+              {/* deliberately unnamed — we only ever announce a model once it is
+                  verified live and wired */}
+              <p className="mt-2 border-t border-white/6 px-2.5 pt-2.5 pb-1 font-mono text-[10px] tracking-[0.1em] text-[#8b909e]">
+                More models coming soon.
+              </p>
             </div>
           </motion.div>
         )}

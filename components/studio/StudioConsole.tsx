@@ -66,6 +66,7 @@ import { getModelCaps, fmtRes, fmtDur, fmtAspect, resolutionLadder } from '@/lib
 import { DrumSelector } from '@/components/studio/DrumSelector';
 import { DurationDial } from '@/components/studio/DurationDial';
 import { ApiKeyVault } from '@/components/studio/ApiKeyVault';
+import { CostEstimateChip } from '@/components/CostEstimateChip';
 import { ScopeViewer } from '@/components/studio/ScopeViewer';
 import { ModelBrowser } from '@/components/studio/ModelBrowser';
 import { LookTileRow } from '@/components/studio/LookTileRow';
@@ -804,6 +805,17 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
           )}
         </p>
       )}
+      {/* LIVE cost estimate (fal pricing API on the user's own key) — shown
+          before the render decision; silently absent when no key/price. */}
+      {!locked && apiKey && (
+        <div className="mt-3 flex justify-center">
+          <CostEstimateChip
+            modelId={model}
+            falKey={apiKey}
+            durationSeconds={/^\d+$/.test(duration) ? Number(duration) : undefined}
+          />
+        </div>
+      )}
       <button
         onClick={locked ? () => router.push('/pricing') : generate}
         disabled={locked ? false : busy || !apiKey}
@@ -1191,7 +1203,7 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
               </div>
             )}
             {!isAudio && <RecipePanel current={currentRecipe} onApply={applyRecipe} />}
-            <GenerationStrip onPick={pickGeneration} />
+            <GenerationStrip onPick={pickGeneration} skipServer={locked} />
           </div>
         </div>
       ) : (
@@ -1213,7 +1225,7 @@ export function StudioConsole({ locked = false, defaultPro = true }: { locked?: 
             <ColumnTitle title="Director" sub="Scene · look · render" />
             <div className="flex flex-col gap-4">
               {coreStack}
-              <GenerationStrip onPick={pickGeneration} />
+              <GenerationStrip onPick={pickGeneration} skipServer={locked} />
             </div>
           </section>
 

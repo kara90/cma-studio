@@ -2,7 +2,7 @@
  * lib/plans.ts - pricing data (client-safe, single source of truth).
  *
  * =========================== PLACEHOLDER PRICING ===========================
- * EVERY price, saving figure, retention window and top-up benefit in this
+ * EVERY price, saving figure and retention window in this
  * file is a PLACEHOLDER. Sebastien finalizes the real numbers before launch.
  * The UI surfaces this with the PRICING_SCOPE_NOTE microcopy line.
  * ===========================================================================
@@ -145,35 +145,9 @@ export const TIERS: Tier[] = [
   },
 ];
 
-/**
- * Storage top-ups (billing ids stay 'ext' / 'ext-plus', keyed by
- * lib/billing.ts and the checkout API; display names are free to change).
- */
-export interface Extension {
-  id: string;
-  name: string;
-  price: string; // per month - PLACEHOLDER
-  blurb: string;
-  /** what it adds - PLACEHOLDER, finalized after usage math */
-  detail: string;
-}
-
-export const EXTENSIONS: Extension[] = [
-  {
-    id: 'ext',
-    name: 'Storage Top-up',
-    price: '$5.99', // PLACEHOLDER
-    blurb: 'Extend your storage window. A monthly top-up that keeps your renders stored longer than your plan alone.',
-    detail: '+60 extra days of render storage on top of your plan window',
-  },
-  {
-    id: 'ext-plus',
-    name: 'Storage Top-up+',
-    price: '$14.99', // PLACEHOLDER
-    blurb: 'The bigger top-up for heavy months, with the most storage headroom.',
-    detail: '+180 extra days of render storage on top of your plan window',
-  },
-];
+// Storage top-ups were REMOVED (consolidated finalize pass): they were sold but
+// never honored by the retention logic. Retention is tier-based only, and no
+// top-up product may be offered or charged.
 
 export function findTier(id: string | null | undefined): Tier | undefined {
   return TIERS.find((t) => t.id === id);

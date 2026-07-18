@@ -66,7 +66,7 @@ function KindGlyph({ output }: { output: StoredFile['output'] }) {
   );
 }
 
-export function GenerationStrip({ onPick }: { onPick: (g: Generation) => void }) {
+export function GenerationStrip({ onPick, skipServer = false }: { onPick: (g: Generation) => void; skipServer?: boolean }) {
   const items = useGenerations();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<Generation | null>(null);
@@ -74,7 +74,10 @@ export function GenerationStrip({ onPick }: { onPick: (g: Generation) => void })
   const recent = items.slice(0, 3);
 
   // Load the account library (fails quietly → device-local fallback).
+  // skipServer: locked marketing embeds (e.g. the homepage console) pass true so
+  // anonymous visitors never fire a guaranteed-401 /api/files request.
   const loadFiles = useCallback(async () => {
+    if (skipServer) return;
     try {
       const res = await fetch('/api/files');
       const data: FilesResult = await res.json();
@@ -84,7 +87,7 @@ export function GenerationStrip({ onPick }: { onPick: (g: Generation) => void })
     } catch {
       /* signed out / storage offline — local history still works */
     }
-  }, []);
+  }, [skipServer]);
   useEffect(() => {
     loadFiles();
   }, [loadFiles]);
@@ -274,20 +277,24 @@ export function GenerationStrip({ onPick }: { onPick: (g: Generation) => void })
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                       {server.files.map((f) => (
                         <div key={f.id} className="group overflow-hidden rounded-xl border border-[#bc9863]/25 bg-black">
+                          {/* no <a> inside <button> (invalid nesting) — same
+                              span[role=button] pattern as the local grid below */}
                           <button className="relative block w-full cursor-pointer" onClick={() => openStored(f)} aria-label="Open">
                             <KindGlyph output={f.output} />
                             <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 font-mono text-[8px] tracking-[0.1em] text-[#e7cfa3] uppercase">
                               {f.daysLeft}d left
                             </span>
-                            <a
-                              href={`/api/files/${f.id}?download=1`}
-                              onClick={(e) => e.stopPropagation()}
+                            <span
+                              role="button"
+                              tabIndex={0}
+                              onClick={(e) => { e.stopPropagation(); window.open(`/api/files/${f.id}?download=1`, '_blank'); }}
+                              onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); window.open(`/api/files/${f.id}?download=1`, '_blank'); } }}
                               className="absolute right-2 top-2 grid h-8 w-8 cursor-pointer place-items-center rounded-lg bg-black/60 text-white opacity-0 transition group-hover:opacity-100"
                               title="Download"
                               aria-label="Download"
                             >
                               <Download size={15} />
-                            </a>
+                            </span>
                           </button>
                           <div className="p-2.5">
                             <p className="line-clamp-2 text-[11px] leading-snug text-[#c7c2b8]">{f.note || 'Untitled render'}</p>

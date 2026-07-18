@@ -46,11 +46,14 @@ export interface ModelCaps {
    */
   safetyTolerance?: string;
   /**
-   * Sound on/off switch (fal's `generate_audio`) — schema-verified 2026-07-02:
-   * seedance-2 / seedance-2-mini / kling-2-6 / veo-3-1 default true,
-   * kling-3 defaults false. Absent = the model has no audio switch.
-   * The route ALWAYS sends it explicitly (user pick or this default) so the
-   * compute cost is predictable — audio can double the price on some models.
+   * Sound on/off switch (fal's `generate_audio`) — re-verified against the live
+   * fal OpenAPI schemas 2026-07-18: seedance-2 / seedance-2-mini / kling-2-6 /
+   * kling-3 / veo-3-1 ALL default true (an earlier note here wrongly said
+   * kling-3 defaults false — fal's own schema default is true, matching ours).
+   * Absent = the model has no audio switch. The route ALWAYS sends it
+   * explicitly (user pick or this default) so the compute cost is predictable —
+   * audio can double the price on some models, and the sound toggle in the UI
+   * always shows the real state before render.
    */
   audioParam?: string;
   audioDefault?: boolean;
@@ -127,19 +130,7 @@ export const MODEL_CAPS: Record<string, ModelCaps> = {
     audioParam: 'generate_audio', audioDefault: false,
     frames: 'start-end',
   },
-  // Sora 2 — integer durations 4-20s, audio always native (no toggle), 720p only.
-  'sora-2': {
-    resolutionParam: null, resolutions: [], resolutionDefault: null,
-    durationParam: 'duration', durations: ['4', '8', '12', '16', '20'], durationDefault: '4', durationNumeric: true,
-    aspectParam: 'aspect_ratio', aspects: ['16:9', '9:16'], aspectDefault: '16:9',
-    supportsSeed: false, supportsNegativePrompt: false,
-  },
-  'sora-2-pro': {
-    resolutionParam: 'resolution', resolutions: ['720p', '1080p', 'true_1080p'], resolutionDefault: '1080p',
-    durationParam: 'duration', durations: ['4', '8', '12', '16', '20'], durationDefault: '4', durationNumeric: true,
-    aspectParam: 'aspect_ratio', aspects: ['16:9', '9:16'], aspectDefault: '16:9',
-    supportsSeed: false, supportsNegativePrompt: false,
-  },
+  // Sora 2 / Sora 2 Pro REMOVED 2026-07-18: fal deprecated the fal-ai/sora-2 line.
   // Veo 3.1 Fast — same controls as full Veo at the speed-tier price.
   'veo-3-1-fast': {
     resolutionParam: 'resolution', resolutions: ['720p', '1080p', '4k'], resolutionDefault: '720p',
@@ -184,12 +175,7 @@ export const MODEL_CAPS: Record<string, ModelCaps> = {
     audioParam: 'generate_audio', audioDefault: true, // audio OFF halves veo's price
     frames: 'start-end', // start via image-to-video; both frames via first-last endpoint
   },
-  'grok-imagine': {
-    resolutionParam: 'resolution', resolutions: ['480p', '720p'], resolutionDefault: '720p',
-    durationParam: null, durations: [], durationDefault: null,
-    aspectParam: 'aspect_ratio', aspects: CORE_ASPECTS, aspectDefault: '16:9',
-    supportsSeed: false, supportsNegativePrompt: false,
-  },
+  // grok-imagine REMOVED 2026-07-18 (unconfirmed slug — never listed unverified).
   // Image models — resolution + aspect (no duration). frames:'start' = a
   // reference image flips them to their /edit variant (image_urls array).
   'nano-banana-pro': {
@@ -207,8 +193,10 @@ export const MODEL_CAPS: Record<string, ModelCaps> = {
     frames: 'start',
   },
   'gpt-image-2': {
-    // GPT Image uses image_size (square/landscape/portrait) instead of aspect_ratio.
-    resolutionParam: 'image_size', resolutions: ['1024x1024', '1536x1024', '1024x1536'], resolutionDefault: '1024x1024',
+    // Rewired to openai/gpt-image-2 (2026-07-18). Its image_size union isn't
+    // enum-verified yet, so we send NO format params — fal applies the model's
+    // own default (landscape_4_3) and a render can never 422 on a format value.
+    resolutionParam: null, resolutions: [], resolutionDefault: null,
     durationParam: null, durations: [], durationDefault: null,
     aspectParam: null, aspects: [], aspectDefault: null,
     supportsSeed: false, supportsNegativePrompt: false,
@@ -229,12 +217,13 @@ export const MODEL_CAPS: Record<string, ModelCaps> = {
     aspectParam: null, aspects: [], aspectDefault: null,
     supportsSeed: true, supportsNegativePrompt: false, safetyTolerance: '5',
   },
-  'imagen-4': {
-    resolutionParam: 'resolution', resolutions: ['1K', '2K'], resolutionDefault: '1K',
-    durationParam: null, durations: [], durationDefault: null,
-    aspectParam: 'aspect_ratio', aspects: ['16:9', '9:16', '1:1'], aspectDefault: '16:9',
-    supportsSeed: true, supportsNegativePrompt: false, safetyTolerance: '6',
-  },
+  // imagen-4 REMOVED 2026-07-18: fal deprecated the imagen4/preview line.
+  // Seedream 5 (pro + lite) — schema-verified 2026-07-18: prompt is the only
+  // required input; image_size defaults to auto_2K server-side at fal and its
+  // enum isn't verified, so we send no format params (can never 422). No seed
+  // or negative_prompt in the schema.
+  'seedream-5-pro': { ...NONE },
+  'seedream-5-lite': { ...NONE },
   'ideogram-v3': {
     resolutionParam: 'image_size', resolutions: ['landscape_16_9', 'portrait_16_9', 'square_hd'], resolutionDefault: 'square_hd',
     durationParam: null, durations: [], durationDefault: null,

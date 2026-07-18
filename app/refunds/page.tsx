@@ -3,16 +3,20 @@
  * licensed attorney review and approve every clause before launch.
  *
  * app/refunds/page.tsx - Refund & Cancellation Policy for CMA Studio.
- * Business rules: monthly plans cancel anytime effective at the end of the
- * paid month; yearly plans carry a 14-day money-back guarantee, then are
- * non-refundable except (a) an extended outage of core functionality for
+ * Business rules (2026-07-18, ⚠ ATTORNEY REVIEW before launch): NO money-back
+ * guarantee. Monthly plans cancel anytime effective at the end of the paid
+ * month; yearly plans are a one-year commitment and non-refundable once the
+ * Service begins, except (a) an extended outage of core functionality for
  * more than 7 consecutive days FROM ANY CAUSE (pro-rata extension/credit/
  * refund), (b) a 30-day-outage cancellation right (pro-rata refund), and
  * (c) discontinuation or no-cause termination (pro-rata refund), monthly
- * and yearly refunded the same way. Aligned with Terms Section 2 (Service
- * continuity, outages, and discontinuation). Compute never touches our
- * books: fal.ai bills the user directly, out of scope here. Incorporated
- * by reference into the Terms of Service.
+ * and yearly refunded the same way — plus anything mandatory law requires.
+ * EU/UK statutory withdrawal is addressed by an express immediate-access
+ * request + loss-of-withdrawal acknowledgement collected at checkout and
+ * logged with the consent record. Aligned with Terms Section 2 (Service
+ * continuity, outages, and discontinuation) and Section 5 (Fees). Compute
+ * never touches our books: fal.ai bills the user directly, out of scope
+ * here. Incorporated by reference into the Terms of Service.
  */
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -24,7 +28,7 @@ import { TrademarkNotice } from '@/components/TrademarkNotice';
 export const metadata: Metadata = {
   title: 'Refund & Cancellation Policy | CMA Studio',
   description:
-    'How refunds and cancellation work at CMA Studio: monthly plans cancel anytime and simply stop renewing, yearly plans carry a 14-day money-back guarantee, an extended outage of core functionality from any cause is refunded pro-rata, and compute is billed by fal.ai directly to you and is never ours to refund.',
+    'How refunds and cancellation work at CMA Studio: monthly plans cancel anytime and simply stop renewing, yearly plans are a one-year commitment and non-refundable, an extended outage of core functionality from any cause is refunded pro-rata, and compute is billed by fal.ai directly to you and is never ours to refund.',
 };
 
 type Block = string | string[];
@@ -38,7 +42,7 @@ const SECTIONS: LegalSection[] = [
   {
     title: 'What This Policy Covers',
     blocks: [
-      'This Refund & Cancellation Policy applies to the CMA Studio software subscription: the plan tiers shown on our pricing page, billed monthly or yearly, and any recurring storage top-ups. It forms part of, and is incorporated into, our Terms of Service. If anything in this policy conflicts with a right that the law of your country gives you and that cannot be waived, the law wins.',
+      'This Refund & Cancellation Policy applies to the CMA Studio software subscription: the plan tiers shown on our pricing page, billed monthly or yearly. It forms part of, and is incorporated into, our Terms of Service. If anything in this policy conflicts with a right that the law of your country gives you and that cannot be waived, the law wins.',
       'It does not cover compute. Every render runs on your own fal.ai key and fal.ai bills you directly, under fal.ai’s own terms. We never receive that money, we cannot see those charges and we cannot reverse or refund them, including for renders that fail, disappoint or violate a model provider’s content rules. Questions about compute charges go to fal.ai.',
     ],
   },
@@ -52,8 +56,7 @@ const SECTIONS: LegalSection[] = [
   {
     title: 'Yearly Plans',
     blocks: [
-      'Yearly plans are discounted because they are a commitment for the full year, and they carry a 14-day money-back guarantee: if the plan is not for you, email us within 14 days of your first yearly payment and we refund that payment in full.',
-      'After the 14-day window, the remainder of the year is non-refundable, except as set out in the Extended Outage section below or where applicable law requires otherwise.',
+      'Yearly plans are discounted because they are a commitment for the full year, and they are non-refundable. When you subscribe, you expressly request immediate access to a digital service; once the Service has begun, payments already made are not returned, except as set out in the Extended Outages section below or where a law that cannot be waived requires otherwise.',
       'You can cancel a yearly plan at any time. Cancellation stops the renewal: you keep full access until the end of the year you have already paid for, and you are not charged again.',
       'Before a yearly plan renews, we send a reminder to the email on your account so a renewal never takes you by surprise.',
     ],
@@ -66,13 +69,6 @@ const SECTIONS: LegalSection[] = [
       'Short interruptions of under seven consecutive days, whether on our side or a provider’s, are a normal part of operating a service that depends on third-party technology and are not covered by these remedies. Per-render failures, where a Model Provider still consumed compute on your fal.ai key, are addressed in the compute section above and are a matter between you and fal.ai.',
       'Discontinuation. If we discontinue CMA Studio or a paid capability, or terminate your account without cause, during a period you have prepaid for, we refund the unused remainder of your prepaid period pro-rata, refunded the same way for monthly and yearly plans. You never pay for time we chose not to deliver.',
       'To claim an outage remedy, email hello@cinemasteracademy.com from your account email within 30 days of the outage ending. We verify the outage against our own monitoring and respond within 10 business days. Suspension of your account for a breach of the Terms of Service is not an outage and is not covered.',
-    ],
-  },
-  {
-    title: 'Top-Ups',
-    blocks: [
-      'Recurring storage top-ups follow the monthly rules: cancel anytime, the top-up stays active until the end of the period you paid for, no partial-period refunds, and no further charges after cancellation. Cancelling a top-up never touches your base plan.',
-      'Any CMA storage top-up never expires while your subscription is active.',
     ],
   },
   {
@@ -95,8 +91,8 @@ const SECTIONS: LegalSection[] = [
   {
     title: 'EU, UK and Other Statutory Withdrawal Rights',
     blocks: [
-      'If you are a consumer in the European Union, the United Kingdom or another jurisdiction with a mandatory cooling-off or withdrawal right, that right is yours and we honor it as the law requires. Because the subscription is a digital service, using it does not erase the right: you may withdraw within 14 days of subscribing even if you have already rendered.',
-      'When you subscribe, you expressly request that the Service start immediately rather than after the withdrawal window. If you then withdraw within the statutory window, we refund what you paid minus a proportionate amount for the part of the period that has already run, and the refund reaches you within 14 days. If you withdraw without having used the Service at all, we refund you in full.',
+      'If you are a consumer in the European Union, the United Kingdom or another jurisdiction with a statutory cooling-off or withdrawal right, that right applies to distance contracts unless it is lost through your own express request. At checkout, every subscriber ticks a box stating: "I request immediate access to the Service and acknowledge that, once it begins, I lose my right of withdrawal." We record that acknowledgement, with its date and the document versions you accepted, together with your consent record.',
+      'Because you expressly request immediate performance and acknowledge losing the withdrawal right when access begins, no cooling-off refund applies once the Service has started, except where a law that cannot be waived provides otherwise — in which case the law wins.',
     ],
   },
   {
@@ -156,14 +152,15 @@ export default function RefundsPage() {
           Working draft, review by counsel before launch
         </div>
         <p className="mt-4 font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">
-          Last updated: July 3, 2026
+          Last updated: July 18, 2026
         </p>
         <p className="mt-6 text-[0.95rem] leading-[1.75] text-[#8b8f99]">
           The short version: monthly plans cancel anytime, you keep access to the end of the paid month and are
-          never charged again. Yearly plans carry a 14-day money-back guarantee; after that window they are
-          non-refundable, with one exception: if core functionality stops working for an extended period, for any
-          reason, we refund the unused time pro-rata. Compute runs on your own fal.ai key and is billed by fal.ai
-          directly, so it is never ours to refund.
+          never charged again. Yearly plans are a one-year commitment and are non-refundable. This is a digital
+          service that starts immediately at your request, so used time is not refunded, with one exception: if
+          core functionality stops working for an extended period, for any reason, we refund the unused time
+          pro-rata — and where a law that cannot be waived says otherwise, the law wins. Compute runs on your own
+          fal.ai key and is billed by fal.ai directly, so it is never ours to refund.
         </p>
 
         <div className="glass glass-gold mt-10 rounded-2xl p-6 sm:p-8">

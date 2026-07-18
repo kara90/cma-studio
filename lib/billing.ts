@@ -18,10 +18,8 @@ const TIER_PRICE_ENV: Record<Exclude<TierId, 'studio'>, Record<Cycle, string | u
   },
 };
 
-const EXTENSION_PRICE_ENV: Record<string, string | undefined> = {
-  ext: process.env.STRIPE_PRICE_EXT,
-  'ext-plus': process.env.STRIPE_PRICE_EXT_PLUS,
-};
+// Storage top-ups (STRIPE_PRICE_EXT / STRIPE_PRICE_EXT_PLUS) were REMOVED from
+// sale: no price mapping exists for them, so nothing can resolve or charge one.
 
 /** Studio is a sales-contact tier (no self-serve checkout). */
 export function isCheckoutTier(tier: string): tier is Exclude<TierId, 'studio'> {
@@ -33,19 +31,12 @@ export function priceForTier(tier: string, cycle: Cycle): string | undefined {
   return TIER_PRICE_ENV[tier][cycle];
 }
 
-export function priceForExtension(extId: string): string | undefined {
-  return EXTENSION_PRICE_ENV[extId];
-}
-
-/** Reverse lookup: which of our ids does a Stripe price belong to? */
-export function identifyPrice(priceId: string): { kind: 'tier'; tier: TierId } | { kind: 'extension'; id: string } | null {
+/** Reverse lookup: which of our tiers does a Stripe price belong to? */
+export function identifyPrice(priceId: string): { kind: 'tier'; tier: TierId } | null {
   for (const tier of ['student', 'pro'] as const) {
     for (const cycle of ['yearly', 'monthly'] as const) {
       if (TIER_PRICE_ENV[tier][cycle] === priceId) return { kind: 'tier', tier };
     }
-  }
-  for (const id of Object.keys(EXTENSION_PRICE_ENV)) {
-    if (EXTENSION_PRICE_ENV[id] === priceId) return { kind: 'extension', id };
   }
   return null;
 }

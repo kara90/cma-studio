@@ -78,7 +78,8 @@ const SECTIONS: LegalSection[] = [
       'Use of the Service requires a paid subscription. Subscriptions are flat software fees billed through Stripe, our payment processor, on the billing cycle you select. The subscription covers the software only. Compute is never included and is addressed in Section 6.',
       'Prices, plans and included features may change as the platform evolves, and we will announce changes in advance. Price changes apply to NEW subscribers only: the rate you subscribed at is locked for as long as your subscription remains active without interruption. Changes to included features take effect from your next billing cycle. If you do not agree with a change, you may cancel your subscription before the next cycle begins.',
       'Prices exclude taxes unless we state otherwise. You are responsible for any sales, use, VAT or similar taxes that apply to your subscription, which may be collected through Stripe.',
-      'Refunds and cancellation are governed by our Refund & Cancellation Policy (available at /refunds), which forms part of these Terms. In short: monthly plans cancel anytime and simply stop renewing, with access through the paid month; yearly plans carry a 14-day money-back guarantee on your first yearly payment and after that window are non-refundable except for an extended platform outage on our side or where applicable law requires otherwise. Cancellation always stops future charges, and your access continues until the end of the period you have already paid for.',
+      'Refunds and cancellation are governed by our Refund & Cancellation Policy (available at /refunds), which forms part of these Terms. In short: monthly plans cancel anytime and simply stop renewing, with access through the paid month; yearly plans are a one-year commitment and are non-refundable once the Service has begun, except for an extended platform outage on our side as described in Section 2, or where a law that cannot be waived requires otherwise. There is no money-back guarantee on this digital service.',
+      'Immediate access and statutory withdrawal. At checkout you expressly request immediate access to the Service and acknowledge that, once the Service begins, you lose any statutory right of withdrawal, to the extent the law of your jurisdiction permits that acknowledgement. We record this acknowledgement, with the date and the document versions you accepted, alongside your consent record. Cancellation always stops future charges, and your access continues until the end of the period you have already paid for.',
     ],
   },
   {
@@ -115,7 +116,7 @@ const SECTIONS: LegalSection[] = [
     title: 'Your Content and Outputs',
     blocks: [
       'You retain ownership of the prompts, scene notes, uploaded frames and other material you submit to the Service. To the extent permitted by the applicable Model Providers’ terms and by law, you also own the outputs you generate. Rights in AI-generated output can be limited by the Model Providers’ terms and by the law of your jurisdiction, and it is your responsibility to confirm your rights before relying on an output commercially.',
-      'You grant us a limited, non-exclusive license to host, cache, process and display your prompts, settings, uploads and renders solely to operate the Service for you, including storing renders in your library as described in Section 12.',
+      'You grant us a limited, non-exclusive license to process and transmit your prompts, settings and uploads, and to host, cache and display your renders, solely to operate the Service for you, including storing renders in your library as described in Section 12. Uploads themselves are not stored on our servers, as the Privacy Policy describes.',
     ],
   },
   {
@@ -236,7 +237,7 @@ const SECTIONS: LegalSection[] = [
     title: 'General',
     blocks: [
       'If any provision of these Terms is found invalid or unenforceable, that provision will be enforced to the maximum extent permitted and the remaining provisions will stay in full force. Our failure to enforce a provision is not a waiver of our right to enforce it later.',
-      'These Terms, together with the Privacy Policy and the plan details shown at purchase, are the entire agreement between you and us regarding the Service. You may not assign or transfer these Terms without our prior written consent; we may assign them in connection with a merger, acquisition, reorganization or sale of assets, including to a business entity we form, an affiliate, or a successor.',
+      'These Terms, together with the Privacy Policy, the Refund & Cancellation Policy, the Acceptable Use Policy and the plan details shown at purchase, are the entire agreement between you and us regarding the Service. You may not assign or transfer these Terms without our prior written consent; we may assign them in connection with a merger, acquisition, reorganization or sale of assets, including to a business entity we form, an affiliate, or a successor.',
       'We are not liable for any delay or failure caused by events beyond our reasonable control, including outages or decisions of Model Providers, hosting or network providers, acts of government, natural disasters, internet disturbances or labor disputes.',
     ],
   },
@@ -278,7 +279,7 @@ export default function TermsPage() {
           Working draft, review by counsel before launch
         </div>
         <p className="mt-4 font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">
-          Last updated: July 17, 2026
+          Last updated: July 18, 2026
         </p>
         <p className="mt-6 text-[0.95rem] leading-[1.75] text-[#8b8f99]">
           The short version: CMA Studio is software. You pay us a flat subscription for the interface and the prompt

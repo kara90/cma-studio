@@ -15,7 +15,7 @@ import { getBrowserSupabase } from '@/lib/supabase/client';
 import { isSupabaseConfigured, isAcademyEmail, hasActivePlan, IS_PROD } from '@/lib/access';
 import { TERMS_VERSION } from '@/lib/legal';
 
-type Mode = 'signin' | 'signup';
+type Mode = 'signin' | 'signup' | 'reset';
 
 // Cloudflare Turnstile site key (public). In production it must be set as an env
 // var; in dev we fall back to Cloudflare's always-pass TEST key so local login is
@@ -68,6 +68,18 @@ export default function LoginPage() {
 
     setBusy(true);
     try {
+      if (mode === 'reset') {
+        // Standard Supabase recovery: an email link opens /reset-password with a
+        // recovery session, where the user sets a new password. Response is the
+        // same whether or not the account exists (no account enumeration).
+        const { error: e0 } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+          captchaToken: captcha,
+        });
+        if (e0) throw e0;
+        setNotice('If an account exists for that address, a password-reset link is on its way. Check your inbox.');
+        return;
+      }
       if (mode === 'signup') {
         const { error: e1 } = await supabase.auth.signUp({
           email,
@@ -128,10 +140,12 @@ export default function LoginPage() {
               <ShieldCheck size={12} /> Your account
             </div>
             <h1 className="font-[family-name:var(--font-sora)] text-2xl font-semibold">
-              {mode === 'signin' ? 'Enter the studio' : 'Create your account'}
+              {mode === 'signin' ? 'Enter the studio' : mode === 'signup' ? 'Create your account' : 'Reset your password'}
             </h1>
             <p className="mt-2 text-sm text-[#8b8f99]">
-              One account. Every model, your key, your library.
+              {mode === 'reset'
+                ? 'Enter your account email and we will send you a reset link.'
+                : 'One account. Every model, your key, your library.'}
             </p>
           </div>
 
@@ -148,19 +162,32 @@ export default function LoginPage() {
                 className="rounded-lg border border-white/10 bg-black/50 px-3.5 py-3 text-sm text-[#f4efe6] outline-none transition focus:border-[#bc9863] placeholder:text-[#8b909e]"
               />
             </label>
-            <label className="flex flex-col gap-1.5">
-              <span className="font-mono text-[10px] tracking-[0.18em] text-[#8b8f99] uppercase">Password</span>
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-                className="rounded-lg border border-white/10 bg-black/50 px-3.5 py-3 text-sm text-[#f4efe6] outline-none transition focus:border-[#bc9863] placeholder:text-[#8b909e]"
-              />
-            </label>
+            {mode !== 'reset' && (
+              <label className="flex flex-col gap-1.5">
+                <span className="flex items-center justify-between font-mono text-[10px] tracking-[0.18em] text-[#8b8f99] uppercase">
+                  Password
+                  {mode === 'signin' && (
+                    <button
+                      type="button"
+                      onClick={() => { setMode('reset'); setError(null); setNotice(null); }}
+                      className="cursor-pointer normal-case tracking-normal text-[#e7cfa3] hover:underline"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </span>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                  className="rounded-lg border border-white/10 bg-black/50 px-3.5 py-3 text-sm text-[#f4efe6] outline-none transition focus:border-[#bc9863] placeholder:text-[#8b909e]"
+                />
+              </label>
+            )}
 
             {error && (
               <p className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/8 px-3 py-2 font-mono text-[11px] leading-relaxed text-red-300">
@@ -227,7 +254,7 @@ export default function LoginPage() {
               className="mt-1 inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] py-3 text-sm font-semibold text-black transition hover:brightness-105 disabled:opacity-60"
             >
               {busy && <Loader2 size={15} className="animate-spin" />}
-              {mode === 'signin' ? 'Sign in' : 'Create account'}
+              {mode === 'signin' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset link'}
             </button>
           </form>
 
@@ -241,7 +268,7 @@ export default function LoginPage() {
               </>
             ) : (
               <>
-                Already registered?{' '}
+                {mode === 'reset' ? 'Remembered it?' : 'Already registered?'}{' '}
                 <button onClick={() => setMode('signin')} className="cursor-pointer text-[#e7cfa3] hover:underline">
                   Sign in
                 </button>

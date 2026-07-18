@@ -1,13 +1,14 @@
 /**
  * app/api/checkout/route.ts — start a Stripe Checkout (edge).
  * Auth'd via verifyAccess (real Supabase user). The price is resolved
- * SERVER-SIDE from the tier/extension id, so the client can never buy the wrong
+ * SERVER-SIDE from the tier id, so the client can never buy the wrong
  * amount. The Supabase user id is bound to the session + subscription metadata
  * so the webhook can grant the right entitlement.
+ * Storage top-ups (extensions) were REMOVED: only plan tiers are purchasable.
  */
 import { verifySession } from '@/lib/authGuard';
 import { getStripe, isStripeConfigured } from '@/lib/stripe';
-import { priceForTier, priceForExtension, isCheckoutTier } from '@/lib/billing';
+import { priceForTier, isCheckoutTier } from '@/lib/billing';
 import type { Cycle } from '@/lib/plans';
 
 // Runs in the Cloudflare Workers node-compat runtime via OpenNext (no 'edge' export).
@@ -30,7 +31,6 @@ export async function POST(request: Request) {
     kind?: string;
     tier?: string;
     cycle?: Cycle;
-    extensionId?: string;
     consent?: boolean;
     consent_at?: string;
     consent_version?: string;
@@ -61,19 +61,16 @@ export async function POST(request: Request) {
     if (typeof body.consent_docs === 'string') metadata.consent_docs = body.consent_docs.slice(0, 200);
   }
 
-  if (body.kind === 'extension') {
-    priceId = priceForExtension(body.extensionId ?? '');
-    metadata.kind = 'extension';
-    metadata.extension_id = body.extensionId ?? '';
-  } else {
-    const tier = body.tier ?? '';
-    const cycle: Cycle = body.cycle === 'monthly' ? 'monthly' : 'yearly';
-    if (!isCheckoutTier(tier)) return bad(400, 'That plan is sales-only — contact us.');
-    priceId = priceForTier(tier, cycle);
-    metadata.kind = 'tier';
-    metadata.tier = tier;
-    metadata.cycle = cycle;
-  }
+  // Top-ups no longer exist — any legacy client payload asking for one is refused.
+  if (body.kind === 'extension') return bad(400, 'Storage top-ups are no longer offered.');
+
+  const tier = body.tier ?? '';
+  const cycle: Cycle = body.cycle === 'monthly' ? 'monthly' : 'yearly';
+  if (!isCheckoutTier(tier)) return bad(400, 'That plan is sales-only — contact us.');
+  priceId = priceForTier(tier, cycle);
+  metadata.kind = 'tier';
+  metadata.tier = tier;
+  metadata.cycle = cycle;
 
   if (!priceId) return bad(400, 'That plan is not available for checkout yet.');
 

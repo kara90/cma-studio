@@ -7,7 +7,7 @@
  * WHICH text a user agreed to. Courts enforce clickwrap (an affirmative
  * checkbox), not browsewrap (a footer link nobody clicked).
  */
-export const TERMS_VERSION = '2026-07-17';
+export const TERMS_VERSION = '2026-07-18';
 
 /**
  * Per-document versions (the "Last updated" date on each page). The enrollment
@@ -15,9 +15,9 @@ export const TERMS_VERSION = '2026-07-17';
  * and accepted, so consent proof survives future edits.
  */
 export const LEGAL_DOCS = [
-  { id: 'terms', label: 'Terms of Service', href: '/terms', version: '2026-07-17' },
+  { id: 'terms', label: 'Terms of Service', href: '/terms', version: '2026-07-18' },
   { id: 'privacy', label: 'Privacy Policy', href: '/privacy', version: '2026-07-17' },
-  { id: 'refunds', label: 'Refund & Cancellation Policy', href: '/refunds', version: '2026-07-03' },
+  { id: 'refunds', label: 'Refund & Cancellation Policy', href: '/refunds', version: '2026-07-18' },
   { id: 'aup', label: 'Acceptable Use Policy', href: '/acceptable-use', version: '2026-07-17' },
 ] as const;
 

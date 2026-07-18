@@ -109,6 +109,10 @@ export function EnrollmentGate({
   const [readDocs, setReadDocs] = useState<Record<string, boolean>>({});
   const [checks, setChecks] = useState<Record<string, boolean>>({});
   const [agree, setAgree] = useState(false);
+  // EU/UK statutory-withdrawal waiver: REQUIRED for every buyer (the statutory
+  // right only exists for some, but one consistent flow is simpler and safer).
+  // Logged with the consent record. ⚠ ATTORNEY REVIEW before launch.
+  const [withdrawalWaiver, setWithdrawalWaiver] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const markRead = useCallback((id: LegalDocId) => {
@@ -116,7 +120,7 @@ export function EnrollmentGate({
   }, []);
 
   const allRead = LEGAL_DOCS.every((d) => readDocs[d.id]);
-  const allChecked = CLAUSES.every((c) => checks[c.id]) && agree;
+  const allChecked = CLAUSES.every((c) => checks[c.id]) && withdrawalWaiver && agree;
 
   // Focus containment niceties: Escape cancels.
   useEffect(() => {
@@ -141,7 +145,9 @@ export function EnrollmentGate({
           context: 'checkout',
           plan: pending.name,
           docs: LEGAL_DOCS.map((d) => ({ id: d.id, version: d.version })),
-          clauses: CLAUSES.map((c) => c.id),
+          // 'withdrawal-waiver' records the immediate-access / loss-of-withdrawal
+          // acknowledgement (EU/UK consumer law) alongside the other clauses.
+          clauses: [...CLAUSES.map((c) => c.id), 'withdrawal-waiver'],
         }),
       });
       const data = (await res.json()) as { ok?: boolean; id?: string };
@@ -214,7 +220,7 @@ export function EnrollmentGate({
                   <dt className="shrink-0 text-[#8b909e]">Term</dt>
                   <dd className="text-right text-[#cfcabf]">
                     {pending.payload.cycle === 'yearly'
-                      ? 'One-year commitment · 14-day money-back guarantee'
+                      ? 'One-year commitment · non-refundable'
                       : 'Month to month · cancel anytime'}
                   </dd>
                 </div>
@@ -242,6 +248,21 @@ export function EnrollmentGate({
                 ))}
               </fieldset>
 
+              {/* EU/UK statutory-withdrawal waiver — REQUIRED for every buyer,
+                  logged with the consent record. ⚠ ATTORNEY REVIEW before launch. */}
+              <label className="flex cursor-pointer items-start gap-2.5 rounded-2xl border border-[#bc9863]/25 bg-[#bc9863]/[0.05] px-3.5 py-3">
+                <input
+                  type="checkbox"
+                  checked={withdrawalWaiver}
+                  onChange={(e) => setWithdrawalWaiver(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#bc9863]"
+                />
+                <span className="text-[12px] leading-relaxed text-[#8b8f99]">
+                  I request immediate access to the Service and acknowledge that, once it begins, I lose my right of
+                  withdrawal.
+                </span>
+              </label>
+
               {/* G4.2 required consent, verbatim (preserved from the legal gate) */}
               <label className="flex cursor-pointer items-start gap-2.5 rounded-2xl border border-white/10 bg-black/40 px-3.5 py-3">
                 <input
@@ -267,9 +288,7 @@ export function EnrollmentGate({
                   <Link href="/acceptable-use" target="_blank" className="text-[#e7cfa3] underline hover:text-[#f4efe6]">
                     Acceptable Use Policy
                   </Link>
-                  , including automatic renewal, and I expressly request that the Service start immediately. I
-                  understand that if I withdraw within 14 days, a proportionate deduction applies for the period
-                  already supplied.
+                  , including automatic renewal.
                 </span>
               </label>
             </div>

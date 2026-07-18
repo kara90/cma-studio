@@ -2,9 +2,11 @@
 
 /**
  * PricingView - the /pricing experience.
- *   - VISITOR (not paid): base plans + storage top-ups shown as a "later" suggestion.
- *   - MEMBER (already paid): base plans hidden, current plan summary + buyable
- *     top-up blocks shown instead.
+ *   - VISITOR (not paid): the three base plans.
+ *   - MEMBER (already paid): base plans hidden, current plan summary instead.
+ * Storage top-ups were REMOVED (consolidated finalize pass): they were sold but
+ * never honored by the retention logic, so nothing may sell one. Retention is
+ * tier-based only.
  * Buying starts a real Stripe Checkout via /api/checkout (price resolved
  * server-side). Membership is read from the authenticated user's entitlement
  * (app_metadata.cma_plan). A dev-only preview switch lets you see both states.
@@ -16,10 +18,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Check, ShieldCheck, ArrowRight, Plus, Archive, Hourglass, Loader2, AlertTriangle } from 'lucide-react';
+import { Check, ShieldCheck, ArrowRight, Archive, Hourglass, Loader2, AlertTriangle } from 'lucide-react';
 import { getBrowserSupabase } from '@/lib/supabase/client';
 import { isSupabaseConfigured, IS_PROD } from '@/lib/access';
-import { TIERS, EXTENSIONS, PRICING_SCOPE_NOTE, PRICE_LOCK_NOTE, findTier, type Cycle, type Tier } from '@/lib/plans';
+import { TIERS, PRICING_SCOPE_NOTE, PRICE_LOCK_NOTE, findTier, type Cycle, type Tier } from '@/lib/plans';
 import { TERMS_VERSION } from '@/lib/legal';
 import { track } from '@/lib/track';
 import { FalCostTable } from '@/components/pricing/FalCostTable';
@@ -66,21 +68,11 @@ export function PricingView() {
   function requestCheckout(payload: Record<string, unknown>, id: string) {
     track('subscribe_intent'); // first-party beacon, event name only
     setNotice(null);
-    let name = 'Plan';
-    let price = '';
-    let frequency = '';
-    if (payload.kind === 'extension') {
-      const e = EXTENSIONS.find((x) => x.id === payload.extensionId);
-      name = e?.name ?? 'Top-up';
-      price = e?.price ?? '';
-      frequency = 'per month, billed monthly';
-    } else {
-      const t = findTier(String(payload.tier));
-      const cyc: Cycle = payload.cycle === 'monthly' ? 'monthly' : 'yearly';
-      name = t?.name ?? 'Plan';
-      price = t?.price[cyc] ?? '';
-      frequency = cyc === 'yearly' ? 'per month, billed yearly' : 'per month, billed monthly';
-    }
+    const t = findTier(String(payload.tier));
+    const cyc: Cycle = payload.cycle === 'monthly' ? 'monthly' : 'yearly';
+    const name = t?.name ?? 'Plan';
+    const price = t?.price[cyc] ?? '';
+    const frequency = cyc === 'yearly' ? 'per month, billed yearly' : 'per month, billed monthly';
     setPending({ payload, id, name, price, frequency });
   }
 
@@ -138,8 +130,6 @@ export function PricingView() {
       )}
 
       {isMember ? <MemberView tier={currentTier} /> : <VisitorPlans cycle={cycle} setCycle={setCycle} busyId={busyId} onCheckout={requestCheckout} />}
-
-      <Extensions member={isMember} busyId={busyId} onCheckout={requestCheckout} />
 
       {/* Enrollment consent gate (Section H): scroll-through of all four legal
           documents + explicit clause checkboxes + consent logging. Supersedes
@@ -278,7 +268,7 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
 
       {/* billing terms, stated where the toggle is: matches the Refund Policy */}
       <p className="mx-auto mb-3 max-w-md text-center font-mono text-[10.5px] leading-relaxed tracking-[0.06em] text-[#8b909e]">
-        Monthly: cancel anytime. Yearly: a one-year commitment with a 14-day money-back guarantee.
+        Monthly: cancel anytime. Yearly: a one-year commitment, non-refundable.
       </p>
 
       {/* legal-safety scope line: prices cover today's toolset, never a forever promise */}
@@ -365,7 +355,7 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
         </Link>
         . Plans renew automatically until you cancel, and cancelling takes one click or one email. Your rate is
         locked while you stay subscribed; price changes apply to new subscribers only. Monthly plans cancel anytime.
-        Yearly plans are a one-year commitment with a 14-day money-back guarantee on the first payment.
+        Yearly plans are a one-year commitment and are non-refundable.
       </p>
     </div>
   );
@@ -420,14 +410,14 @@ function TierCard({ tier, cycle, busyId, onCheckout }: { tier: Tier; cycle: Cycl
         <ProWaitlist />
       )}
       {/* cycle-aware billing terms: monthly cancels anytime; yearly is a
-          one-year commitment with the 14-day money-back guarantee (matches
-          the Refund Policy — never "cancel anytime" on yearly). Hidden on the
-          waitlist tier, which has its own copy. */}
+          non-refundable one-year commitment (matches the Refund Policy —
+          never "cancel anytime" on yearly). Hidden on the waitlist tier,
+          which has its own copy. */}
       {tier.checkout && (
         <p className="mt-3 text-center font-mono text-[10px] leading-relaxed text-[#8b909e]">
           {tier.note}{' '}
           {cycle === 'yearly'
-            ? 'One-year commitment, 14-day money-back guarantee.'
+            ? 'One-year commitment, non-refundable.'
             : 'Cancel anytime.'}
         </p>
       )}
@@ -518,73 +508,10 @@ function MemberView({ tier }: { tier: Tier }) {
         <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[#bc9863]/20 bg-[#bc9863]/6 px-3 py-2 font-mono text-[12px] text-[#e7cfa3]">
           <Archive size={14} className="shrink-0 text-[#bc9863]" /> {tier.retention}
         </div>
-        <p className="mt-4 text-sm text-[#8b8f99]">Want your renders kept longer? Add a top-up below, no plan change, cancel anytime.</p>
         <Link href="/studio" className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-6 py-3 text-sm font-semibold text-black transition hover:brightness-105">
           Open CMA Studio <ArrowRight size={15} />
         </Link>
       </div>
-    </div>
-  );
-}
-
-/* ── storage top-ups - suggestion for visitors, buyable for members ── */
-function Extensions({ member, busyId, onCheckout }: { member: boolean; busyId: string | null; onCheckout: CheckoutFn }) {
-  // Storage top-ups are a SECONDARY add-on, not a headline plan (FIX 6). For
-  // cold visitors we keep them to a single quiet line so they never compete
-  // with the three main plans; members (who can actually buy them) still get
-  // the full buyable cards below.
-  if (!member) {
-    return (
-      <div className="mx-auto mt-12 max-w-xl rounded-xl border border-white/8 bg-black/20 px-5 py-3.5 text-center">
-        <p className="text-[12px] leading-relaxed text-[#8b909e]">
-          <span className="font-mono text-[9px] tracking-[0.16em] text-[#8b909e] uppercase">Optional add-on · </span>
-          Want renders kept even longer? Once you&apos;re on a plan you can add a small monthly{' '}
-          <span className="text-[#c7c2b8]">storage top-up</span> (+60 or +180 extra days), no upgrade required. It
-          never expires while you stay subscribed.
-        </p>
-      </div>
-    );
-  }
-  return (
-    <div className="mt-16">
-      <div className="mb-8 text-center">
-        <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">Top up your plan</div>
-        <h3 className="font-[family-name:var(--font-sora)] text-[clamp(1.5rem,3vw,2rem)] font-bold tracking-[-0.02em]">Extend your storage window</h3>
-      </div>
-      <div className="mx-auto grid max-w-3xl grid-cols-1 gap-5 sm:grid-cols-2">
-        {EXTENSIONS.map((e) => {
-          const id = `ext-${e.id}`;
-          const busy = busyId === id;
-          return (
-            <div key={e.id} className={`glass relative flex flex-col rounded-2xl p-6 transition ${member ? 'glass-gold' : 'opacity-70'}`}>
-              {!member && <span className="absolute right-4 top-4 rounded border border-white/15 px-1.5 py-0.5 font-mono text-[8px] tracking-[0.14em] text-[#8b8f99] uppercase">on a plan</span>}
-              <div className="flex items-center gap-2 font-mono text-[11px] tracking-[0.2em] text-[#bc9863] uppercase">
-                <Plus size={13} /> {e.name}
-              </div>
-              <div className="mt-3 flex items-end gap-1.5">
-                <span className="font-[family-name:var(--font-sora)] text-3xl font-bold tracking-[-0.03em]">{e.price}</span>
-                <span className="mb-1 font-mono text-[11px] text-[#8b8f99]">/mo</span>
-              </div>
-              <p className="mt-2 text-sm text-[#8b8f99]">{e.blurb}</p>
-              <div className="mt-3 rounded-lg border border-[#bc9863]/15 bg-[#bc9863]/5 px-3 py-2 font-mono text-[10.5px] text-[#e7cfa3]">{e.detail}</div>
-              <button
-                disabled={!member || busy}
-                onClick={() => member && onCheckout({ kind: 'extension', extensionId: e.id }, id)}
-                className={`mt-5 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition ${
-                  member ? 'cursor-pointer bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] text-black hover:brightness-105 disabled:opacity-60' : 'cursor-not-allowed border border-white/10 text-[#8b909e]'
-                }`}
-              >
-                {busy && <Loader2 size={15} className="animate-spin" />}
-                {member ? 'Add top-up' : 'Available on a plan'}
-              </button>
-            </div>
-          );
-        })}
-      </div>
-      {/* the future-proof top-up promise, codified (mirrored in the Refund Policy) */}
-      <p className="mx-auto mt-6 max-w-md text-center font-mono text-[11px] leading-relaxed tracking-[0.06em] text-[#8b909e]">
-        Any CMA storage top-up never expires while your subscription is active.
-      </p>
     </div>
   );
 }

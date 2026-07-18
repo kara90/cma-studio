@@ -80,9 +80,8 @@ const ENDPOINTS: Record<string, ModelEndpoint> = {
     slug: 'fal-ai/kling-video/o3/standard/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl,
     i2v: { slug: 'fal-ai/kling-video/o3/standard/image-to-video', imageParam: 'image_url', endImageParam: 'end_image_url', noAspect: true },
   },
-  // ── New video lineup (all slugs schema-verified 2026-07-02) ──
-  'sora-2': { slug: 'fal-ai/sora-2/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
-  'sora-2-pro': { slug: 'fal-ai/sora-2/text-to-video/pro', output: 'video', buildBody: base, parseResult: videoUrl },
+  // ── New video lineup (slugs re-verified active on fal 2026-07-18) ──
+  // Sora 2 / Sora 2 Pro REMOVED: fal deprecated the whole fal-ai/sora-2 line.
   'veo-3-1-fast': { slug: 'fal-ai/veo3.1/fast', output: 'video', buildBody: base, parseResult: videoUrl },
   'seedance-1-5-pro': { slug: 'fal-ai/bytedance/seedance/v1.5/pro/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
   'wan-2-5': { slug: 'fal-ai/wan-25-preview/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
@@ -99,8 +98,9 @@ const ENDPOINTS: Record<string, ModelEndpoint> = {
       firstLast: { slug: 'fal-ai/veo3.1/first-last-frame-to-video', firstParam: 'first_frame_url', lastParam: 'last_frame_url' },
     },
   },
-  // preview — no confirmed Fal slug yet; kept so the UI can list it.
-  'grok-imagine': { slug: 'fal-ai/grok-imagine/text-to-video', output: 'video', buildBody: base, parseResult: videoUrl },
+  // Grok Imagine REMOVED from the listing: the placeholder slug was never
+  // confirmed. Real endpoints exist under xai/grok-imagine-video/* — wire with
+  // schema verification if we ever want it back.
   // ── Image ── (verified slugs; edit variants take image_urls ARRAYS)
   'nano-banana-pro': {
     slug: 'fal-ai/nano-banana-pro', output: 'image', buildBody: base, parseResult: imageUrl,
@@ -110,15 +110,20 @@ const ENDPOINTS: Record<string, ModelEndpoint> = {
     slug: 'fal-ai/nano-banana-2', output: 'image', buildBody: base, parseResult: imageUrl,
     i2v: { slug: 'fal-ai/nano-banana-2/edit', imageParam: 'image_urls', imageIsArray: true },
   },
-  // best-known GPT Image slug on fal; update when GPT Image 2 lands.
+  // GPT Image 2 — rewired 2026-07-18 to OpenAI's real gpt-image-2 endpoints on
+  // fal (schema-verified: t2i takes `prompt`; edit takes `image_urls` array).
   'gpt-image-2': {
-    slug: 'fal-ai/gpt-image-1/text-to-image', output: 'image', buildBody: base, parseResult: imageUrl,
-    i2v: { slug: 'fal-ai/gpt-image-1/edit-image', imageParam: 'image_urls', imageIsArray: true },
+    slug: 'openai/gpt-image-2', output: 'image', buildBody: base, parseResult: imageUrl,
+    i2v: { slug: 'openai/gpt-image-2/edit', imageParam: 'image_urls', imageIsArray: true },
   },
-  // ── New image lineup (all slugs schema-verified 2026-07-02) ──
+  // ── New image lineup (slugs re-verified active on fal 2026-07-18) ──
+  // Imagen 4 REMOVED: fal deprecated the whole imagen4/preview line.
   'seedream-4-5': { slug: 'fal-ai/bytedance/seedream/v4.5/text-to-image', output: 'image', buildBody: base, parseResult: imageUrl },
+  // Seedream 5 — added 2026-07-18, schema-verified (prompt REQUIRED; image_size
+  // defaults to auto_2K server-side at fal; we send no unverified format params).
+  'seedream-5-pro': { slug: 'bytedance/seedream/v5/pro/text-to-image', output: 'image', buildBody: base, parseResult: imageUrl },
+  'seedream-5-lite': { slug: 'bytedance/seedream/v5/lite/text-to-image', output: 'image', buildBody: base, parseResult: imageUrl },
   'flux-2-pro': { slug: 'fal-ai/flux-2-pro', output: 'image', buildBody: base, parseResult: imageUrl },
-  'imagen-4': { slug: 'fal-ai/imagen4/preview', output: 'image', buildBody: base, parseResult: imageUrl },
   'ideogram-v3': { slug: 'fal-ai/ideogram/v3', output: 'image', buildBody: base, parseResult: imageUrl },
   'flux-1-1-ultra': { slug: 'fal-ai/flux-pro/v1.1-ultra', output: 'image', buildBody: base, parseResult: imageUrl },
   'recraft-v4-1': { slug: 'fal-ai/recraft/v4.1/text-to-image', output: 'image', buildBody: base, parseResult: imageUrl },
@@ -161,4 +166,13 @@ export function getModelEndpoint(id: string): ModelEndpoint | undefined {
   // the server must refuse browse-only models even on a raw POST.
   const m = findModel(id);
   return m && m.wired !== false ? ENDPOINTS[id] : undefined;
+}
+
+/**
+ * The PRIMARY (text-to-*) fal slug for a wired model — used by the live-pricing
+ * proxy (/api/pricing) to ask fal's pricing API for the current unit price.
+ * Server-only, same client-safe discipline as the rest of this file.
+ */
+export function getPricingSlug(id: string): string | undefined {
+  return getModelEndpoint(id)?.slug;
 }

@@ -64,9 +64,27 @@ const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'off' },
 ];
 
+// The FOUR legal pages (and only those) allow SAME-ORIGIN framing: the checkout
+// consent gate (components/pricing/EnrollmentGate.tsx) renders them in
+// same-origin iframes for the scroll-through proof, and `frame-ancestors 'none'`
+// / X-Frame-Options DENY block even same-origin framing — which made the gate
+// (and therefore every purchase) impossible to complete. 'self' still blocks
+// every third-party site from framing these pages. Everything else keeps DENY.
+const LEGAL_FRAME_ROUTES = ['/terms', '/privacy', '/refunds', '/acceptable-use'];
+const legalCsp = csp.replace("frame-ancestors 'none'", "frame-ancestors 'self'");
+const legalSecurityHeaders = securityHeaders.map((h) =>
+  h.key === 'Content-Security-Policy' ? { key: h.key, value: legalCsp }
+    : h.key === 'X-Frame-Options' ? { key: h.key, value: 'SAMEORIGIN' }
+      : h,
+);
+
 const nextConfig = {
   async headers() {
-    return [{ source: '/:path*', headers: securityHeaders }];
+    return [
+      { source: '/:path*', headers: securityHeaders },
+      // Later matches override same-named headers from the global rule above.
+      ...LEGAL_FRAME_ROUTES.map((source) => ({ source, headers: legalSecurityHeaders })),
+    ];
   },
 };
 

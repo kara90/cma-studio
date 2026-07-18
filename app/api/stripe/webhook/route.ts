@@ -82,39 +82,30 @@ async function applySubscription(
   const kind = metadata?.kind ?? (identified?.kind ?? 'tier');
   const end = periodEnd(sub);
 
-  // Read the user's CURRENT app_metadata and spread it, so buying an extension
-  // never clobbers cma_plan (and vice versa). updateUserById REPLACES the whole
-  // app_metadata object, so a bare `{ cma_plan }` would wipe every sibling key.
+  // Storage top-ups were REMOVED from sale. If a legacy extension event ever
+  // arrives (e.g. a Stripe retry of an old test subscription), acknowledge it
+  // without touching the account — nothing is granted and nothing is clobbered.
+  if (kind === 'extension') return;
+
+  // Read the user's CURRENT app_metadata and spread it: updateUserById REPLACES
+  // the whole app_metadata object, so a bare `{ cma_plan }` would wipe every
+  // sibling key.
   const existing = await admin.auth.admin.getUserById(userId);
   if (existing.error) throw existing.error; // -> 500 -> Stripe retries
   const currentMeta = (existing.data.user?.app_metadata as Record<string, unknown> | undefined) ?? {};
 
-  let nextMeta: Record<string, unknown>;
-  if (kind === 'extension') {
-    const extId = metadata?.extension_id ?? (identified?.kind === 'extension' ? identified.id : 'ext');
-    nextMeta = {
-      ...currentMeta,
-      cma_extension: {
-        id: extId,
-        status: sub.status,
-        expires: end ? new Date(end * 1000).toISOString() : undefined,
-        stripe_subscription: sub.id,
-      },
-    };
-  } else {
-    const tier = (metadata?.tier ?? (identified?.kind === 'tier' ? identified.tier : 'pro')) as
-      | 'student'
-      | 'pro'
-      | 'studio';
-    const plan = buildCmaPlan({
-      tier,
-      status: sub.status, // active | trialing | past_due | canceled | ...
-      currentPeriodEnd: end,
-      customerId: typeof sub.customer === 'string' ? sub.customer : sub.customer?.id,
-      subscriptionId: sub.id,
-    });
-    nextMeta = { ...currentMeta, cma_plan: plan };
-  }
+  const tier = (metadata?.tier ?? (identified?.kind === 'tier' ? identified.tier : 'pro')) as
+    | 'student'
+    | 'pro'
+    | 'studio';
+  const plan = buildCmaPlan({
+    tier,
+    status: sub.status, // active | trialing | past_due | canceled | ...
+    currentPeriodEnd: end,
+    customerId: typeof sub.customer === 'string' ? sub.customer : sub.customer?.id,
+    subscriptionId: sub.id,
+  });
+  const nextMeta: Record<string, unknown> = { ...currentMeta, cma_plan: plan };
 
   const updated = await admin.auth.admin.updateUserById(userId, { app_metadata: nextMeta });
   if (updated.error) throw updated.error; // -> 500 -> Stripe retries

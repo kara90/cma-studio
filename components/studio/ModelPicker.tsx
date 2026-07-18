@@ -8,7 +8,7 @@
  */
 import { memo, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, Video, Image as ImageIcon, AudioLines, Star, Tag, Check } from 'lucide-react';
+import { ChevronDown, Video, Image as ImageIcon, AudioLines, Star, Check } from 'lucide-react';
 import { VIDEO_MODELS, IMAGE_MODELS, AUDIO_MODELS, findModel, type ModelOption, type ModelStatus, type ModelType } from '@/lib/modelRegistry';
 
 const STATUS_STYLE: Record<ModelStatus, string> = {
@@ -76,9 +76,9 @@ function ModelPickerImpl({ kind, value, onChange }: { kind: ModelType; value: st
   }, [open]);
 
   const pool = kind === 'video' ? VIDEO_MODELS : kind === 'audio' ? AUDIO_MODELS : IMAGE_MODELS;
+  // One "Top pick" per medium; every other usable model sits under "Others".
   const best = pool.filter((m) => m.top);
-  const val = pool.filter((m) => m.value);
-  const more = pool.filter((m) => !m.top && !m.value);
+  const more = pool.filter((m) => !m.top);
   const Icon = kind === 'video' ? Video : kind === 'audio' ? AudioLines : ImageIcon;
   const label = kind === 'video' ? 'Video' : kind === 'audio' ? 'Audio' : 'Photo';
 
@@ -118,9 +118,8 @@ function ModelPickerImpl({ kind, value, onChange }: { kind: ModelType; value: st
         {open && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }} className="overflow-hidden">
             <div className="mt-2 max-h-[300px] overflow-y-auto rounded-xl border border-[#bc9863]/25 bg-[#0b0d12]/95 p-1.5 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.9)]">
-              <Group icon={<Star size={11} className="text-[#bc9863]" />} label="Best" models={best} value={value} onPick={(id) => { onChange(id); setOpen(false); }} />
-              <Group icon={<Tag size={11} className="text-emerald-400/70" />} label="Best for price" models={val} value={value} onPick={(id) => { onChange(id); setOpen(false); }} />
-              <Group icon={<Icon size={11} />} label="More" models={more} value={value} onPick={(id) => { onChange(id); setOpen(false); }} />
+              <Group icon={<Star size={11} className="text-[#bc9863]" />} label="Top pick" models={best} value={value} onPick={(id) => { onChange(id); setOpen(false); }} />
+              <Group icon={<Icon size={11} />} label="Others" models={more} value={value} onPick={(id) => { onChange(id); setOpen(false); }} />
             </div>
           </motion.div>
         )}

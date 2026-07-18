@@ -21,6 +21,7 @@ export const MARKETING_SKILL_STATUS = 'placeholder-not-wired' as const;
 /** Seam: replaced by Sebastien's real product-ad skill in a later pass. */
 export function compileMarketingPrompt(): never {
   throw new Error(
-    'CMA Marketing Studio skill is not wired yet. This studio is an inert preview; no renders run through it.',
+    // LANGUAGE RULE: user-visible strings never say "skill" or expose engine internals.
+    'CMA Marketing Studio is not wired for rendering yet. This studio is an inert preview; no renders run through it.',
   );
 }

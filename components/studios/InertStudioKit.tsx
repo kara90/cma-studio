@@ -192,11 +192,13 @@ export function InertRenderBar({ studio }: { studio: string }) {
         This studio is a preview. Explore every control — nothing renders, nothing is charged, and your images stay on
         your device.
       </p>
-      {/* Section C seam: the dedicated skill for this studio plugs in server-side
-          later (lib/skills/*). The Director Studio's engine is not used here. */}
+      {/* Section C seam: this studio's dedicated server-side workflow plugs in
+          later (lib/skills/*). The Director Studio's engine is not used here.
+          LANGUAGE RULE: never say "skill" (or describe the engine internals) in
+          user-facing text — the prompt system is proprietary and hidden. */}
       <p className="mt-1 flex items-center justify-center gap-1.5 text-center font-mono text-[10px] tracking-[0.06em] text-[#8b909e]">
-        <Wand2 size={11} className="text-[#bc9863]" /> Engine hookup pending: this studio gets its own dedicated CMA
-        skill.
+        <Wand2 size={11} className="text-[#bc9863]" /> This studio&apos;s dedicated workflow is in production and
+        arrives with launch.
       </p>
     </div>
   );

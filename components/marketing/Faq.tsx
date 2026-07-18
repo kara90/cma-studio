@@ -49,7 +49,7 @@ const GROUPS: readonly FaqGroup[] = [
       },
       {
         q: 'Which models are available?',
-        a: 'Video: Seedance 2, Kling 3 Pro, Sora 2 and Sora 2 Pro, Veo 3.1 and Veo 3.1 Fast, Hailuo 2.3, Wan 2.5, LTX-2, Seedance 1.5 Pro, the Kling 2.x line and more. Image: Nano Banana Pro, Seedream 4.5, FLUX.2 Pro, Imagen 4, Ideogram V3, FLUX 1.1 Ultra, Recraft V4.1 and GPT Image. Audio covers music, voiceover and sound design with Lyria 2, ElevenLabs, Stable Audio 2.5 and more, and the lineup keeps growing as strong new models land.',
+        a: 'Video: Seedance 2, Kling 3 Pro, Veo 3.1 and Veo 3.1 Fast, Hailuo 2.3, Wan 2.5, LTX-2, Seedance 1.5 Pro and the Kling 2.x line. Image: Nano Banana Pro, Seedream 5 Pro and Lite, Seedream 4.5, FLUX.2 Pro, Ideogram V3, FLUX 1.1 Ultra, Recraft V4.1, Nano Banana 2 and GPT Image 2. Audio covers music, voiceover and sound design with ElevenLabs, Lyria 2, Stable Audio 2.5 and more. Every listed model is verified live on fal before we offer it, and the lineup keeps growing as strong new models land.',
       },
     ],
   },
@@ -74,7 +74,7 @@ const GROUPS: readonly FaqGroup[] = [
       },
       {
         q: 'What about refunds?',
-        a: 'Monthly plans cancel anytime: you keep access to the end of the paid month and are never charged again. Yearly plans carry a 14-day money-back guarantee on your first yearly payment; after that window they are non-refundable, with one exception: if the platform itself stops working for an extended period because of us, we refund the unused time. Compute is billed by fal.ai on your own key, so it is never ours to refund. The full rules live in the Refund & Cancellation Policy.',
+        a: 'Monthly plans cancel anytime: you keep access to the end of the paid month and are never charged again. Yearly plans are a one-year commitment and are non-refundable: at checkout you request immediate access to the Service and acknowledge that the withdrawal right ends once it begins, except where a law that cannot be waived says otherwise. One exception is ours: if the platform stops working for an extended period, we refund the unused time pro-rata. Compute is billed by fal.ai on your own key, so it is never ours to refund. The full rules live in the Refund & Cancellation Policy.',
       },
       {
         q: 'Why does this cost less for most people?',
