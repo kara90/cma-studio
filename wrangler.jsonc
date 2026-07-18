@@ -12,6 +12,13 @@
   },
   // OpenNext needs a self-reference service binding for its request pipeline.
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "cma-studio" }],
+  // Custom domains — the worker serves the real domain (apex + www). www 301s to
+  // the apex in middleware.ts; Cloudflare provisions SSL automatically. The
+  // workers.dev subdomain stays live alongside these as the dev URL.
+  "routes": [
+    { "pattern": "cinemasterstudio.com", "custom_domain": true },
+    { "pattern": "www.cinemasterstudio.com", "custom_domain": true }
+  ],
   // Native Workers rate limiting — coordinates the 12-renders/min budget across
   // isolates within a Cloudflare location (the in-memory Map in lib/rateLimit.ts
   // could not, since each isolate had its own memory). Keyed per user id in
@@ -54,7 +61,7 @@
   "vars": {
     "NEXT_PUBLIC_SUPABASE_URL": "https://abucnrmydwbogmcrrnwm.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFidWNucm15ZHdib2dtY3JybndtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NTcyNjgsImV4cCI6MjA5ODUzMzI2OH0.mukNh0t2FsWJGGqU-AMU8sgZ7w-eVn0JcGH6gt7P-Y0",
-    "NEXT_PUBLIC_SITE_URL": "https://cma-studio.sebastienriccidirector.workers.dev",
+    "NEXT_PUBLIC_SITE_URL": "https://cinemasterstudio.com",
     "NEXT_PUBLIC_ACADEMY_ALLOWED_DOMAINS": "", // blank = OPEN platform signups (paywall is the gate)
     "FAL_RENDER_TIER": "standard",
     "CMA_REQUIRE_ENTITLEMENT": "false"

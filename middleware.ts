@@ -20,6 +20,17 @@ import type { NextRequest } from 'next/server';
 import { BETA_COOKIE, BETA_TOKEN } from '@/lib/betaGate';
 
 export function middleware(request: NextRequest) {
+  // Canonical host: www.* -> apex (301), preserving path + query. cinemasterstudio.com
+  // and www both point at this worker; www always redirects to the bare domain.
+  const host = request.headers.get('host') ?? '';
+  if (host.startsWith('www.')) {
+    const url = request.nextUrl.clone();
+    url.protocol = 'https:';
+    url.hostname = host.slice(4);
+    url.port = '';
+    return NextResponse.redirect(url, 301);
+  }
+
   const token = request.cookies.get(BETA_COOKIE)?.value;
   if (token === BETA_TOKEN) return NextResponse.next();
 
