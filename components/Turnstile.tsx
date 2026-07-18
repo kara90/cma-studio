@@ -9,7 +9,7 @@
  *
  * Tokens are single-use: call reset() (via ref) after each submit attempt.
  */
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
 type TurnstileApi = {
   render: (el: HTMLElement, opts: Record<string, unknown>) => string;
@@ -24,13 +24,34 @@ declare global {
 
 const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
 
-function ensureScript(): Promise<void> {
+/**
+ * Resolves true once the Turnstile script is available, false if it cannot load
+ * (blocked by an ad blocker / firewall, network failure, or a 15s stall). It
+ * always settles — a hung promise here used to leave the sign-in button
+ * disabled forever with no explanation.
+ */
+function ensureScript(): Promise<boolean> {
   return new Promise((resolve) => {
-    if (typeof document === 'undefined') return resolve();
-    if (window.turnstile) return resolve();
+    if (typeof document === 'undefined') return resolve(false);
+    if (window.turnstile) return resolve(true);
+    let settled = false;
+    const settle = (ok: boolean) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(ok);
+    };
+    // Backstop for scripts that neither load nor error (silent network stalls).
+    const timer = setTimeout(() => settle(Boolean(window.turnstile)), 15_000);
+    const watch = (el: HTMLScriptElement) => {
+      el.addEventListener('load', () => settle(true), { once: true });
+      el.addEventListener('error', () => settle(false), { once: true });
+    };
     const existing = document.querySelector('script[data-turnstile]') as HTMLScriptElement | null;
     if (existing) {
-      existing.addEventListener('load', () => resolve(), { once: true });
+      // The tag can already be past its load event (window.turnstile checked
+      // above misses a still-initializing script) — the timeout backstops that.
+      watch(existing);
       return;
     }
     const s = document.createElement('script');
@@ -38,7 +59,7 @@ function ensureScript(): Promise<void> {
     s.async = true;
     s.defer = true;
     s.dataset.turnstile = '1';
-    s.addEventListener('load', () => resolve(), { once: true });
+    watch(s);
     document.head.appendChild(s);
   });
 }
@@ -58,6 +79,8 @@ export const Turnstile = forwardRef<
 >(function Turnstile({ siteKey, onVerify, onExpire, theme = 'dark' }, ref) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
+  // Script blocked / unreachable — surfaced instead of a silent dead form.
+  const [failed, setFailed] = useState(false);
 
   useImperativeHandle(ref, () => ({
     reset() {
@@ -67,8 +90,12 @@ export const Turnstile = forwardRef<
 
   useEffect(() => {
     let cancelled = false;
-    ensureScript().then(() => {
-      if (cancelled || !containerRef.current || !window.turnstile || widgetId.current) return;
+    ensureScript().then((ok) => {
+      if (cancelled || widgetId.current) return;
+      if (!ok || !containerRef.current || !window.turnstile) {
+        setFailed(true);
+        return;
+      }
       widgetId.current = window.turnstile.render(containerRef.current, {
         sitekey: siteKey,
         theme,
@@ -91,5 +118,16 @@ export const Turnstile = forwardRef<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteKey]);
 
+  if (failed) {
+    return (
+      <div className="rounded-lg border border-amber-400/25 bg-amber-400/[0.06] px-3.5 py-2.5 text-center text-[12.5px] leading-relaxed text-amber-200/90">
+        The security check could not load. Disable content blockers for this site, check your connection, then{' '}
+        <button type="button" onClick={() => window.location.reload()} className="cursor-pointer font-semibold underline underline-offset-2">
+          reload the page
+        </button>
+        .
+      </div>
+    );
+  }
   return <div ref={containerRef} className="flex justify-center" />;
 });

@@ -532,7 +532,7 @@ export default function Home() {
                 href="/pricing#wedge-math"
                 className="inline-flex min-h-[40px] items-center font-mono text-[12px] tracking-[0.14em] text-[#8b8f99] uppercase transition hover:text-[#e7cfa3]"
               >
-                Do the math yourself →
+                Compare ways to pay →
               </Link>
             </div>
           </Reveal>

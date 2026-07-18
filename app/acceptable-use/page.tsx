@@ -95,7 +95,7 @@ export default function AcceptableUsePage() {
         <div className="mt-4 inline-flex items-center rounded-lg border border-white/8 px-3 py-1.5 font-mono text-[11px] tracking-[0.14em] text-[#8b8f99] uppercase">
           Working draft, review by counsel before launch
         </div>
-        <p className="mt-4 font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">Last updated: July 18, 2026</p>
+        <p className="mt-4 font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">Last updated: July 17, 2026</p>
 
         {SECTIONS.map((s, i) => (
           <section key={s.title} className="mt-10">

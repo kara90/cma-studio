@@ -7,13 +7,15 @@
  *   • HTML navigations are network-first (a deploy is visible on next load);
  *     when the network is down we show a branded offline screen that is
  *     INLINED here, so it can never break on a build-hash change.
- *   • Only same-origin, hash-named immutable assets (/_next/static, /icons,
- *     /clips, fonts, images) are cached, cache-first — they can never go stale
- *     because their filenames change on every build.
+ *   • Only same-origin, hash-named immutable assets (/_next/static) are
+ *     cached, cache-first — they can never go stale because their filenames
+ *     change on every build. /clips is deliberately NOT cached: those
+ *     filenames are stable and the video content behind them gets swapped in
+ *     place, so caching them serves outdated clips to installed apps.
  */
 // Bump this on any change that must reach already-installed clients: a new
 // VERSION reinstalls the worker, drops every old cache, and claims all tabs.
-const VERSION = 'cma-sw-v4';
+const VERSION = 'cma-sw-v5';
 const STATIC_CACHE = `${VERSION}-static`;
 
 const OFFLINE_HTML = `<!DOCTYPE html>
@@ -39,9 +41,10 @@ const OFFLINE_HTML = `<!DOCTYPE html>
   <button onclick="location.reload()">Retry</button>
 </div></body></html>`;
 
-// Only hash-named immutable assets are cache-first. The favicon and app icons
-// are NOT cached here so a logo change is never masked by a stale cached icon.
-const CACHEABLE = /^\/(_next\/static\/|clips\/)/;
+// Only hash-named immutable assets are cache-first. The favicon, app icons and
+// /clips videos are NOT cached here so a logo or clip change is never masked
+// by a stale cached copy.
+const CACHEABLE = /^\/_next\/static\//;
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

@@ -62,11 +62,11 @@ const GROUPS: readonly FaqGroup[] = [
       },
       {
         q: 'How much does a render cost?',
-        a: 'It depends on the model, the length, the resolution and whether sound is on. Every model shows a cost chip before you render, so you know roughly what a shot costs before you commit. fal bills you at fal’s own rate, with no markup from us.',
+        a: 'It depends on the model, the length, the resolution and whether sound is on. The plain generator pages show an approximate cost hint for the selected model, and the pricing page lists indicative fal rates for the most-used models, so you know roughly what a shot costs before you commit. fal bills you at fal’s own rate, with no markup from us.',
       },
       {
         q: 'Can my bill surprise me?',
-        a: 'It is built not to. Our software fee is flat and known upfront, compute is pay-per-render on your own key, and you see cost notes before every render. Nothing runs until you press the button.',
+        a: 'It is built not to. Our software fee is flat and known upfront, compute is pay-per-render on your own key, and cost guidance lives on the generator pages and the pricing page. Nothing runs until you press the button.',
       },
       {
         q: 'Do prices ever change?',
