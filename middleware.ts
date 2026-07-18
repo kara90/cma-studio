@@ -19,6 +19,11 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { BETA_COOKIE, BETA_TOKEN } from '@/lib/betaGate';
 
+// Beta password wall on/off switch. false = site is PUBLIC (no access code);
+// true = gated behind /unlock. Flip and redeploy to toggle. The www->apex
+// redirect below always runs, wall on or off.
+const WALL_ENABLED = false;
+
 export function middleware(request: NextRequest) {
   // Canonical host: www.* -> apex (301), preserving path + query. cinemasterstudio.com
   // and www both point at this worker; www always redirects to the bare domain.
@@ -30,6 +35,9 @@ export function middleware(request: NextRequest) {
     url.port = '';
     return NextResponse.redirect(url, 301);
   }
+
+  // Wall lifted: everything is public (the www redirect above still applies).
+  if (!WALL_ENABLED) return NextResponse.next();
 
   const token = request.cookies.get(BETA_COOKIE)?.value;
   if (token === BETA_TOKEN) return NextResponse.next();
