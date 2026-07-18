@@ -535,10 +535,12 @@ export function AudioStudio() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [library, lane],
   );
-  const empty = sessionItems.length === 0 && libraryItems.length === 0 && !rolling;
+  // The wave deck shows whenever this session has nothing rolling or rendered;
+  // the library archive lives BELOW the composer either way.
+  const sessionEmpty = sessionItems.length === 0 && !rolling;
 
   return (
-    <div className="pb-44">
+    <div>
       {/* equalizer keyframes for the live-render card */}
       <style>{`@keyframes cma-eq { from { height: 12%; } to { height: 88%; } }`}</style>
 
@@ -564,8 +566,8 @@ export function AudioStudio() {
         </div>
       </div>
 
-      {/* ── the deck ── */}
-      {empty ? (
+      {/* ── the deck: this session's sound, or the idle soundstage ── */}
+      {sessionEmpty ? (
         <div className="rounded-3xl border border-white/8 bg-[#0a0b10] px-6 py-14 text-center">
           <IdleWave reduce={reduce} />
           <p className="mt-6 font-[family-name:var(--font-sora)] text-[17px] font-semibold text-[#f4efe6]">
@@ -577,56 +579,30 @@ export function AudioStudio() {
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-8">
-          {(sessionItems.length > 0 || rolling) && (
-            <section>
-              <h2 className="mb-3 font-mono text-[10px] tracking-[0.24em] text-[#8b909e] uppercase">This session</h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {rolling && <RenderingCard status={status as StatusState} queuePos={queuePos} modelLabel={jobRef.current.modelLabel} reduce={reduce} />}
-                {sessionItems.map((it) => (
-                  <AudioCard
-                    key={it.id}
-                    item={it}
-                    playing={playingId === it.id}
-                    progress={playingId === it.id ? progress : 0}
-                    onToggle={togglePlay}
-                    onSeek={seek}
-                    onReuse={(x) => setPrompt(x.prompt)}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-          {libraryItems.length > 0 && (
-            <section>
-              <h2 className="mb-3 font-mono text-[10px] tracking-[0.24em] text-[#8b909e] uppercase">Your library</h2>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {libraryItems.map((it) => (
-                  <AudioCard
-                    key={it.id}
-                    item={it}
-                    playing={playingId === it.id}
-                    progress={playingId === it.id ? progress : 0}
-                    onToggle={togglePlay}
-                    onSeek={seek}
-                    onReuse={(x) => setPrompt(x.prompt)}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
+        <section className="rounded-3xl border border-white/8 bg-[#0a0b10]/60 p-4 sm:p-5">
+          <h2 className="mb-3 font-mono text-[10px] tracking-[0.24em] text-[#8b909e] uppercase">This session</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {rolling && <RenderingCard status={status as StatusState} queuePos={queuePos} modelLabel={jobRef.current.modelLabel} reduce={reduce} />}
+            {sessionItems.map((it) => (
+              <AudioCard
+                key={it.id}
+                item={it}
+                playing={playingId === it.id}
+                progress={playingId === it.id ? progress : 0}
+                onToggle={togglePlay}
+                onSeek={seek}
+                onReuse={(x) => setPrompt(x.prompt)}
+              />
+            ))}
+          </div>
+        </section>
       )}
 
-      {error && (
-        <p role="alert" className="mx-auto mt-6 flex w-fit items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/8 px-4 py-2.5 font-mono text-[11.5px] leading-relaxed text-red-300">
-          <AlertTriangle size={13} className="mt-0.5 shrink-0" /> {error}
-        </p>
-      )}
-
-      {/* ── the composer dock ── */}
-      <div className="fixed inset-x-0 bottom-4 z-[60] px-4">
-        <div className="mx-auto max-w-4xl rounded-2xl border border-[#bc9863]/30 bg-[#0b0d12]/95 p-3 shadow-[0_24px_80px_-16px_rgba(0,0,0,0.9)] backdrop-blur-xl">
+      {/* ── the composer: IN FLOW, right under the waves, full deck width.
+          (Never position:fixed — a fixed bar inside <main>'s stacking context
+          painted UNDER the sibling footer and its links swallowed every click,
+          which read as "the model selector is locked".) ── */}
+      <div className="mt-4 rounded-3xl border border-[#bc9863]/30 bg-[#0b0d12]/95 p-3 shadow-[0_24px_80px_-24px_rgba(0,0,0,0.8)] backdrop-blur-xl sm:p-4">
           <div className="flex flex-col gap-2.5 sm:flex-row sm:items-end">
             {/* model selector */}
             <div className="relative flex-none">
@@ -737,8 +713,33 @@ export function AudioStudio() {
               fallback={<span className="font-mono text-[10px] text-[#8b909e]">compute billed by fal on your key at fal&apos;s rate</span>}
             />
           </div>
-        </div>
       </div>
+
+      {error && (
+        <p role="alert" className="mx-auto mt-4 flex w-fit items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/8 px-4 py-2.5 font-mono text-[11.5px] leading-relaxed text-red-300">
+          <AlertTriangle size={13} className="mt-0.5 shrink-0" /> {error}
+        </p>
+      )}
+
+      {/* ── the library archive: below the composer, out of the way ── */}
+      {libraryItems.length > 0 && (
+        <section className="mt-10">
+          <h2 className="mb-3 font-mono text-[10px] tracking-[0.24em] text-[#8b909e] uppercase">Your library</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {libraryItems.map((it) => (
+              <AudioCard
+                key={it.id}
+                item={it}
+                playing={playingId === it.id}
+                progress={playingId === it.id ? progress : 0}
+                onToggle={togglePlay}
+                onSeek={seek}
+                onReuse={(x) => setPrompt(x.prompt)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

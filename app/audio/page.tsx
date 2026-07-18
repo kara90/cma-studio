@@ -14,7 +14,9 @@ export default function AudioPage() {
     <div className="relative min-h-screen">
       <SiteHeader />
 
-      <main className="relative z-10 mx-auto max-w-6xl px-6 pb-24 pt-10">
+      {/* z-20: the composer's upward model menu must always paint above the
+          sibling footer (z-10) — same-z siblings paint in DOM order otherwise */}
+      <main className="relative z-20 mx-auto max-w-6xl px-6 pb-24 pt-10">
         {/* audio-first identity: this page is a sound deck, not a video console */}
         <div className="mx-auto mb-8 max-w-2xl text-center">
           <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">Audio Studio</div>
