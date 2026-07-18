@@ -74,6 +74,9 @@ export function PwaProvider() {
   useEffect(() => {
     if (isStandalone()) return; // already the app
     if (window.location.pathname === '/app') return; // the guide page sells itself
+    // /audio: the Audio Studio's fixed composer dock owns the bottom edge —
+    // the install banner would sit on top of the prompt field.
+    if (window.location.pathname === '/audio') return;
     if (new URLSearchParams(window.location.search).has('nobanner')) return; // clean screenshot captures
 
     const dismissedRecently = () =>
