@@ -63,6 +63,17 @@ export interface ModelCaps {
    * 'start' = start/reference image only, absent = text only.
    */
   frames?: 'start' | 'start-end';
+  /**
+   * Voice selection (TTS models, audio path only) — schema-verified 2026-07-18.
+   * voiceParam = the request param name; voices = the VERIFIED enum when the
+   * schema publishes one (empty = free string, capped server-side, curated
+   * presets live client-side); voiceWrap 'minimax' nests the id as
+   * { voice_id } inside the param (MiniMax's voice_setting object).
+   */
+  voiceParam?: string;
+  voices?: readonly string[];
+  voiceDefault?: string;
+  voiceWrap?: 'minimax';
 }
 
 const NONE: ModelCaps = {
@@ -242,7 +253,40 @@ export const MODEL_CAPS: Record<string, ModelCaps> = {
     aspectParam: null, aspects: [], aspectDefault: null,
     supportsSeed: false, supportsNegativePrompt: false,
   },
-  // ── Audio models ── (schema-verified 2026-07-02; no resolution/aspect params)
+  // ── Audio models ── (schemas re-verified live 2026-07-18; no resolution/aspect)
+  // Eleven v3 — text + free-string voice (fal default "Rachel"); curated preset
+  // names live in the Audio Studio UI, anything typed is passed through.
+  'eleven-v3': {
+    ...NONE,
+    voiceParam: 'voice', voices: [], voiceDefault: 'Rachel',
+  },
+  // MiniMax Speech 2.8 HD — voice rides inside voice_setting.voice_id; the
+  // endpoint's buildBody forces output_format:'url' (fal default is hex!).
+  'minimax-speech-2-8-hd': {
+    ...NONE,
+    voiceParam: 'voice_setting', voiceWrap: 'minimax', voiceDefault: 'Wise_Woman',
+    voices: [
+      'Wise_Woman', 'Friendly_Person', 'Deep_Voice_Man', 'Calm_Woman', 'Casual_Guy',
+      'Lively_Girl', 'Patient_Man', 'Elegant_Man', 'Determined_Man', 'Lovely_Girl',
+      'Decent_Boy', 'Abbess',
+    ],
+  },
+  // ElevenLabs SFX v2 — duration_seconds float; ElevenLabs caps SFX at ~22s,
+  // 'auto' omits the param and lets the model choose.
+  'elevenlabs-sfx-v2': {
+    ...NONE,
+    durationParam: 'duration_seconds', durations: ['auto', '5', '10', '15', '22'],
+    durationDefault: 'auto', durationNumeric: true, durationRange: { min: 1, max: 22 },
+  },
+  // ElevenLabs Music — length in MILLISECONDS (music_length_ms); the Audio
+  // Studio renders these values as seconds. force_instrumental rides the
+  // audioParam channel and is labeled "Instrumental" in the UI.
+  'elevenlabs-music': {
+    ...NONE,
+    durationParam: 'music_length_ms', durations: ['auto', '30000', '60000', '120000', '180000'],
+    durationDefault: 'auto', durationNumeric: true,
+    audioParam: 'force_instrumental', audioDefault: false,
+  },
   lyria2: {
     // Fixed ~30s output; supports negative_prompt + seed per its live schema.
     resolutionParam: null, resolutions: [], resolutionDefault: null,
@@ -265,17 +309,26 @@ export const MODEL_CAPS: Record<string, ModelCaps> = {
     supportsSeed: true, supportsNegativePrompt: false,
   },
   'elevenlabs-multilingual-v2': {
-    // TTS — length is driven by the text; no duration/seed/negative params.
+    // TTS — length is driven by the text; free-string voice, fal default Rachel.
     resolutionParam: null, resolutions: [], resolutionDefault: null,
     durationParam: null, durations: [], durationDefault: null,
     aspectParam: null, aspects: [], aspectDefault: null,
     supportsSeed: false, supportsNegativePrompt: false,
+    voiceParam: 'voice', voices: [], voiceDefault: 'Rachel',
   },
   'kokoro-american-english': {
     resolutionParam: null, resolutions: [], resolutionDefault: null,
     durationParam: null, durations: [], durationDefault: null,
     aspectParam: null, aspects: [], aspectDefault: null,
     supportsSeed: false, supportsNegativePrompt: false,
+    // the full VERIFIED enum from Kokoro's live fal schema (af = female, am = male)
+    voiceParam: 'voice', voiceDefault: 'af_heart',
+    voices: [
+      'af_heart', 'af_alloy', 'af_aoede', 'af_bella', 'af_jessica', 'af_kore',
+      'af_nicole', 'af_nova', 'af_river', 'af_sarah', 'af_sky',
+      'am_adam', 'am_echo', 'am_eric', 'am_fenrir', 'am_liam', 'am_michael',
+      'am_onyx', 'am_puck', 'am_santa',
+    ],
   },
 };
 

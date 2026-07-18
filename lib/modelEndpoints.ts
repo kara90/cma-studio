@@ -153,6 +153,33 @@ const ENDPOINTS: Record<string, ModelEndpoint> = {
     buildBody: (prompt) => ({ text: prompt }),
     parseResult: audioUrl,
   },
+  // ── New audio lineup (all slugs + params schema-verified live 2026-07-18) ──
+  'eleven-v3': {
+    slug: 'fal-ai/elevenlabs/tts/eleven-v3',
+    output: 'audio',
+    buildBody: (prompt) => ({ text: prompt }), // voice merged by the route from caps
+    parseResult: audioUrl,
+  },
+  'minimax-speech-2-8-hd': {
+    slug: 'fal-ai/minimax/speech-2.8-hd',
+    output: 'audio',
+    // ⚠ fal's DEFAULT output_format is "hex" (raw hex-encoded audio in JSON) —
+    // 'url' is REQUIRED for the queue-result parser to receive a file URL.
+    buildBody: (prompt) => ({ prompt, output_format: 'url' }),
+    parseResult: audioUrl,
+  },
+  'elevenlabs-sfx-v2': {
+    slug: 'fal-ai/elevenlabs/sound-effects/v2',
+    output: 'audio',
+    buildBody: (prompt) => ({ text: prompt }),
+    parseResult: audioUrl,
+  },
+  'elevenlabs-music': {
+    slug: 'fal-ai/elevenlabs/music',
+    output: 'audio',
+    buildBody: base, // `prompt`; music_length_ms + force_instrumental merged from caps
+    parseResult: audioUrl,
+  },
   'kokoro-american-english': {
     slug: 'fal-ai/kokoro/american-english',
     output: 'audio',

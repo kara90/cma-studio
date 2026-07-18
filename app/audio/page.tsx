@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { SiteHeader } from '@/components/SiteHeader';
 import { TrademarkNotice } from '@/components/TrademarkNotice';
-import { DirectGenerator } from '@/components/generate/DirectGenerator';
+import { AudioStudio } from '@/components/audio/AudioStudio';
 
 export const metadata: Metadata = {
-  title: 'Generate Audio | CMA Studio',
+  title: 'Audio Studio | CMA Studio',
   description:
-    'Type a prompt, pick a frontier audio model and render music, voice or sound design on your own Fal.ai key. No credit packs, no markup on compute.',
+    'Voiceover, music and sound design in one waveform deck: ElevenLabs, Lyria, MiniMax, Stable Audio and more, rendered on your own Fal.ai key. No credit packs, no markup on compute.',
 };
 
 export default function AudioPage() {
@@ -15,17 +15,19 @@ export default function AudioPage() {
       <SiteHeader />
 
       <main className="relative z-10 mx-auto max-w-6xl px-6 pb-24 pt-10">
+        {/* audio-first identity: this page is a sound deck, not a video console */}
         <div className="mx-auto mb-8 max-w-2xl text-center">
-          <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">Direct generation</div>
+          <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">Audio Studio</div>
           <h1 className="font-[family-name:var(--font-sora)] text-[clamp(1.55rem,3.2vw,2.15rem)] font-bold tracking-[-0.03em]">
-            Generate audio.
+            Hear it before <span className="text-[#bc9863]">you see it.</span>
           </h1>
           <p className="mx-auto mt-3 max-w-lg text-[0.95rem] leading-relaxed text-[#8b8f99]">
-            Your prompt, your key, every frontier model. No credit packs.
+            Voiceover, score and sound design — every render lands as a living waveform, played in place. Your prompt,
+            your key, no credit packs.
           </p>
         </div>
 
-        <DirectGenerator kind="audio" />
+        <AudioStudio />
       </main>
 
       <footer className="relative z-10 border-t border-white/6 px-6 py-10">

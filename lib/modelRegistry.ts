@@ -36,6 +36,11 @@ export interface ModelOption {
    * when the user's key can fetch fal's current unit prices.
    */
   costHint?: string;
+  /**
+   * Audio-only: which lane of the Audio Studio the model belongs to. The first
+   * model of each lane in MODEL_OPTIONS order is that lane's top pick.
+   */
+  audioGroup?: 'voice' | 'music' | 'sfx';
 }
 
 export const MODEL_OPTIONS: ModelOption[] = [
@@ -86,11 +91,19 @@ export const MODEL_OPTIONS: ModelOption[] = [
   // Verified but intentionally omitted from the lineup:
   //   fal-ai/stable-audio     (older v2, superseded by stable-audio-25)
   //   fal-ai/f5-tts           (voice-cloning TTS, needs a reference clip; add if voice cloning becomes a feature)
-  { id: 'elevenlabs-multilingual-v2', label: 'ElevenLabs Multilingual v2', provider: 'ElevenLabs', type: 'audio', output: 'audio', status: 'live', top: true, blurb: 'Premium lifelike voiceover in 29 languages, the go-to for polished narration', costHint: 'about $0.10 per 1000 characters' }, // fal-ai/elevenlabs/tts/multilingual-v2 (tts, text param)
-  { id: 'lyria2', label: 'Lyria 2', provider: 'Google', type: 'audio', output: 'audio', status: 'live', blurb: 'Studio-grade instrumental music, cinematic scores and ambient beds', costHint: 'about $0.10 per 30s of music' }, // fal-ai/lyria2 (music, ~30s fixed)
-  { id: 'stable-audio-25', label: 'Stable Audio 2.5', provider: 'Stability AI', type: 'audio', output: 'audio', status: 'live', blurb: 'Text-to-audio workhorse for sound effects, foley and short musical stems', costHint: 'about $0.20 per audio generation' }, // fal-ai/stable-audio-25/text-to-audio (sfx, seconds_total 1-190)
-  { id: 'ace-step', label: 'ACE-Step', provider: 'ACE Studio', type: 'audio', output: 'audio', status: 'live', blurb: 'Fast open-source song generator, complete tracks with vocals from a text prompt', costHint: 'about $0.04 for a 3 minute track' }, // fal-ai/ace-step (music, text param is `tags`, duration 5-240)
-  { id: 'kokoro-american-english', label: 'Kokoro (American English)', provider: 'Kokoro', type: 'audio', output: 'audio', status: 'live', blurb: 'Very fast, very cheap American English speech for drafts and high volume', costHint: 'about $0.02 per 1000 characters' }, // fal-ai/kokoro/american-english (tts, prompt param)
+  // VOICE lane — Eleven v3 is the expressive flagship (verified active + schema
+  // 2026-07-18); order inside each lane = ranking, first is the lane top pick.
+  { id: 'eleven-v3', label: 'Eleven v3', provider: 'ElevenLabs', type: 'audio', output: 'audio', status: 'live', top: true, audioGroup: 'voice', blurb: 'The most expressive ElevenLabs voice engine, emotion and delivery built in' }, // fal-ai/elevenlabs/tts/eleven-v3 (text, voice, stability)
+  { id: 'elevenlabs-multilingual-v2', label: 'ElevenLabs Multilingual v2', provider: 'ElevenLabs', type: 'audio', output: 'audio', status: 'live', audioGroup: 'voice', blurb: 'Premium lifelike voiceover in 29 languages, the go-to for polished narration', costHint: 'about $0.10 per 1000 characters' }, // fal-ai/elevenlabs/tts/multilingual-v2 (tts, text param, voice)
+  { id: 'minimax-speech-2-8-hd', label: 'MiniMax Speech 2.8 HD', provider: 'MiniMax', type: 'audio', output: 'audio', status: 'live', audioGroup: 'voice', blurb: 'High-fidelity single-voice narration with pitch and speed control' }, // fal-ai/minimax/speech-2.8-hd (prompt, voice_setting; output_format MUST be url)
+  { id: 'kokoro-american-english', label: 'Kokoro (American English)', provider: 'Kokoro', type: 'audio', output: 'audio', status: 'live', audioGroup: 'voice', blurb: 'Very fast, very cheap American English speech for drafts and high volume', costHint: 'about $0.02 per 1000 characters' }, // fal-ai/kokoro/american-english (tts, prompt param, 20-voice enum)
+  // MUSIC lane
+  { id: 'elevenlabs-music', label: 'ElevenLabs Music', provider: 'ElevenLabs', type: 'audio', output: 'audio', status: 'live', audioGroup: 'music', blurb: 'Full tracks with or without vocals, from a plain description' }, // fal-ai/elevenlabs/music (prompt, music_length_ms, force_instrumental)
+  { id: 'lyria2', label: 'Lyria 2', provider: 'Google', type: 'audio', output: 'audio', status: 'live', audioGroup: 'music', blurb: 'Studio-grade instrumental music, cinematic scores and ambient beds', costHint: 'about $0.10 per 30s of music' }, // fal-ai/lyria2 (music, ~30s fixed)
+  { id: 'ace-step', label: 'ACE-Step', provider: 'ACE Studio', type: 'audio', output: 'audio', status: 'live', audioGroup: 'music', blurb: 'Fast open-source song generator, complete tracks with vocals from a text prompt', costHint: 'about $0.04 for a 3 minute track' }, // fal-ai/ace-step (music, text param is `tags`, duration 5-240)
+  // SFX & DESIGN lane
+  { id: 'elevenlabs-sfx-v2', label: 'ElevenLabs SFX v2', provider: 'ElevenLabs', type: 'audio', output: 'audio', status: 'live', audioGroup: 'sfx', blurb: 'Cinematic sound effects and foley from a one-line description' }, // fal-ai/elevenlabs/sound-effects/v2 (text, duration_seconds)
+  { id: 'stable-audio-25', label: 'Stable Audio 2.5', provider: 'Stability AI', type: 'audio', output: 'audio', status: 'live', audioGroup: 'sfx', blurb: 'Text-to-audio workhorse for sound effects, textures and short musical stems', costHint: 'about $0.20 per audio generation' }, // fal-ai/stable-audio-25/text-to-audio (sfx, seconds_total 1-190)
 ];
 
 export const DEFAULT_MODEL = 'seedance-2';

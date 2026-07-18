@@ -54,6 +54,8 @@ const BodySchema = z.object({
   speed: z.enum(['normal', 'slow-motion', 'speed-ramp', 'timelapse']).optional(),
   /** sound on/off for models with a generate_audio switch */
   sound: z.boolean().optional(),
+  /** TTS voice (audio models with a voiceParam in lib/modelCaps) */
+  voice: z.string().trim().max(80).optional(),
   /** start/end frames (https URL or data URI) — flips video models to image-to-video */
   startImage: z.string().max(14_000_000).regex(/^(https:\/\/|data:image\/)/, 'Invalid start image.').optional(),
   endImage: z.string().max(14_000_000).regex(/^(https:\/\/|data:image\/)/, 'Invalid end image.').optional(),
@@ -155,6 +157,16 @@ export async function POST(request: Request) {
     // Sound on/off — ALWAYS sent explicitly where supported so cost is predictable.
     if (audioCaps.audioParam) {
       audioBody[audioCaps.audioParam] = typeof body.sound === 'boolean' ? body.sound : audioCaps.audioDefault;
+    }
+    // Voice (TTS models) — schema-verified per model: enum-checked when the
+    // model publishes a voice list, free string (length-capped by zod) when it
+    // doesn't; MiniMax nests the id inside its voice_setting object.
+    if (audioCaps.voiceParam && body.voice) {
+      const v = body.voice;
+      const allowed = !audioCaps.voices?.length || audioCaps.voices.includes(v);
+      if (allowed) {
+        audioBody[audioCaps.voiceParam] = audioCaps.voiceWrap === 'minimax' ? { voice_id: v } : v;
+      }
     }
     try {
       const falRes = await fetch(queueSubmitUrl(submitSlug), {
