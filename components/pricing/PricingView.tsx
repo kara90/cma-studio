@@ -211,39 +211,39 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
         <p className="font-mono text-[12px] tracking-[0.08em] text-[#e7cfa3]">{PRICE_LOCK_NOTE}</p>
       </div>
 
-      {/* ── WEDGE MATH — one identical render, two ways to pay for it ── */}
+      {/* ── PAY-PER-USE vs EXPIRING-CREDITS — no per-clip price claim. The best
+          models cost what they cost everywhere; the honest difference is no
+          markup and nothing expiring, not a lower price per render. ── */}
       <section id="wedge-math" className="mx-auto mb-12 max-w-3xl scroll-mt-24">
-        <h3 className="mb-5 text-center font-[family-name:var(--font-sora)] text-[clamp(1.4rem,3vw,1.9rem)] font-bold tracking-[-0.02em]">
-          Do the math <span className="text-[#bc9863]">yourself.</span>
+        <h3 className="mb-4 text-center font-[family-name:var(--font-sora)] text-[clamp(1.4rem,3vw,1.9rem)] font-bold tracking-[-0.02em]">
+          Same models. <span className="text-[#bc9863]">A fairer way to pay.</span>
         </h3>
         <p className="mx-auto mb-6 max-w-lg text-center text-[13.5px] leading-relaxed text-[#8b8f99]">
-          One identical render: a 5 second, 720p Seedance 2.0 clip.
+          The best models cost what they cost, everywhere. We just don&apos;t mark them up, and we never let your
+          unused money disappear.
         </p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="glass rounded-2xl p-6">
-            <div className="mb-3 font-mono text-[11px] tracking-[0.2em] text-[#8b909e] uppercase">Typical credit platform</div>
-            {/* TODO — VERIFY BEFORE LAUNCH, DO NOT FABRICATE: replace the range
-                below with a current, defensible effective-cost calculation
-                (mid-tier credit pack price divided by the credits that class of
-                video model consumes per clip). */}
-            <p className="font-[family-name:var(--font-sora)] text-[1.7rem] font-bold text-[#f4efe6]">
-              $2.50 to $5.00 <span className="text-[0.85rem] font-normal text-[#8b8f99]">per clip, effective</span>
+            <div className="mb-3 font-mono text-[11px] tracking-[0.2em] text-[#8b909e] uppercase">Credit platforms</div>
+            <p className="font-[family-name:var(--font-sora)] text-[1.4rem] font-bold text-[#f4efe6]">
+              You pay up front, every month
             </p>
             <p className="mt-3 text-[13px] leading-relaxed text-[#8b8f99]">
-              What that clip typically costs once you divide a mid-tier credit pack by the credits premium video
-              models consume.
+              You buy a credit pack whether or not you create. Unused credits vanish at the end of the month, so most
+              people end up paying for renders they never make.
             </p>
             <p className="mt-3 font-mono text-[10px] leading-relaxed text-[#8b909e]">
-              Credit prices vary by platform and pack size, and unused credits often expire.
+              Prices and pack sizes vary by platform, and unused credits usually expire.
             </p>
           </div>
           <div className="glass glass-gold rounded-2xl border border-[#bc9863]/35 p-6">
             <div className="mb-3 font-mono text-[11px] tracking-[0.2em] text-[#e7cfa3] uppercase">CMA Studio</div>
-            <p className="font-[family-name:var(--font-sora)] text-[1.7rem] font-bold text-[#f4efe6]">
-              about $1.50 <span className="text-[0.85rem] font-normal text-[#8b8f99]">at fal&apos;s published rate</span>
+            <p className="font-[family-name:var(--font-sora)] text-[1.4rem] font-bold text-[#f4efe6]">
+              You pay only for what you render
             </p>
             <p className="mt-3 text-[13px] leading-relaxed text-[#cfcabf]">
-              Plus your flat CMA fee, no markup, no expiring credits.
+              Compute is billed by fal.ai directly to you, at fal&apos;s real rate, with no markup from us — only when
+              you actually render. Nothing expires, nothing is wasted.
             </p>
             <p className="mt-3 font-mono text-[10px] leading-relaxed text-[#8b909e]">
               fal bills you directly. We never touch your compute money.
@@ -251,7 +251,7 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
           </div>
         </div>
         <p className="mt-5 text-center font-[family-name:var(--font-sora)] text-[1.05rem] font-semibold text-[#e7cfa3]">
-          Same model. Same output. You keep the difference.
+          Same model. No markup. Nothing expires.
         </p>
       </section>
 
@@ -322,8 +322,8 @@ function VisitorPlans({ cycle, setCycle, busyId, onCheckout }: { cycle: Cycle; s
               a: 'One engine call. Each time the Cinematographer engine composes or recomposes a prompt for you, that is one generation. Raw renders on your own key are never counted.',
             },
             {
-              q: 'Why is this cheaper than credit platforms?',
-              a: 'Because we do not resell compute. You pay fal directly at their published rates. Our fee covers the studio, the Cinematographer engine, and your render library. Our margin does not depend on marking up your renders.',
+              q: 'Why does this cost less for most people?',
+              a: 'Not because any single render is cheaper — the best models cost what they cost everywhere. It is because we do not mark up compute and nothing expires: you pay fal directly at their published rate, only when you actually render. On credit platforms you buy a pack whether you create or not, and unused credits vanish every month, so most people pay for renders they never make. Our margin is on the software, never on your renders.',
             },
             {
               q: 'What is a fal key and is it hard to set up?',
@@ -529,12 +529,27 @@ function MemberView({ tier }: { tier: Tier }) {
 
 /* ── storage top-ups - suggestion for visitors, buyable for members ── */
 function Extensions({ member, busyId, onCheckout }: { member: boolean; busyId: string | null; onCheckout: CheckoutFn }) {
+  // Storage top-ups are a SECONDARY add-on, not a headline plan (FIX 6). For
+  // cold visitors we keep them to a single quiet line so they never compete
+  // with the three main plans; members (who can actually buy them) still get
+  // the full buyable cards below.
+  if (!member) {
+    return (
+      <div className="mx-auto mt-12 max-w-xl rounded-xl border border-white/8 bg-black/20 px-5 py-3.5 text-center">
+        <p className="text-[12px] leading-relaxed text-[#8b909e]">
+          <span className="font-mono text-[9px] tracking-[0.16em] text-[#8b909e] uppercase">Optional add-on · </span>
+          Want renders kept even longer? Once you&apos;re on a plan you can add a small monthly{' '}
+          <span className="text-[#c7c2b8]">storage top-up</span> (+60 or +180 extra days), no upgrade required. It
+          never expires while you stay subscribed.
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="mt-16">
       <div className="mb-8 text-center">
-        <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">{member ? 'Top up your plan' : 'Top-ups for later'}</div>
-        <h3 className="font-[family-name:var(--font-sora)] text-[clamp(1.5rem,3vw,2rem)] font-bold tracking-[-0.02em]">{member ? 'Extend your storage window' : 'Need more room? Top up anytime.'}</h3>
-        {!member && <p className="mx-auto mt-3 max-w-md text-sm text-[#8b8f99]">Once you&apos;re on a plan, you can stack a monthly storage top-up for extra headroom, no upgrade required.</p>}
+        <div className="mb-3 font-mono text-[11px] tracking-[0.26em] text-[#bc9863] uppercase">Top up your plan</div>
+        <h3 className="font-[family-name:var(--font-sora)] text-[clamp(1.5rem,3vw,2rem)] font-bold tracking-[-0.02em]">Extend your storage window</h3>
       </div>
       <div className="mx-auto grid max-w-3xl grid-cols-1 gap-5 sm:grid-cols-2">
         {EXTENSIONS.map((e) => {

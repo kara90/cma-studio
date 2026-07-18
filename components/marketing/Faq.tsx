@@ -77,8 +77,8 @@ const GROUPS: readonly FaqGroup[] = [
         a: 'Monthly plans cancel anytime: you keep access to the end of the paid month and are never charged again. Yearly plans carry a 14-day money-back guarantee on your first yearly payment; after that window they are non-refundable, with one exception: if the platform itself stops working for an extended period because of us, we refund the unused time. Compute is billed by fal.ai on your own key, so it is never ours to refund. The full rules live in the Refund & Cancellation Policy.',
       },
       {
-        q: 'Why is this cheaper than credit platforms?',
-        a: 'Because we do not resell compute. You pay fal directly at their published rates. Our fee covers the studio, the Cinematographer engine, and your render library. Our margin does not depend on marking up your renders.',
+        q: 'Why does this cost less for most people?',
+        a: 'Not because any single render is cheaper — the best models cost what they cost everywhere. It is because we do not mark up compute and nothing expires: you pay fal directly at their published rate, only when you actually render. On credit platforms you buy a pack whether you create or not, and unused credits vanish every month, so most people pay for renders they never make. Our margin is on the software, never on your renders.',
       },
       {
         q: 'What counts as a Cinematographer generation?',

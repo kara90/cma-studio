@@ -17,7 +17,7 @@
  */
 
 /** Shown in the UI as "rates as of …". Update whenever you re-check fal. */
-export const RATES_AS_OF = 'July 18, 2026';
+export const RATES_AS_OF = 'July 17, 2026';
 
 /** fal's official pricing page — the source of truth, linked in the UI. */
 export const FAL_PRICING_URL = 'https://fal.ai/pricing';

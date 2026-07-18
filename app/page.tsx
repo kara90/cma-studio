@@ -22,7 +22,8 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { Pillars } from '@/components/marketing/Pillars';
 import { Showcase } from '@/components/marketing/Showcase';
 import { CommunityGallery } from '@/components/gallery/CommunityGallery';
-import { COMPARISON, COMPARISON_READY } from '@/lib/proofMedia';
+import { COMPARISON, COMPARISON_READY, proofSrc } from '@/lib/proofMedia';
+import { ProofVideo } from '@/components/ProofVideo';
 import { Particles } from '@/components/Particles';
 import { BlurText } from '@/components/BlurText';
 import { PresentationReel } from '@/components/PresentationReel';
@@ -185,8 +186,8 @@ export default function Home() {
             {[
               {
                 icon: Hourglass,
-                title: 'Credits that evaporate',
-                body: 'You bought a credit pack. The month ended. The credits died. On credit platforms your unused budget simply disappears, and if you have been on one for six months, you have almost certainly paid for renders you never made. Here there are no credits: compute is billed by fal at fal’s rate, only when you render.',
+                title: 'You pay for renders you never make',
+                body: 'On credit platforms you pay whether you create or not, and unused credits vanish at the end of every month. Buy a pack, get busy, miss the window, and that money is simply gone — six months in, you have almost certainly paid for renders you never made. Here there are no credits: compute is billed by fal at fal’s rate, only when you actually render.',
               },
               {
                 icon: TerminalSquare,
@@ -411,14 +412,10 @@ export default function Home() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Reveal>
                 <figure className="glass overflow-hidden rounded-2xl">
-                  <video
-                    src={COMPARISON.raw.src}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                    className="block aspect-video w-full object-cover"
+                  <ProofVideo
+                    src={proofSrc(COMPARISON.raw)}
+                    poster={COMPARISON.raw.poster}
+                    className="aspect-video w-full"
                   />
                   <figcaption className="px-4 py-3 font-mono text-[11px] tracking-[0.14em] text-[#8b909e] uppercase">
                     {COMPARISON.raw.caption}
@@ -427,14 +424,10 @@ export default function Home() {
               </Reveal>
               <Reveal delay={0.08}>
                 <figure className="glass glass-gold overflow-hidden rounded-2xl border border-[#bc9863]/35">
-                  <video
-                    src={COMPARISON.directed.src}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                    className="block aspect-video w-full object-cover"
+                  <ProofVideo
+                    src={proofSrc(COMPARISON.directed)}
+                    poster={COMPARISON.directed.poster}
+                    className="aspect-video w-full"
                   />
                   <figcaption className="px-4 py-3 font-mono text-[11px] tracking-[0.14em] text-[#e7cfa3] uppercase">
                     {COMPARISON.directed.caption}
