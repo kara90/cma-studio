@@ -571,12 +571,37 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
           </section>
         )}
 
-        {/* 6 · cost + honesty + generate */}
-        <section className="border-t border-white/8 pt-5">
-          {/* cost transparency, right where the decision is made: LIVE estimate
-              from fal's pricing API on the user's own key when available,
-              static approximate hint otherwise. Always an estimate, never a quote. */}
-          <div className="flex justify-center">
+        {/* The primary Generate/Download action lives in the RIGHT column,
+            directly under the preview (moved there for quick access) — see below. */}
+      </aside>
+
+      {/* ── RIGHT: the result canvas + the PRIMARY action directly under it ── */}
+      <div className="flex min-w-0 flex-col gap-4">
+        <ScopeViewer
+          status={status}
+          mediaUrl={mediaUrl}
+          output={outputKind}
+          queuePosition={queuePos}
+          barPct={0}
+          aspectLabel={`${kind.toUpperCase()} · DIRECT`}
+          engineLabel={modelInfo.label}
+          promptLabel={prompt.trim() || undefined}
+          onMediaError={() => {
+            failWith('The finished render could not be loaded (the Fal URL may have expired).');
+          }}
+          onDownload={
+            mediaUrl
+              ? () => downloadRender(mediaUrl, renderFilename(prompt.trim() || 'render', outputKind, modelInfo.label))
+              : undefined
+          }
+        />
+
+        {/* PRIMARY ACTION — sits right under the preview for quick access after
+            writing the prompt. Generate → (uploading / rolling) → Download the
+            moment the render is ready (with a Generate again escape hatch). */}
+        <section>
+          {/* live cost estimate, right above the button that spends it */}
+          <div className="mb-2 flex justify-center">
             <span className="inline-flex items-center rounded-lg border border-white/8 px-2.5 py-1 text-center font-mono text-[10px] leading-relaxed tracking-[0.04em] text-[#8b909e]">
               <CostEstimateChip
                 modelId={model}
@@ -587,20 +612,38 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
             </span>
           </div>
 
-          <HonestNote compact className="mt-3" />
-
-          <button
-            type="button"
-            onClick={generate}
-            disabled={busy || !apiKey}
-            aria-disabled={busy || !apiKey}
-            aria-busy={busy}
-            title={!apiKey ? 'Connect your Fal.ai key first' : undefined}
-            className="mt-4 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-5 py-3.5 text-[15px] font-semibold text-black shadow-[0_10px_30px_rgba(188,152,99,0.3)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Sparkles size={17} />
-            {!apiKey ? 'Connect a key to generate' : uploading ? 'Uploading frames…' : rolling ? 'Rolling…' : `Generate ${kind}`}
-          </button>
+          {status === 'COMPLETED' && mediaUrl ? (
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => downloadRender(mediaUrl, renderFilename(prompt.trim() || 'render', outputKind, modelInfo.label))}
+                className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-5 py-3.5 text-[15px] font-semibold text-black shadow-[0_10px_30px_rgba(188,152,99,0.3)] transition hover:brightness-105"
+              >
+                <Download size={18} /> Download this render
+              </button>
+              <button
+                type="button"
+                onClick={generate}
+                disabled={busy || !apiKey}
+                className="inline-flex flex-none cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/12 px-5 py-3.5 text-[14px] font-semibold text-[#cfcabf] transition hover:border-[#bc9863] hover:text-[#e7cfa3] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Sparkles size={15} /> Generate again
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={generate}
+              disabled={busy || !apiKey}
+              aria-disabled={busy || !apiKey}
+              aria-busy={busy}
+              title={!apiKey ? 'Connect your Fal.ai key first' : undefined}
+              className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-5 py-3.5 text-[15px] font-semibold text-black shadow-[0_10px_30px_rgba(188,152,99,0.3)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Sparkles size={18} />
+              {!apiKey ? 'Connect a key to generate' : uploading ? 'Uploading frames…' : rolling ? 'Rolling…' : `Generate ${kind}`}
+            </button>
+          )}
 
           {error && (
             <div role="alert" className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-red-500/30 bg-red-500/8 px-3 py-2">
@@ -633,42 +676,8 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
               fal.ai key. That charge is between you and fal.ai.
             </p>
           )}
+          <HonestNote compact className="mt-3" />
         </section>
-      </aside>
-
-      {/* ── RIGHT: the result canvas ── */}
-      <div className="flex min-w-0 flex-col gap-4">
-        <ScopeViewer
-          status={status}
-          mediaUrl={mediaUrl}
-          output={outputKind}
-          queuePosition={queuePos}
-          barPct={0}
-          aspectLabel={`${kind.toUpperCase()} · DIRECT`}
-          engineLabel={modelInfo.label}
-          promptLabel={prompt.trim() || undefined}
-          onMediaError={() => {
-            failWith('The finished render could not be loaded (the Fal URL may have expired).');
-          }}
-          onDownload={
-            mediaUrl
-              ? () => downloadRender(mediaUrl, renderFilename(prompt.trim() || 'render', outputKind, modelInfo.label))
-              : undefined
-          }
-        />
-
-        {/* prominent download the moment a render finishes */}
-        {status === 'COMPLETED' && mediaUrl && (
-          <div className="flex justify-center">
-            <button
-              type="button"
-              onClick={() => downloadRender(mediaUrl, renderFilename(prompt.trim() || 'render', outputKind, modelInfo.label))}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-5 py-2.5 text-[13px] font-semibold text-black shadow-[0_8px_24px_rgba(188,152,99,0.3)] transition hover:brightness-105"
-            >
-              <Download size={15} /> Download this render
-            </button>
-          </div>
-        )}
 
         {/* recent work + the My Files library */}
         <GenerationStrip onPick={pickGeneration} />
