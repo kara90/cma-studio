@@ -94,10 +94,20 @@ async function applySubscription(
   if (existing.error) throw existing.error; // -> 500 -> Stripe retries
   const currentMeta = (existing.data.user?.app_metadata as Record<string, unknown> | undefined) ?? {};
 
-  const tier = (metadata?.tier ?? (identified?.kind === 'tier' ? identified.tier : 'pro')) as
+  // FAIL CLOSED: resolve the tier from our own checkout metadata first, then
+  // from the recognized Stripe price. If NEITHER resolves (a price we don't map
+  // — e.g. a subscription created outside our checkout, or a retired price),
+  // grant the LOWEST-entitlement tier and log the unmapped price, rather than
+  // silently defaulting to the paid 'pro' tier.
+  let tier = (metadata?.tier ?? (identified?.kind === 'tier' ? identified.tier : undefined)) as
     | 'student'
     | 'pro'
-    | 'studio';
+    | 'studio'
+    | undefined;
+  if (!tier) {
+    console.warn(JSON.stringify({ cma_event: 'webhook_unmapped_price', priceId }));
+    tier = 'student';
+  }
   const plan = buildCmaPlan({
     tier,
     status: sub.status, // active | trialing | past_due | canceled | ...

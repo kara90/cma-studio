@@ -114,6 +114,7 @@ export function EnrollmentGate({
   // Logged with the consent record. ⚠ ATTORNEY REVIEW before launch.
   const [withdrawalWaiver, setWithdrawalWaiver] = useState(false);
   const [busy, setBusy] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const markRead = useCallback((id: LegalDocId) => {
     setReadDocs((prev) => (prev[id] ? prev : { ...prev, [id]: true }));
@@ -122,13 +123,39 @@ export function EnrollmentGate({
   const allRead = LEGAL_DOCS.every((d) => readDocs[d.id]);
   const allChecked = CLAUSES.every((c) => checks[c.id]) && withdrawalWaiver && agree;
 
-  // Focus containment niceties: Escape cancels.
+  // Focus management (a11y): Escape cancels; on open, focus moves into the
+  // dialog and is TRAPPED there (Tab/Shift+Tab cycle within the panel); on
+  // close, focus returns to whatever opened it (the pay button).
   useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    const panel = panelRef.current;
+    panel?.focus();
+
+    const focusables = () =>
+      panel
+        ? Array.from(
+            panel.querySelectorAll<HTMLElement>(
+              'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), iframe, [tabindex]:not([tabindex="-1"])',
+            ),
+          ).filter((el) => el.offsetParent !== null)
+        : [];
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel();
+      if (e.key === 'Escape') { onCancel(); return; }
+      if (e.key !== 'Tab' || !panel) return;
+      const items = focusables();
+      if (items.length === 0) { e.preventDefault(); panel.focus(); return; }
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || active === panel)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      opener?.focus?.();
+    };
   }, [onCancel]);
 
   async function confirm() {
@@ -167,7 +194,9 @@ export function EnrollmentGate({
       onClick={onCancel}
     >
       <div
-        className="glass glass-gold flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-[#bc9863]/40"
+        ref={panelRef}
+        tabIndex={-1}
+        className="glass glass-gold flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-[#bc9863]/40 outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="border-b border-white/8 px-6 py-4">

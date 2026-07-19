@@ -24,6 +24,10 @@ export default function ImagePage() {
           <p className="mx-auto mt-3 max-w-lg text-[0.95rem] leading-relaxed text-[#8b8f99]">
             Your prompt, your key, every frontier model. No credit packs.
           </p>
+          <p className="mx-auto mt-2 font-mono text-[11px] tracking-[0.04em] text-[#8b909e]">
+            Rendering runs on your own fal.ai key and needs an active plan.{' '}
+            <a href="/pricing" className="text-[#e7cfa3] underline underline-offset-2 transition hover:opacity-80">See plans</a>.
+          </p>
         </div>
 
         <DirectGenerator kind="image" />

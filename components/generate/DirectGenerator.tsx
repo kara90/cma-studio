@@ -236,6 +236,7 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
   const [queuePos, setQueuePos] = useState<number | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [showPlans, setShowPlans] = useState(false);
+  const [showSignIn, setShowSignIn] = useState(false);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const attemptsRef = useRef(0);
@@ -250,10 +251,13 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
   }, []);
   useEffect(() => stopPolling, [stopPolling]);
 
-  /** Errors that mean "this account needs a plan" get a See plans link. */
+  /** Errors that mean "needs a plan" get a See-plans link; "not signed in"
+   * (the 401 "Sign in first.") gets a Sign-in link — never a dead end. */
   const failWith = useCallback((msg: string, is402 = false) => {
     setError(msg);
-    setShowPlans(is402 || /subscribe/i.test(msg));
+    const needsPlan = is402 || /subscribe/i.test(msg);
+    setShowPlans(needsPlan);
+    setShowSignIn(!needsPlan && /sign in/i.test(msg));
     setStatus('ERROR');
   }, []);
 
@@ -609,6 +613,14 @@ export function DirectGenerator({ kind }: { kind: DirectKind }) {
                   className="inline-flex flex-none cursor-pointer items-center gap-1.5 rounded-lg bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-3 py-1.5 text-[11px] font-semibold text-black transition hover:brightness-105"
                 >
                   See plans <ArrowRight size={12} />
+                </Link>
+              )}
+              {showSignIn && (
+                <Link
+                  href="/login"
+                  className="inline-flex flex-none cursor-pointer items-center gap-1.5 rounded-lg bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-3 py-1.5 text-[11px] font-semibold text-black transition hover:brightness-105"
+                >
+                  Sign in <ArrowRight size={12} />
                 </Link>
               )}
             </div>

@@ -498,6 +498,27 @@ function ProWaitlist() {
 
 /* ── member: current plan summary ── */
 function MemberView({ tier }: { tier: Tier }) {
+  const [billingBusy, setBillingBusy] = useState(false);
+  const [billingErr, setBillingErr] = useState<string | null>(null);
+
+  // Opens Stripe's hosted Customer Portal (cancel / update card / invoices) —
+  // this is what the Refund Policy's "cancel with a click / manage your
+  // subscription" points to. 503 until Stripe secrets are set.
+  async function manageSubscription() {
+    setBillingErr(null);
+    setBillingBusy(true);
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' });
+      if (res.status === 401) { window.location.href = '/login'; return; }
+      const data = await res.json();
+      if (data.ok && data.url) { window.location.href = data.url; return; }
+      setBillingErr(data.error ?? 'Subscription management is not available yet.');
+    } catch {
+      setBillingErr('Could not open billing. Try again.');
+    }
+    setBillingBusy(false);
+  }
+
   return (
     <div className="mx-auto max-w-xl">
       <div className="glass glass-gold rounded-2xl p-7 text-center">
@@ -508,9 +529,26 @@ function MemberView({ tier }: { tier: Tier }) {
         <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[#bc9863]/20 bg-[#bc9863]/6 px-3 py-2 font-mono text-[12px] text-[#e7cfa3]">
           <Archive size={14} className="shrink-0 text-[#bc9863]" /> {tier.retention}
         </div>
-        <Link href="/studio" className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-6 py-3 text-sm font-semibold text-black transition hover:brightness-105">
-          Open CMA Studio <ArrowRight size={15} />
-        </Link>
+        <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Link href="/studio" className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-6 py-3 text-sm font-semibold text-black transition hover:brightness-105">
+            Open CMA Studio <ArrowRight size={15} />
+          </Link>
+          <button
+            type="button"
+            onClick={manageSubscription}
+            disabled={billingBusy}
+            className="inline-flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border border-white/12 px-5 py-3 text-sm font-semibold text-[#cfcabf] transition hover:border-[#bc9863] hover:text-[#e7cfa3] disabled:opacity-60"
+          >
+            {billingBusy && <Loader2 size={15} className="animate-spin" />}
+            Manage subscription
+          </button>
+        </div>
+        {billingErr && (
+          <p className="mt-3 font-mono text-[11px] text-amber-300">{billingErr}</p>
+        )}
+        <p className="mt-3 font-mono text-[10.5px] leading-relaxed text-[#8b909e]">
+          Update payment, view invoices or cancel anytime in the secure billing portal.
+        </p>
       </div>
     </div>
   );
