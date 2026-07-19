@@ -22,7 +22,7 @@ import { BETA_COOKIE, BETA_TOKEN } from '@/lib/betaGate';
 // Beta password wall on/off switch. false = site is PUBLIC (no access code);
 // true = gated behind /unlock. Flip and redeploy to toggle. The www->apex
 // redirect below always runs, wall on or off.
-const WALL_ENABLED = false;
+const WALL_ENABLED = true;
 
 export function middleware(request: NextRequest) {
   // Canonical host: www.* -> apex (301), preserving path + query. cinemasterstudio.com
@@ -52,6 +52,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   // Gate everything EXCEPT the unlock screen, its API, and static assets.
   matcher: [
-    '/((?!_next/static|_next/image|unlock|api/unlock|favicon\\.ico|icon\\.png|apple-icon\\.png|manifest\\.webmanifest|sw\\.js|og-recipe\\.png|robots\\.txt|sitemap\\.xml|clips/|icons/|screens/).*)',
+    '/((?!_next/static|_next/image|unlock|api/unlock|favicon\\.ico|icon\\.png|apple-icon\\.png|manifest\\.webmanifest|sw\\.js|og-recipe\\.png|og-cover\\.png|robots\\.txt|sitemap\\.xml|clips/|icons/|screens/).*)',
   ],
 };
