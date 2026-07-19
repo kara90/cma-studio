@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: 'CMA Marketing Studio | CMA Studio',
   description:
     'Product ads that convert. Upload your product shot, describe the ad, pick a backdrop and an action. Preview — rendering opens soon.',
+  alternates: { canonical: '/marketing' },
 };
 
 export default function MarketingPage() {

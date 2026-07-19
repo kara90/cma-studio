@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: 'Generate Images | CMA Studio',
   description:
     'Type a prompt, pick a frontier image model and render on your own Fal.ai key. No credit packs, no markup on compute.',
+  alternates: { canonical: '/image' },
 };
 
 export default function ImagePage() {

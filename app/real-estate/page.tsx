@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: 'CMA Real Estate Studio | CMA Studio',
   description:
     'Listing films that sell the home. Drone reveals, floating walk-throughs and twilight exteriors built from your own photos of the property. Preview — rendering opens soon.',
+  alternates: { canonical: '/real-estate' },
 };
 
 export default function RealEstatePage() {

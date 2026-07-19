@@ -1,11 +1,27 @@
 import type { Metadata } from 'next';
 import { Faq } from '@/components/marketing/Faq';
+import { GROUPS } from '@/components/marketing/faqData';
 import { SiteHeader } from '@/components/SiteHeader';
 import { TrademarkNotice } from '@/components/TrademarkNotice';
 
 export const metadata: Metadata = {
   title: 'FAQ | CMA Studio | CineMaster Academy',
   description: 'Straight answers on keys, costs, rendering, storage and your work on CMA Studio.',
+  alternates: { canonical: '/faq' },
+};
+
+// FAQPage structured data, built from the same GROUPS the page renders (one
+// source of truth) so search engines can surface the Q&A as rich results.
+const FAQ_JSONLD = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: GROUPS.flatMap((g) =>
+    g.items.map((it) => ({
+      '@type': 'Question',
+      name: it.q,
+      acceptedAnswer: { '@type': 'Answer', text: it.a },
+    })),
+  ),
 };
 
 /**
@@ -15,6 +31,7 @@ export const metadata: Metadata = {
 export default function FaqPage() {
   return (
     <div className="relative min-h-screen">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSONLD) }} />
       <SiteHeader />
 
       <main className="relative z-10 pt-6 pb-24">

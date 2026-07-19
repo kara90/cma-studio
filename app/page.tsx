@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -82,6 +83,12 @@ const TOOLS = [
     flagship: true,
   },
 ] as const;
+
+// Home keeps the root layout's title/description/OG; this only pins the
+// canonical so query-string/host variants don't index as duplicates.
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+};
 
 export default function Home() {
   return (

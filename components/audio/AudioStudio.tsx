@@ -166,10 +166,10 @@ const AudioCard = memo(function AudioCard({
           type="button"
           onClick={() => onToggle(item)}
           aria-label={playing ? 'Pause' : 'Play'}
-          className={`absolute left-5 top-1/2 grid h-10 w-10 -translate-y-1/2 cursor-pointer place-items-center rounded-full border backdrop-blur-md transition ${
+          className={`absolute left-4 top-1/2 grid h-11 w-11 -translate-y-1/2 cursor-pointer place-items-center rounded-full border backdrop-blur-md transition ${
             playing
               ? 'border-[#bc9863] bg-[#bc9863]/25 text-[#f4efe6] opacity-100'
-              : 'border-white/20 bg-black/55 text-[#e7cfa3] opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
+              : 'border-white/20 bg-black/55 text-[#e7cfa3] opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100'
           }`}
         >
           {playing ? <Pause size={16} /> : <Play size={16} className="translate-x-[1px]" />}
@@ -186,23 +186,25 @@ const AudioCard = memo(function AudioCard({
             {item.source === 'library' && typeof item.daysLeft === 'number' && (
               <span className="rounded border border-white/12 px-1 py-0.5 font-mono text-[8px] tracking-[0.1em] text-[#8b909e] uppercase">{item.daysLeft}d</span>
             )}
+            {/* controls reveal on hover, but stay visible on touch devices
+                (no hover) so Download/Reuse are always reachable on mobile */}
             <button
               type="button"
               onClick={() => onReuse(item)}
               title="Reuse this prompt"
               aria-label="Reuse this prompt"
-              className="cursor-pointer text-[#8b909e] opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100 hover:text-[#e7cfa3]"
+              className="grid h-9 w-9 cursor-pointer place-items-center rounded-lg text-[#8b909e] opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100 hover:text-[#e7cfa3] [@media(hover:none)]:opacity-100"
             >
-              <RotateCcw size={13} />
+              <RotateCcw size={14} />
             </button>
             <button
               type="button"
               onClick={() => void downloadRender(item.url, renderFilename(item.prompt || 'audio', 'audio', displayModel))}
               title="Download"
               aria-label="Download"
-              className="cursor-pointer text-[#8b909e] opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100 hover:text-[#e7cfa3]"
+              className="grid h-9 w-9 cursor-pointer place-items-center rounded-lg text-[#8b909e] opacity-0 transition group-hover:opacity-100 focus-visible:opacity-100 hover:text-[#e7cfa3] [@media(hover:none)]:opacity-100"
             >
-              <Download size={13} />
+              <Download size={14} />
             </button>
           </span>
         </div>
@@ -546,14 +548,15 @@ export function AudioStudio() {
 
       {/* ── deck header: lanes + key ── */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] p-1">
+        {/* lane pills wrap instead of overflowing the viewport on phones */}
+        <div className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.03] p-1">
           {([{ id: 'all' as const, label: 'All', icon: AudioLines }, ...LANES]).map((l) => (
             <button
               key={l.id}
               type="button"
               onClick={() => setLane(l.id)}
               aria-pressed={lane === l.id}
-              className={`inline-flex min-h-[34px] cursor-pointer items-center gap-1.5 rounded-full px-3.5 font-mono text-[10.5px] tracking-[0.16em] uppercase transition ${
+              className={`inline-flex min-h-[40px] cursor-pointer items-center gap-1.5 rounded-xl px-3.5 font-mono text-[10.5px] tracking-[0.16em] uppercase transition ${
                 lane === l.id ? 'bg-[#bc9863]/18 text-[#e7cfa3]' : 'text-[#8b909e] hover:text-[#c7c2b8]'
               }`}
             >
@@ -603,14 +606,16 @@ export function AudioStudio() {
           painted UNDER the sibling footer and its links swallowed every click,
           which read as "the model selector is locked".) ── */}
       <div className="mt-4 rounded-3xl border border-[#bc9863]/30 bg-[#0b0d12]/95 p-3 shadow-[0_24px_80px_-24px_rgba(0,0,0,0.8)] backdrop-blur-xl sm:p-4">
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-end">
+          {/* single-row rig only at lg+ where there is real width; below that the
+              controls stack full-width so nothing crushes the prompt on tablets/phones */}
+          <div className="flex flex-col gap-2.5 lg:flex-row lg:items-end">
             {/* model selector */}
             <div className="relative flex-none">
               <button
                 type="button"
                 onClick={() => setMenuOpen((o) => !o)}
                 aria-expanded={menuOpen}
-                className="flex min-h-[46px] w-full cursor-pointer items-center gap-2.5 rounded-xl border border-[#bc9863]/30 bg-[#bc9863]/[0.06] px-3 py-2 text-left transition hover:border-[#bc9863]/55 sm:w-[190px]"
+                className="flex min-h-[46px] w-full cursor-pointer items-center gap-2.5 rounded-xl border border-[#bc9863]/30 bg-[#bc9863]/[0.06] px-3 py-2 text-left transition hover:border-[#bc9863]/55 lg:w-[190px]"
               >
                 <span className="grid h-8 w-8 flex-none place-items-center rounded-lg border border-[#bc9863]/30 bg-[#bc9863]/10 text-[#bc9863]">
                   {(() => { const L = LANES.find((l) => l.id === modelInfo.audioGroup); const I = L?.icon ?? AudioLines; return <I size={15} />; })()}
@@ -650,7 +655,7 @@ export function AudioStudio() {
                 <select
                   value={voice}
                   onChange={(e) => setVoice(e.target.value)}
-                  className="min-h-[46px] w-full cursor-pointer rounded-xl border border-white/10 bg-black/50 px-2.5 text-[12.5px] text-[#f4efe6] outline-none transition focus:border-[#bc9863] sm:w-[130px]"
+                  className="min-h-[46px] w-full cursor-pointer rounded-xl border border-white/10 bg-black/50 px-2.5 text-[12.5px] text-[#f4efe6] outline-none transition focus:border-[#bc9863] lg:w-[130px]"
                 >
                   {(caps.voices?.length ? caps.voices : ELEVEN_VOICES).map((v) => (
                     <option key={v} value={v} className="bg-[#0b0d12]">{voiceLabel(v)}</option>
@@ -664,7 +669,7 @@ export function AudioStudio() {
                 <select
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
-                  className="min-h-[46px] w-full cursor-pointer rounded-xl border border-white/10 bg-black/50 px-2.5 text-[12.5px] text-[#f4efe6] outline-none transition focus:border-[#bc9863] sm:w-[92px]"
+                  className="min-h-[46px] w-full cursor-pointer rounded-xl border border-white/10 bg-black/50 px-2.5 text-[12.5px] text-[#f4efe6] outline-none transition focus:border-[#bc9863] lg:w-[92px]"
                 >
                   {caps.durations.map((d) => (
                     <option key={d} value={d} className="bg-[#0b0d12]">{durLabel(caps, d)}</option>
@@ -677,7 +682,7 @@ export function AudioStudio() {
                 type="button"
                 onClick={() => setInstrumental((v) => (v === true ? false : true))}
                 aria-pressed={instrumental === true}
-                className={`min-h-[46px] flex-none cursor-pointer rounded-xl border px-3 font-mono text-[10px] tracking-[0.12em] uppercase transition ${
+                className={`min-h-[46px] w-full flex-none cursor-pointer rounded-xl border px-3 font-mono text-[10px] tracking-[0.12em] uppercase transition lg:w-auto ${
                   instrumental === true ? 'border-[#bc9863] bg-[#bc9863]/15 text-[#e7cfa3]' : 'border-white/10 text-[#8b909e] hover:border-[#bc9863]/40'
                 }`}
                 title="Instrumental only — no vocals"
@@ -693,7 +698,7 @@ export function AudioStudio() {
               disabled={rolling || !apiKey}
               aria-disabled={rolling || !apiKey}
               title={!apiKey ? 'Connect your Fal.ai key first' : undefined}
-              className="inline-flex min-h-[46px] flex-none cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-5 text-[13.5px] font-semibold text-black shadow-[0_10px_30px_rgba(188,152,99,0.35)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-[46px] w-full flex-none cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-[#e7cfa3] to-[#bc9863] px-5 text-[13.5px] font-semibold text-black shadow-[0_10px_30px_rgba(188,152,99,0.35)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50 lg:w-auto"
             >
               {rolling ? <Loader2 size={15} className="animate-spin" /> : <Sparkles size={15} />}
               {rolling ? 'Rolling…' : 'Generate'}

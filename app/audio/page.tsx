@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: 'Audio Studio | CMA Studio',
   description:
     'Voiceover, music and sound design in one waveform deck: ElevenLabs, Lyria, MiniMax, Stable Audio and more, rendered on your own Fal.ai key. No credit packs, no markup on compute.',
+  alternates: { canonical: '/audio' },
 };
 
 export default function AudioPage() {

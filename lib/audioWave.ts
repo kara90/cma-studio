@@ -138,15 +138,23 @@ export function drawWave(
   const playedColor = opts.played ?? '#e7cfa3';
   const restColor = opts.rest ?? 'rgba(188,152,99,0.34)';
 
+  // roundRect shipped Safari 16 / Chrome 99 (2022). On older engines (iOS 15.x,
+  // pre-2022 desktop) it's undefined and an unguarded call would throw, blanking
+  // every card. Detect once; fall back to plain fillRect (corners are cosmetic).
+  const hasRoundRect = typeof ctx.roundRect === 'function';
   for (let i = 0; i < n; i++) {
     const x = (i / n) * w;
     const amp = Math.max(2, peaks[i] * (h * 0.92)) / 2;
     ctx.fillStyle = i / n <= progress ? playedColor : restColor;
     // rounded vertical bar, mirrored around the midline
-    const r = Math.min(bw / 2, 2);
-    ctx.beginPath();
-    ctx.roundRect(x, mid - amp, bw, amp * 2, r);
-    ctx.fill();
+    if (hasRoundRect) {
+      const r = Math.min(bw / 2, 2);
+      ctx.beginPath();
+      ctx.roundRect(x, mid - amp, bw, amp * 2, r);
+      ctx.fill();
+    } else {
+      ctx.fillRect(x, mid - amp, bw, amp * 2);
+    }
   }
 
   if (progress > 0 && progress < 1 && opts.cursor) {

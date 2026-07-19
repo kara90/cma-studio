@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: 'Generate Video | CMA Studio',
   description:
     'Type a prompt, pick a frontier video model and render on your own Fal.ai key. No credit packs, no markup on compute.',
+  alternates: { canonical: '/video' },
 };
 
 export default function VideoPage() {
